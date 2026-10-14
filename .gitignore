@@ -1,0 +1,17 @@
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+
+# Local environment files
+.env
+.env.*
+!.env.example
