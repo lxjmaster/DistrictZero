@@ -14,12 +14,22 @@ The bootstrap task is complete. On 2026-10-14 the user invoked the handoff promp
 
 On 2026-10-14 the user additionally authorized adding GitHub Actions and publishing V0.1 to GitHub Pages. This delivery includes committing and pushing the implemented game and resource-capacity fix to master, enabling Pages, deploying, and verifying the public site. Later roadmap implementation is outside this scope. Subsequent user instructions may change this boundary. Do not request repeated approval for an unchanged authorized outcome.
 
+The user has now requested further content and a roadmap audit. This authorizes
+local implementation and verification of V0.2, following docs/V0.2_SPEC.md.
+That local delivery and its review fixes are complete. On 2026-10-15 the user
+additionally authorized committing and pushing the complete V0.2 and review
+fixes to master, publishing through the existing GitHub Pages workflow, and
+verifying the public site. V0.3–V0.6 remain subsequent work. Do not request
+repeated approval for this unchanged publishing outcome.
+
 ## Authoritative Design
 
 Read these documents before implementation:
 
 1. docs/PRODUCT_SPEC.md
 2. docs/TECHNICAL_PLAN.md
+
+For V0.2 changes, also read docs/V0.2_SPEC.md and map verification to C01–C08.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -53,6 +63,12 @@ Production builds use /DistrictZero/ as their base path; the development server 
 src/game contains configuration, simulation, and save validation. src/app contains time, persistence, and Web Locks adapters. src/ui contains the Chinese interface. Keep all production rules in the simulation; browser tests may accelerate time but must not introduce alternate economy rules.
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
+
+Current saves use schema 2 and balance 0.2.0, with explicit migration from schema
+1 / balance 0.1.0. Keep storage keys and writer lock stable. District resources
+and projects are shared; facilities, residents, jobs, lighting, and public
+equipment belong to their district. Maintenance is repeatable and uses a separate
+completion counter. Keep the V0.1 migration fixture and regressions valid.
 
 ## Required Behavior
 

@@ -1,31 +1,35 @@
-import { decodeSave, encodeSave } from '../game/saves';
+import { decodeSave, encodeSave, SaveVersionError } from '../game/saves';
 import type { GameState } from '../game/types';
 
 export const SAVE_KEY = 'districtzero.save.v1';
 export const BACKUP_KEY = 'districtzero.save.backup.v1';
 export interface StorageLike { getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void }
+export interface SaveOptions { preserveBackup?: boolean; replaceIncompatible?: boolean }
+const incompatibleLoad = () => ({ state: null, warning: '存档版本不兼容，原始数据已保留，自动保存已停止。请使用兼容版本打开，或导入有效存档、明确重置。', blocked: true });
 export class SaveStorage {
   constructor(private store: StorageLike) {}
   load(): { state: GameState | null; warning: string | null; blocked?: boolean } {
     let primary: string | null;
     try { primary = this.store.getItem(SAVE_KEY); } catch { return { state: null, warning: '浏览器存储不可用。可继续游玩，请导出存档保留进度。' }; }
     if (primary) {
-      try { return { state: decodeSave(primary).state, warning: null }; } catch { /* read valid recovery copy */ }
+      try { const loaded = decodeSave(primary); return { state: loaded.state, warning: loaded.migratedFrom ? 'V0.1存档已迁移：原有进度保留，首章结束后可继续建设夜城。' : null }; }
+      catch (error) { if (error instanceof SaveVersionError) return incompatibleLoad(); /* read valid recovery copy */ }
     }
     let backup: string | null = null;
     try {
       backup = this.store.getItem(BACKUP_KEY);
       if (backup) return { state: decodeSave(backup).state, warning: '主存档缺失或损坏，已读取有效恢复副本。' };
-    } catch { /* leave invalid data untouched */ }
+    } catch (error) { if (error instanceof SaveVersionError) return incompatibleLoad(); /* leave invalid data untouched */ }
     return { state: null, warning: primary || backup ? '主存档与恢复副本均无法读取。原始数据保留，请导入有效存档或明确重置。' : null, blocked: Boolean(primary || backup) };
   }
-  save(state: GameState, now: number, preserveBackup = false): void {
+  save(state: GameState, now: number, options: SaveOptions = {}): void {
     const encoded = encodeSave(state, now);
     const current = this.store.getItem(SAVE_KEY);
-    if (current && !preserveBackup) {
+    if (current) {
       let valid = false;
-      try { decodeSave(current); valid = true; } catch { /* preserve valid backup */ }
-      if (valid) this.store.setItem(BACKUP_KEY, current);
+      try { decodeSave(current); valid = true; }
+      catch (error) { if (error instanceof SaveVersionError && !options.replaceIncompatible) throw error; /* preserve valid backup */ }
+      if (valid && !options.preserveBackup) this.store.setItem(BACKUP_KEY, current);
     }
     this.store.setItem(SAVE_KEY, encoded);
     if (this.store.getItem(SAVE_KEY) !== encoded) throw new Error('写入后读取不一致');

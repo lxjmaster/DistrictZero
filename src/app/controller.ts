@@ -1,8 +1,9 @@
 import { advance, applyAction, createGame, summarize } from '../game/engine';
-import { decodeSave, encodeSave } from '../game/saves';
+import { decodeSave, encodeSave, SaveVersionError } from '../game/saves';
 import type { Action, GameState } from '../game/types';
 import { BrowserSession } from './session';
 import { SaveStorage } from './storage';
+import type { SaveOptions } from './storage';
 
 export interface Snapshot {
   state: GameState;
@@ -79,7 +80,7 @@ export class GameController {
     document.removeEventListener('visibilitychange', this.onVisibility);
     window.removeEventListener('pagehide', this.onPageHide);
   }
-  private async catchUp(returning = false, preserveBackup = false) {
+  private async catchUp(returning = false, saveOptions: SaveOptions = {}) {
     if (!this.snapshot.owner) return;
     const now = Math.floor(this.now());
     const before = this.snapshot.state;
@@ -105,18 +106,18 @@ export class GameController {
     state = { ...state, clock: { ...state.clock, lastAt: Math.max(now, state.clock.lastAt) } };
     if ((returning && elapsed >= 1000) || long) state.report = summarize(before, state, elapsed);
     this.publish({ state, busy: null });
-    if (long) this.save(preserveBackup);
+    if (long) this.save(saveOptions);
   }
-  private save(preserveBackup = false) {
+  private save(options: SaveOptions = {}) {
     if (!this.snapshot.owner) return;
-    if (this.snapshot.storageBlocked) { this.publish({ saveStatus: '原始坏档保留，等待导入或重置' }); return; }
+    if (this.snapshot.storageBlocked) { this.publish({ saveStatus: '原始存档保留，等待导入或重置' }); return; }
     try {
       const now = Math.floor(this.now());
-      this.storage.save(this.snapshot.state, now, preserveBackup);
+      this.storage.save(this.snapshot.state, now, options);
       this.lastSave = now;
       this.publish({ saveStatus: '已保存', savedAt: now });
     } catch (error) {
-      this.publish({ saveStatus: `保存失败：${error instanceof Error ? error.message : '存储不可用'}。请导出存档。` });
+      this.publish({ saveStatus: `保存失败：${error instanceof Error ? error.message : '存储不可用'}。请导出存档。`, ...(error instanceof SaveVersionError ? { storageBlocked: true } : {}) });
     }
   }
   dispatch(action: Action) {
@@ -138,16 +139,18 @@ export class GameController {
       await this.catchUp();
       this.storage.backupCurrent(this.snapshot.state, Math.floor(this.now()));
       this.publish({ state: imported, storageBlocked: false, message: '已导入存档，替换前的进度保留在恢复副本中。' });
-      await this.catchUp(true, true);
-      this.save(true);
+      const options = { preserveBackup: true, replaceIncompatible: true };
+      await this.catchUp(true, options);
+      this.save(options);
     });
   }
   restore() {
     return this.serialize(async () => {
       if (!this.snapshot.owner) return;
+      if (this.snapshot.storageBlocked) { this.publish({ message: '原始存档保留，请使用兼容版本打开，或确认导入有效存档、明确重置。' }); return; }
       const recovered = this.storage.recovery();
       this.publish({ state: recovered, storageBlocked: false, message: '已读取有效恢复副本。' });
-      await this.catchUp(true, true); this.save(true);
+      await this.catchUp(true, { preserveBackup: true }); this.save({ preserveBackup: true });
     });
   }
   reset() {
@@ -156,7 +159,7 @@ export class GameController {
       // A confirmed reset replaces only this game's two named save slots.
       this.publish({ state: createGame(Math.floor(this.now())), storageBlocked: false, message: '已开始新的工务交接。' });
       this.storage.backupCurrent(this.snapshot.state, Math.floor(this.now()));
-      this.save(true);
+      this.save({ preserveBackup: true, replaceIncompatible: true });
     });
   }
   clearMessage() { this.publish({ message: null }); }

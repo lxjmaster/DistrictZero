@@ -164,13 +164,54 @@ test('BT-03/06: corrupt primary recovers; both corrupt slots wait for explicit r
   await page.reload(); await expect(page.getByRole('alert')).toContainText('有效恢复副本');
   await expect(page.getByTestId('save-status')).toHaveText('已保存'); expect((await saved(page)).clock.seconds).toBe(60);
   await page.addInitScript(([primary, backup]) => { localStorage.setItem(primary, '{broken'); localStorage.setItem(backup, '{broken'); }, [SAVE_KEY, BACKUP_KEY]);
-  await page.reload(); await expect(page.getByTestId('save-status')).toContainText('原始坏档保留');
+  await page.reload(); await expect(page.getByTestId('save-status')).toContainText('原始存档保留');
   await page.clock.fastForward(60000); expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe('{broken');
   await click(page, '设置'); await click(page, '重置本地进度'); await expect(page.getByRole('dialog')).toContainText('这两个');
   await click(page, '返回'); expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe('{broken');
   await click(page, '重置本地进度'); await click(page, '确认重置这两个存档');
   await expect(page.getByTestId('save-status')).toHaveText('已保存'); expect((await saved(page)).clock.seconds).toBe(0);
 });
+for (const [version, resolution] of [
+  [{ schemaVersion: 3, balanceVersion: '0.3.0' }, 'import'],
+  [{ schemaVersion: 2, balanceVersion: '0.2.1' }, 'reset']
+] as const) {
+  test(`BT-03/04/06: incompatible save ${JSON.stringify(version)} stays intact until confirmed ${resolution}`, async ({ page }) => {
+    const backup = encodeSave(advance(createGame(START.getTime()), 60000), START.getTime());
+    const primary = JSON.stringify({ ...JSON.parse(backup), ...version });
+    await page.addInitScript(([primaryKey, backupKey, rawPrimary, rawBackup]) => {
+      if (!localStorage.getItem(primaryKey)) { localStorage.setItem(primaryKey, rawPrimary); localStorage.setItem(backupKey, rawBackup); }
+    }, [SAVE_KEY, BACKUP_KEY, primary, backup]);
+    await page.clock.install({ time: START }); await page.clock.pauseAt(START); await page.goto('/');
+    await expect(page.getByRole('alert')).toContainText('版本不兼容');
+    await expect(page.getByTestId('save-status')).toContainText('原始存档保留');
+    await page.clock.fastForward(60000); await expect(page.getByTestId('parts-stock')).toContainText('24.4');
+    await click(page, '设置'); await expect(page.getByRole('button', { name: '读取恢复副本', exact: true })).toBeDisabled();
+    await click(page, '立即保存'); await click(page, '纸色主题');
+    expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe(primary);
+    expect(await page.evaluate(key => localStorage.getItem(key), BACKUP_KEY)).toBe(backup);
+    await page.reload(); await expect(page.getByTestId('save-status')).toContainText('原始存档保留');
+    expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe(primary);
+    expect(await page.evaluate(key => localStorage.getItem(key), BACKUP_KEY)).toBe(backup);
+    await click(page, '设置');
+    if (resolution === 'import') {
+      const replacement = encodeSave(createGame(START.getTime() - 60000), START.getTime() - 60000);
+      await page.getByLabel('存档文本').fill(replacement); await click(page, '检查存档');
+      await expect(page.getByRole('heading', { name: '检查通过 · 等待确认' })).toBeVisible();
+      expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe(primary);
+      expect(await page.evaluate(key => localStorage.getItem(key), BACKUP_KEY)).toBe(backup);
+      await click(page, '确认导入并替换'); await expect(page.getByTestId('save-status')).toHaveText('已保存');
+      expect((await saved(page)).clock.seconds).toBe(120);
+    } else {
+      await click(page, '重置本地进度'); await click(page, '返回');
+      expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe(primary);
+      await click(page, '重置本地进度'); await click(page, '确认重置这两个存档');
+      await expect(page.getByTestId('save-status')).toHaveText('已保存'); expect((await saved(page)).clock.seconds).toBe(0);
+    }
+    await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
+    const resolved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVE_KEY);
+    expect(resolved.schemaVersion).toBe(2); expect(resolved.balanceVersion).toBe('0.2.0');
+  });
+}
 test('BT-08/FR-05/06: full storage, no repair worker, power exhaustion and recovery have visible reasons', async ({ page }) => {
   await fresh(page); await wait(page, 600); await expect(page.getByText('零件满仓，回收工停止或减产', { exact: true })).toBeVisible();
   await click(page, '安排让临时路灯亮起'); await click(page, '工务');

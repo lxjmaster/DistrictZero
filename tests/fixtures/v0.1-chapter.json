@@ -1,0 +1,265 @@
+{
+  "format": "districtzero",
+  "schemaVersion": 1,
+  "balanceVersion": "0.1.0",
+  "savedAt": 1791967625000,
+  "state": {
+    "district": "district-0",
+    "resources": {
+      "energy": 300000,
+      "parts": 245050,
+      "memory": 80000
+    },
+    "earned": {
+      "energy": 1382167,
+      "parts": 714800,
+      "memory": 149000
+    },
+    "ledger": {
+      "production": {
+        "energy": 1382167,
+        "parts": 714800,
+        "memory": 135000
+      },
+      "rewards": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 14000
+      },
+      "operating": {
+        "energy": 932167,
+        "parts": 49750,
+        "memory": 0
+      },
+      "reserved": {
+        "energy": 180000,
+        "parts": 430000,
+        "memory": 69000
+      },
+      "refunds": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0
+      }
+    },
+    "facilities": {
+      "generator": 1,
+      "recycler": 1,
+      "workbench": 1,
+      "dorm": 1,
+      "warehouse": 1,
+      "mailbox": 1
+    },
+    "population": {
+      "shadow": 2,
+      "echo": 2
+    },
+    "arrivalSeconds": 0,
+    "arrivals": 2,
+    "assignments": {
+      "shadow": {
+        "power": 1,
+        "salvage": 1,
+        "repair": 0,
+        "record": 0
+      },
+      "echo": {
+        "power": 0,
+        "salvage": 0,
+        "repair": 1,
+        "record": 1
+      }
+    },
+    "lighting": "bright",
+    "lightingChosen": true,
+    "priority": [
+      "salvage",
+      "repair",
+      "record"
+    ],
+    "queue": [],
+    "completed": [
+      "P01",
+      "build:dorm:1",
+      "P02",
+      "build:warehouse:1",
+      "build:mailbox:1",
+      "R01",
+      "R02",
+      "P03"
+    ],
+    "events": {
+      "E01": {
+        "status": "claimed"
+      },
+      "E03": {
+        "status": "claimed",
+        "choice": "bright"
+      },
+      "E02": {
+        "status": "claimed"
+      },
+      "E04": {
+        "status": "claimed"
+      },
+      "E05": {
+        "status": "claimed"
+      }
+    },
+    "memoryProduced": true,
+    "address": "0-001",
+    "clock": {
+      "seconds": 2825,
+      "remainderMs": 0,
+      "lastAt": 1791967625000
+    },
+    "nextProject": 9,
+    "theme": "dark",
+    "report": {
+      "awayMs": 900000,
+      "seconds": 900,
+      "start": {
+        "energy": 300000,
+        "parts": 230300,
+        "memory": 41250
+      },
+      "end": {
+        "energy": 300000,
+        "parts": 245050,
+        "memory": 80000
+      },
+      "flows": {
+        "production": {
+          "energy": 427917,
+          "parts": 216000,
+          "memory": 63750
+        },
+        "rewards": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "operating": {
+          "energy": 327917,
+          "parts": 21250,
+          "memory": 0
+        },
+        "reserved": {
+          "energy": 100000,
+          "parts": 180000,
+          "memory": 25000
+        },
+        "refunds": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        }
+      },
+      "completed": [
+        "P03"
+      ],
+      "arrivals": {
+        "shadow": 0,
+        "echo": 0
+      },
+      "events": [
+        "E05"
+      ],
+      "pending": [
+        "E05"
+      ],
+      "reasons": [
+        "尚未安排工程",
+        "记忆满仓，记录员停止或减产",
+        "电量满仓，发电工按消耗补充"
+      ],
+      "goal": "地址 0-001 已登记。雨城的来信，等下一班车。"
+    },
+    "history": [
+      {
+        "second": 0,
+        "text": "收到工务交接单：请让这里有地方可去。"
+      },
+      {
+        "second": 85,
+        "text": "完工：让临时路灯亮起"
+      },
+      {
+        "second": 85,
+        "text": "新的交接事项：第一盏灯"
+      },
+      {
+        "second": 85,
+        "text": "已处理交接事项：第一盏灯"
+      },
+      {
+        "second": 335,
+        "text": "完工：夜居民宿舍 · 1级"
+      },
+      {
+        "second": 455,
+        "text": "回声居民入住，带来一些旧声音。"
+      },
+      {
+        "second": 455,
+        "text": "一名回声居民抵达，照明选择等你决定。"
+      },
+      {
+        "second": 455,
+        "text": "已处理交接事项：有人来住"
+      },
+      {
+        "second": 575,
+        "text": "回声居民入住，带来一些旧声音。"
+      },
+      {
+        "second": 575,
+        "text": "完工：给站牌写上“0”"
+      },
+      {
+        "second": 575,
+        "text": "新的交接事项：站牌上的0"
+      },
+      {
+        "second": 575,
+        "text": "已处理交接事项：站牌上的0"
+      },
+      {
+        "second": 725,
+        "text": "完工：后场仓库 · 1级"
+      },
+      {
+        "second": 875,
+        "text": "完工：回声信箱 · 1级"
+      },
+      {
+        "second": 1055,
+        "text": "信箱收到一封明天的信，两项研究开放。"
+      },
+      {
+        "second": 1075,
+        "text": "已处理交接事项：一封明天的信"
+      },
+      {
+        "second": 1675,
+        "text": "完工：工具规范"
+      },
+      {
+        "second": 1925,
+        "text": "完工：回声整理"
+      },
+      {
+        "second": 2675,
+        "text": "完工：修复旧站台"
+      },
+      {
+        "second": 2675,
+        "text": "新的交接事项：第一个地址"
+      },
+      {
+        "second": 2825,
+        "text": "已处理交接事项：第一个地址"
+      }
+    ]
+  }
+}

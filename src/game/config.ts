@@ -1,12 +1,12 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.1.0';
+export const BALANCE_VERSION = '0.2.0';
 export const RESOURCES: Resource[] = ['energy', 'parts', 'memory'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record'];
 export const RESIDENTS: Resident[] = ['shadow', 'echo'];
 export const FACILITY_IDS: Facility[] = ['generator', 'recycler', 'workbench', 'dorm', 'warehouse', 'mailbox'];
-export const EVENT_IDS: EventId[] = ['E01', 'E02', 'E03', 'E04', 'E05'];
+export const EVENT_IDS: EventId[] = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'E09', 'E10'];
 export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds'];
 export const resourceNames = { energy: '电量', parts: '零件', memory: '记忆' };
 export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '取消返还' };
@@ -35,17 +35,28 @@ export const FACILITIES: Record<Facility, { name: string; cost: Amounts; work: n
   warehouse: { name: '后场仓库', cost: cost(40, 20), work: 150000, description: '不再把未来堆在门口。每级增加 150 零件、100 电量、20 记忆容量。', mark: '05' },
   mailbox: { name: '回声信箱', cost: cost(45, 20, 4), work: 150000, description: '邮件偶尔先于寄件人到达。开放记录员，提高记忆效率与岗位容量。', mark: '06' }
 };
-export const PROJECTS: Record<'P01' | 'P02' | 'P03' | 'R01' | 'R02', ProjectDefinition> = {
+export const PROJECTS = {
   P01: { id: 'P01', name: '让临时路灯亮起', description: '先让经过的人看见这里。完成后开放宿舍与居民到达；事件奖励 6 记忆。', cost: cost(15, 10), work: 60000 },
   P02: { id: 'P02', name: '给站牌写上“0”', description: '空着的那一行，也是一条线路。完成后开放回声信箱；事件奖励 8 记忆。', cost: cost(20, 15), work: 120000 },
   P03: { id: 'P03', name: '修复旧站台', description: '让这里有地方可去。完成首章，登记第一个有效地址 0-001。', cost: cost(180, 100, 25), work: 900000 },
   R01: { id: 'R01', name: '工具规范', description: '给每一把工具一个确定的位置。维修进度永久提升 20%。', cost: cost(50, 0, 20), work: 300000 },
-  R02: { id: 'R02', name: '回声整理', description: '把声音放回它发生的地方。记忆产出永久提升 20%。', cost: cost(50, 0, 20), work: 300000 }
-};
+  R02: { id: 'R02', name: '回声整理', description: '把声音放回它发生的地方。记忆产出永久提升 20%。', cost: cost(50, 0, 20), work: 300000 },
+  P04: { id: 'P04', name: '测绘没有尽头的旧巷', description: '巷子每晚多出一扇窗。沿着仍有人使用的路测绘，登记旧巷 0-002，开放迁居与分区建设。', cost: cost(100, 60, 20), work: 450000 },
+  P05: { id: 'P05', name: '为信笺里补上门牌', description: '那些没有收件地址的信，终于有了住处。登记信笺里 0-003，与第0街区相连。', cost: cost(120, 60, 25), work: 540000 },
+  P06: { id: 'P06', name: '编成夜城地址簿', description: '给两个新区各留下至少两位居民，在第0街区建成配电亭与门牌事务所，确认如何共用门牌。三个地方开始互相找到。', cost: cost(160, 80, 35), work: 720000 },
+  P07: { id: 'P07', name: '接通雨城联络线', description: '维持回收与记录两种专业街区，给第0街区的两种公共设施供电。线路图的终点终于可以写下雨城。', cost: cost(220, 120, 50), work: 900000 },
+  R03: { id: 'R03', name: '地址索引', description: '不必从头查完所有门牌。居民到达间隔从 120 秒缩短为 90 秒。', cost: cost(60, 20, 20), work: 300000 },
+  R04: { id: 'R04', name: '巡检手册', description: '把下一次检查写进值班安排。开放按区自动巡检：设备状态不超过 300 时加入队尾。', cost: cost(80, 30, 25), work: 360000 }
+} satisfies Record<string, ProjectDefinition>;
 export const EVENTS: Record<EventId, { name: string; text: string; reward: Amounts }> = {
   E01: { name: '第一盏灯', text: '灯亮了。两名夜工抬起头，其中一位说：“原来我们在这里。”另一位把这句话记在交接单背面。纸上终于留下了字。', reward: cost(0, 0, 6) },
   E02: { name: '站牌上的0', text: '你给站牌写上0。没有车来，但玻璃后面多出了一张线路图。第一站就是这里，终点那一格还空着。', reward: cost(0, 0, 8) },
   E03: { name: '有人来住', text: '新住客敲了三下门，声音却敲了四下。“多出来那一下是昨天的。”他问：夜里要把灯调亮一点，还是给影子留些暗处？', reward: cost() },
   E04: { name: '一封明天的信', text: '信箱里有一封日期写着“明天”的信：“工具请按规范归还，回声请按发生顺序整理。”落款是你，字迹也是你。两份研究方案夹在信里。', reward: cost() },
-  E05: { name: '第一个地址', text: '名录终于接受了这行字：第0街区，0-001。站台广播说：“这里是第一站。”外部来信随即抵达：有一座雨城正在等工务人员。你把信放好，未来有了投递地址。', reward: cost() }
+  E05: { name: '第一个地址', text: '名录终于接受了这行字：第0街区，0-001。站台广播说：“这里是第一站。”外部来信随即抵达：有一座雨城正在等工务人员。先测绘站台旁的旧巷，把眼前的地方连起来。未来有了投递地址。', reward: cost() },
+  E06: { name: '巷子的另一端', text: '旧巷里的人一直在等你画完最后一条线。“这条巷子没有尽头吗？”你问。老人指着晾衣绳：“有，我们每天都走到这儿。”你以那件没有干的衬衫为界，写下0-002。空闲夜工现在可以迁居；灯光会替新住客指路。', reward: cost(0, 0, 12) },
+  E07: { name: '两家共用一块门牌', text: '信笺里两家人都叫自己“最后一家”。邮递员把两封信投进同一扇窗，窗后传来两声谢谢。事务所问：门牌可以共用一盏灯，还是给每个名字留一行？他们说，只要还能找到彼此，就都可以。', reward: cost() },
+  E08: { name: '有了各自的手艺', text: '旧物被送到擅长回收的地方，旧声音被送到愿意倾听的地方。一名夜工说：“原来不用每一条街都做所有的事。”袋子里多了三十枚整理好的零件，纸上留下了八段清楚的记忆。', reward: cost(30, 0, 8) },
+  E09: { name: '夜城有了通讯录', text: '通讯录第一页写着0-001，第二页写着0-002，第三页写着0-003。有人在封底写下：“走错也没关系，从任何一页都能问到路。”你把站牌背面的线路图展开，这一次，空白的终点旁有了一个电话号码。', reward: cost(0, 0, 15) },
+  E10: { name: '雨城接起了电话', text: '电话里一直下着雨。“您好，这里是第0街区。”你说。对方停了一会儿：“我们找了很久。”第一条对外线路在地图上亮起。列车、货物和工务合同还要慢慢安排，但从今夜起，两座城可以互相问候。', reward: cost() }
 };
