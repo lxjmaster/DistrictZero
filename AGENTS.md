@@ -10,11 +10,9 @@
 
 ## Current Authorization Boundary
 
-The bootstrap task covers cloning the empty repository, adding initialization documents, making the initial commit, pushing that commit, and producing a handoff prompt.
+The bootstrap task is complete. On 2026-10-14 the user invoked the handoff prompt and authorized implementation and verification of the complete V0.1 playable game through local delivery.
 
-Stop after that handoff. Game scaffolding, dependency installation, application implementation, and service execution belong to the next task after the user continues from this project directory.
-
-The next user's instruction or invocation of the handoff prompt can authorize implementation. Do not request repeated approval for an unchanged authorized outcome.
+On 2026-10-14 the user additionally authorized adding GitHub Actions and publishing V0.1 to GitHub Pages. This delivery includes committing and pushing the implemented game and resource-capacity fix to master, enabling Pages, deploying, and verifying the public site. Later roadmap implementation is outside this scope. Subsequent user instructions may change this boundary. Do not request repeated approval for an unchanged authorized outcome.
 
 ## Authoritative Design
 
@@ -30,14 +28,31 @@ User instructions override design assumptions. Preserve unrelated or concurrent 
 ## Implementation Baseline
 
 - Target a single-player browser game in Simplified Chinese, with desktop and mobile layouts.
-- Use the proposed TypeScript, React, Vite, plain CSS, Vitest, and Playwright stack after checking compatible versions and the local environment.
+- Use the established TypeScript, React, Vite, plain CSS, Vitest, and Playwright stack. Dependencies are pinned in package.json and package-lock.json; check environment compatibility before changing them.
 - Keep the simulation independent from UI rendering, browser storage, and wall-clock access.
 - Store content and balance values as explicit configuration.
 - Use stable IDs, versioned saves, and one simulation model for online and offline time.
 - Treat the initial numerical values as playtest candidates.
 - Implement V0.1 before introducing later-city, calendar, or covenant systems.
 
-No package manifest, application commands, or implemented tests exist at bootstrap. The commands in the technical proposal are planned commands; establish them before reporting that they work.
+The application, package manifest, and tests now exist. See docs/VERIFICATION.md and docs/PLAYTEST.md for completed checks and their limits. docs/HANDOFF_PROMPT.md preserves the historical initialization context.
+
+## Local Commands and Structure
+
+- npm ci: install the locked dependency set.
+- npm run dev: local development at http://127.0.0.1:5173; strict port, loopback only.
+- npm run typecheck: TypeScript checking.
+- npm run test: deterministic engine and storage tests.
+- npx playwright install chromium: install the browser used by the test suite.
+- npm run test:e2e: browser acceptance, with isolated contexts and a controlled clock.
+- npm run build: typecheck and build to dist/.
+- npm run preview: local build preview at http://127.0.0.1:4173/DistrictZero/.
+
+Production builds use /DistrictZero/ as their base path; the development server uses /. The deploy-pages.yml workflow builds and publishes dist/ after pushes to master or a manual workflow dispatch. GitHub Pages must use the GitHub Actions source. Pushes to master therefore have a public deployment effect; only push within the user's authorized scope.
+
+src/game contains configuration, simulation, and save validation. src/app contains time, persistence, and Web Locks adapters. src/ui contains the Chinese interface. Keep all production rules in the simulation; browser tests may accelerate time but must not introduce alternate economy rules.
+
+Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
 ## Required Behavior
 

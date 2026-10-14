@@ -1,42 +1,73 @@
-# DistrictZero
+# DistrictZero · 第0街区
 
-DistrictZero (第0街区) is a text-based idle management game about repairing forgotten places and building a future for their inhabitants.
+从一个未被登记的地址开始，修复被遗忘的地方。单人浏览器文字经营游戏：两名夜工、一盏灯、一个仍可建设的未来。
 
-Start with one unregistered address, one light, and two night workers. Restore facilities, assign jobs, welcome unusual residents, and gradually connect a larger world.
+V0.1 包含完整首章、三种资源、六种设施、四类岗位、两类居民、三种照明、三项主线工程、五个事件和两项研究。首章终点是地址 **0-001**；完成后仍可经营与升级。
 
-Zero carries the project's central idea: a blank can hold despair, a first beginning, or possibilities without a fixed limit.
+## 本地运行
 
-## Current state
+需要 Node.js 20.19.x 或 22.12 及以上版本、npm。开发验证环境为 Node.js 23.11.0 / npm 11.3.0；依赖版本固定在 package.json 和 package-lock.json 中。
 
-This repository contains the product specification, technical proposal, project guidance, and a prompt for the next development session. Game implementation has not started.
+```sh
+npm ci
+npm run dev
+```
 
-The initialization task ends here. Implementation begins when the user continues from the project directory.
+打开 **http://127.0.0.1:5173/**。服务只监听本机，端口被占用时会明确退出。浏览器需要支持 Web Locks（浏览器会话锁）；本机地址可使用，其他部署地址需要 HTTPS。
 
-## Documents
+```sh
+npm run typecheck   # TypeScript 类型检查
+npm run test        # 引擎与存档测试
+npx playwright install chromium  # 首次浏览器测试前安装测试浏览器
+npm run test:e2e    # 实际浏览器流程，使用可控制时钟加速等待
+npm run build      # 类型检查并生成 dist/
+npm run preview    # 在 http://127.0.0.1:4173/DistrictZero/ 查看构建产物
+```
 
-- [Product requirements and game design](docs/PRODUCT_SPEC.md)
-- [Technical proposal and delivery milestones](docs/TECHNICAL_PLAN.md)
-- [Next-session handoff prompt](docs/HANDOFF_PROMPT.md)
-- [Project guidance](AGENTS.md)
+自动化测试使用隔离的浏览器环境，不会重置你日常浏览器里的游戏。开发地址与预览地址的端口不同，存档也不同；需要转移时导出再导入。
 
-The product and technical documents are written in Chinese. Agent instruction files are written in English.
+## GitHub Pages 试玩
 
-## First playable version
+发布地址：[第0街区在线试玩](https://lxjmaster.github.io/DistrictZero/)。部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
-- One district and a complete first chapter.
-- Three resources: energy, parts, and memory.
-- Six facility types, four jobs, and two resident types.
-- Lighting policies, a three-item work queue, and two research projects.
-- Three main projects and five story events.
-- Local saves, import/export, offline progression, and a return report.
-- A chapter ending that establishes address 0-001.
+`.github/workflows/deploy-pages.yml` 在推送到 `master` 或手动运行时，使用 Node.js 22 安装锁定依赖，执行引擎与存档测试、类型检查和构建，再将 `dist/` 发布到 GitHub Pages。仓库 `Settings → Pages → Source` 使用 `GitHub Actions`。正式构建与本地预览都使用 `/DistrictZero/` 子路径。
 
-Initial balance values are design proposals and require playtesting.
+试玩者无需安装依赖，各自在自己的浏览器保存进度。在线、本地与不同设备的存档不会自动同步；需要转移时使用游戏设置中的导出、导入功能。
 
-## Planned stack
+## 第一班夜工
 
-TypeScript, React, Vite, plain CSS, Vitest, and Playwright. Dependency versions and runnable commands will be established during implementation.
+1. 初始一人发电、一人回收。积累至少 15 零件，把一位回收工撤回后分配为维修工，安排临时路灯工程。
+2. 领取“第一盏灯”的记忆，重新安排回收、积累材料，再建设宿舍。
+3. 宿舍有空位时每 120 秒到达一位居民。新住客保持空闲，请主动分配岗位；首两位住客是回声居民。
+4. 给站牌写上“0”，建设仓库和信箱，安排记录员。回声居民擅长整理记忆，影子居民擅长回收。
+5. 信箱与累计记忆开放研究；备好材料，修复旧站台。重要选择和奖励会留在“交接事项”中等你。
 
-## Continue
+工程入队时只登记计划，队首材料足够且有维修工才扣除预留费用。暂停保留工程；取消返还未完成部分的整单位费用，确认框显示实际返还与仓储溢出。运行耗电不返还，返还不增加累计取得。
 
-Open the project directory and use [the handoff prompt](docs/HANDOFF_PROMPT.md) to begin the next session.
+照明首次选择免费，以后切换消耗 5 零件。工作供给按可调整的优先级分配；库存满或原料不足时，产出与投入同时缩减。无人维修、停电、缺料和满仓都显示具体原因。
+
+## 保存、离线与恢复
+
+- 每 10 秒自动保存，关键操作立即保存；隐藏页面时也尝试保存。
+- 在线、后台和离线共用一秒一步的引擎，保留不足一秒的余量。离开后按原安排推进，长结算分批执行。
+- 返回报告分别列出生产、奖励、运行消耗、工程预留、取消返还、完工、住客、待处理事件与当前等待条件。
+- 设置可导出可读 JSON 文件。导入必须先检查结构、版本与状态，再确认替换；替换前保留有效恢复副本。
+- 恢复副本随后续正常保存更新。需要长期保留某个街区时，请导出文件。
+- 主存档损坏时尝试读取有效恢复副本；两份都无效时保留原始数据，等待有效导入或明确重置。
+- 保存失败有明确提示，当前内存中的有效进度仍可导出。
+- 同一浏览器、同一地址只有一页推进与写入。其他页等候；关闭主页面后，下一页自动接管、重新读档并补算。
+
+本地存档键为 `districtzero.save.v1` 和 `districtzero.save.backup.v1`。重置只替换这两个存档，不清除其他站点数据。
+
+## 实现与验证资料
+
+- [产品需求与验收 FR-01–FR-14](docs/PRODUCT_SPEC.md)
+- [技术设计与测试场景](docs/TECHNICAL_PLAN.md)
+- [试玩记录](docs/PLAYTEST.md)
+- [验证记录](docs/VERIFICATION.md)
+- [项目规则](AGENTS.md)
+- [初始化交接提示（历史上下文）](docs/HANDOFF_PROMPT.md)
+
+`src/game/` 包含内容配置、独立模拟与存档校验；`src/app/` 管理时间、存储与会话；`src/ui/` 提供中文响应式界面。引擎不访问系统时钟、页面或浏览器存储。
+
+数值仍是首轮试玩基线。当前范围为 V0.1；城际交通、历法与公约属于后续版本。
