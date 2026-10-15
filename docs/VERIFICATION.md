@@ -1,5 +1,17 @@
 # DistrictZero 验证记录
 
+## V0.3.2 公开发布
+
+日期：2026-10-16（Asia/Shanghai）。用户授权提交、推送与发布第二批及审查修复，发布成功后继续实施V0.3.3。
+
+- 游戏提交：[c3a8e38](https://github.com/lxjmaster/DistrictZero/commit/c3a8e38a7a205b23c8090dba200a2d8cfbb5df36)；测试通信修复：[eac286e](https://github.com/lxjmaster/DistrictZero/commit/eac286e072cb13df585863c825ffb071f9fc091b)。[Pages流程38780085842](https://github.com/lxjmaster/DistrictZero/actions/runs/38780085842)测试、构建与部署成功。
+- 首次流程38779362065的137项断言均通过，但长时间同步模拟阻塞测试线程，触发60秒的`onTaskUpdate`通信超时。修复仅在长模拟之间用`setImmediate`处理消息，保留单次七天推进、不规则分段、全部断言及原超时限制。修复后本地137项测试、类型检查与构建再次通过，CI复验成功。
+- 公开地址：[第0街区](https://lxjmaster.github.io/DistrictZero/)。HTML、`index-ED0mVIW-.js`、`index-CZ53RwZl.css`均HTTP 200；JS/CSS的SHA-256与本地生产构建一致。
+- 隔离Chromium验证桌面新档、390px手机真实结构4迁移及重开：均保存为结构5/数值0.3.2；旧库存和故事保持，恢复副本保留结构4，事项委托板可达，无脚本错误或横向溢出。未触及日常浏览器存档。
+- 发布前浏览器证据为36项完整基线及7项事项定向回归（含3项新增草稿回归）；未将其写成已重跑39项全量。独立真人试玩仍未采样。
+
+线上证据在`test-results/v032-pages-release/verification.json`和两设备截图。以下本地及旧版本章节保留各阶段当时的交付状态；当前公开版本为V0.3.2。
+
 ## V0.3.2：街巷有了生活（本地）
 
 日期：2026-10-15。按[固定第二批规格](V0.3.2_SPEC.md)完成本地实现，数值0.3.2、存档结构5。V0.3.1及发布文档已推送，线上仍为V0.3.1；本批未提交、推送或发布，未新增依赖或改变固定工程费用。
@@ -56,7 +68,7 @@
 - 隔离Chromium验证：新档存档结构4/数值0.3.1；真实V0.1章末档迁移、装配纸条与构件入口可用；390px手机无横向溢出，无脚本错误。未触及日常浏览器存档。
 - 发布前102项单元/存档测试、32项浏览器测试、类型检查及生产构建已通过，发布工作流再次通过单元测试与构建。真人试玩仍未采样。
 
-当前线上版本为 **V0.3.1「旧物与新用途」**：[在线试玩](https://lxjmaster.github.io/DistrictZero/)。以下按阶段保留实际验证记录，包括当时的交付边界；历史本地交付记录不代表当前发布状态。后续部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+当时线上版本为 **V0.3.1「旧物与新用途」**：[在线试玩](https://lxjmaster.github.io/DistrictZero/)。以下按阶段保留实际验证记录，包括当时的交付边界；历史本地交付记录不代表当前发布状态。后续部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
 ## V0.3.1 审查修复（本地）
 

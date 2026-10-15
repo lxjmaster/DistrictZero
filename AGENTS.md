@@ -49,20 +49,24 @@ fixes, to master, with the existing automatic Pages deployment effect, followed
 by local implementation and verification of V0.3.2. The latest explicit instruction
 authorizes starting the second batch before independent human feedback has been
 sampled; record that feedback as unperformed and do not claim its experience
-criteria passed. V0.3.2 has no new push or deployment authorization. V0.3.3 remains
-planned. V0.3.1 and its publication documentation are now pushed through
-`ac72f1e`; both Pages workflows succeeded. Implement V0.3.2 against
-`docs/V0.3.2_SPEC.md` locally. Do not change fixed values to make tests pass or silently reduce
+criteria passed. The user subsequently authorized committing, pushing and publishing
+V0.3.2, then starting V0.3.3 after that publication succeeds. V0.3.1 and its publication documentation are now pushed through
+`ac72f1e`; both Pages workflows succeeded. V0.3.2 follows
+`docs/V0.3.2_SPEC.md`. Do not change fixed values to make tests pass or silently reduce
 acceptance scope.
 
-V0.3.2 is now implemented and verified locally: 137 engine/storage tests,
-36 browser tests, type checking, the production build and isolated preview
-passed on 2026-10-15. See docs/VERIFICATION.md and docs/PLAYTEST.md for the
-required scenarios, measured routes and unsampled human feedback. The local
-workspace uses schema 5; the published site remains V0.3.1 / schema 4. No
-V0.3.2 commit, push or deployment has been performed. The pre-existing
-127.0.0.1:5173 development server remains available for this local handoff;
-the task-owned 4173 preview server was stopped.
+V0.3.2 is published at the Pages URL above on 2026-10-16: game commit
+`c3a8e38`, test-worker communication fix `eac286e`, successful Pages run
+38780085842. The 137 engine/storage tests, 36-test browser baseline plus the
+7-test neighborhood regression, type checking and production build passed.
+Public assets match the build; isolated desktop/mobile checks verified schema 5 /
+balance 0.3.2 new saves, genuine schema 4 migration, recovery copy and reopening.
+See docs/VERIFICATION.md and docs/PLAYTEST.md for measured routes and unsampled
+human feedback. The user has authorized local implementation and verification of
+V0.3.3 after publication, against the fixed third-batch scope and section 19 of
+docs/EXPERIENCE_EXPANSION_PLAN.md. This continuation does not authorize publishing
+V0.3.3. Preserve the pre-existing 127.0.0.1:5173 development server; the task-owned
+4173 preview server was stopped.
 
 ## Authoritative Design
 
@@ -113,8 +117,8 @@ src/game contains configuration, simulation, and save validation. src/app contai
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
-Local V0.3.2 uses schema 5 / balance 0.3.2, with genuine schema 1/2/3/4
-migration. Published V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
+Published V0.3.2 uses schema 5 / balance 0.3.2, with genuine schema 1/2/3/4
+migration. Historical V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
 schema 1 / balance 0.1.0, schema 2 / balance 0.2.0, and schema 3 / balance 0.3.0.
 V0.3.1 was published on 2026-10-15 at the Pages URL above. Historical V0.3 uses schema 3. Keep storage keys and writer lock stable. District resources
 and projects are shared; facilities, residents, jobs, lighting, and public

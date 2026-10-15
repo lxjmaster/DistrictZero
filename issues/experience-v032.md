@@ -1,4 +1,4 @@
-# V0.3.1 publication and V0.3.2 local delivery
+# V0.3.1 publication and V0.3.2 delivery and publication
 
 Status: COMPLETE.
 
@@ -7,8 +7,8 @@ of the corrected experience expansion locally, without reducing its fixed scope.
 
 Authorization: the user requested pushing the current code and continuing V0.3.2.
 V0.3.1 pushes include the existing automatic GitHub Pages effect and publication
-documentation. V0.3.2 implementation, integration, and verification are local;
-no V0.3.2 commit/push/deployment is authorized. Independent human feedback has
+documentation. The user subsequently authorized committing, pushing and
+publishing V0.3.2, followed by local V0.3.3 implementation after success. Independent human feedback has
 not been sampled; the explicit continuation authorizes implementation while
 leaving those experience criteria unverified. V0.3.3 remains planned.
 
@@ -29,6 +29,10 @@ not authorized.
 - [✅] Migrate genuine schemas 1/2/3/4; conserve all ledgers and held supplies.
 - [✅] Verify required UX scenarios, original FR/C/N regressions and build.
 - [✅] Record measured routes, limits, local handoff and complete this checklist.
+- [✅] Commit/push V0.3.2 and review fixes (`c3a8e38`).
+- [✅] Fix CI worker starvation without reducing simulations (`eac286e`).
+- [✅] Verify successful Pages run 38780085842 and public schema 5/new-save/migration behavior.
+- [✅] Synchronize repository publication documentation and Pages URL.
 
 Acceptance evidence: 137 unit/storage tests and 36 browser tests passed;
 type checking and the production build passed. Isolated production preview
@@ -38,7 +42,12 @@ production and cooperation routes completed; measured costs exclude the
 separate 900-second maintenance observation. Four field revisits were compared
 with local jobs under the same worker time. UX09-13/19/20 and original
 regressions are mapped in docs/VERIFICATION.md; costs and human-feedback limits
-are recorded in docs/PLAYTEST.md. No V0.3.2 commit, push or deployment occurred.
+are recorded in docs/PLAYTEST.md. V0.3.2 is published at
+https://lxjmaster.github.io/DistrictZero/ via successful run 38780085842.
+The initial run 38779362065 passed 137 assertions but failed its worker RPC;
+yielding between long simulations resolved it. Public JS/CSS match the build;
+new saves, genuine schema 4 migration/recovery, reopening and mobile layout
+were checked in isolated Chromium. The next V0.3.3 workline is separate.
 
 Dependencies: locked installed toolchain, existing simulation and isolated
 browser harness. Preserve pre-existing dev server at 127.0.0.1:5173.
