@@ -100,9 +100,9 @@ src/game contains configuration, simulation, and save validation. src/app contai
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
-Local V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
+Published V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
 schema 1 / balance 0.1.0, schema 2 / balance 0.2.0, and schema 3 / balance 0.3.0.
-The published V0.3 still uses schema 3. Keep storage keys and writer lock stable. District resources
+V0.3.1 was published on 2026-10-15 at the Pages URL above. Historical V0.3 uses schema 3. Keep storage keys and writer lock stable. District resources
 and projects are shared; facilities, residents, jobs, lighting, and public
 equipment belong to their district. Maintenance is repeatable and uses a separate
 completion counter. Keep the genuine V0.1/V0.2 migration fixtures and regressions valid.

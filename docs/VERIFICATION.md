@@ -1,6 +1,15 @@
 # DistrictZero 验证记录
 
-当前线上版本为 **V0.3「城际夜网」**：[在线试玩](https://lxjmaster.github.io/DistrictZero/)。以下按阶段保留实际验证记录，包括当时的交付边界；历史本地交付记录不代表当前发布状态。后续部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+## V0.3.1 公开发布
+
+日期：2026-10-15。用户追加授权推送及其自动Pages发布效果。
+
+- 游戏提交：[ad2b2cc](https://github.com/lxjmaster/DistrictZero/commit/ad2b2cc8124e2aa505f535e5cd79a3ee31ca3657)。[Pages流程38717232020](https://github.com/lxjmaster/DistrictZero/actions/runs/38717232020)成功。
+- 公开地址：[第0街区](https://lxjmaster.github.io/DistrictZero/)。HTML、JS、CSS均为HTTP 200；资源`index-CVrNkdMU.js`、`index-ARTxi7ee.css`与已验证生产构建一致。
+- 隔离Chromium验证：新档存档结构4/数值0.3.1；真实V0.1章末档迁移、装配纸条与构件入口可用；390px手机无横向溢出，无脚本错误。未触及日常浏览器存档。
+- 发布前102项单元/存档测试、32项浏览器测试、类型检查及生产构建已通过，发布工作流再次通过单元测试与构建。真人试玩仍未采样。
+
+当前线上版本为 **V0.3.1「旧物与新用途」**：[在线试玩](https://lxjmaster.github.io/DistrictZero/)。以下按阶段保留实际验证记录，包括当时的交付边界；历史本地交付记录不代表当前发布状态。后续部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
 ## V0.3.1 审查修复（本地）
 

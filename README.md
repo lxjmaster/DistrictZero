@@ -4,11 +4,11 @@
 
 **在线试玩：[第0街区 · GitHub Pages](https://lxjmaster.github.io/DistrictZero/)**
 
-当前线上版本 **V0.3「城际夜网」**，包含完整前三章：三个相连街区、雨城与长站两处独立供需节点、三种资源、六种基础设施、两种公共设施、十一项主线、十五个事件和六项研究。首章登记 **0-001**，第二章登记 **0-002、0-003**，第三章开放双向运输、外派夜工、共享列车、自动合同与线路维护。
+当前线上版本 **V0.3.1「旧物与新用途」**，包含完整前三章：三个相连街区、雨城与长站两处独立供需节点、四种资源、六种基础设施、两种公共设施、十一项主线、十五个事件和六项研究。首章登记 **0-001**，第二章登记 **0-002、0-003**，第三章开放双向运输、外派夜工、共享列车、自动合同与线路维护。
 
-V0.3及合同审查修复已于 **2026-10-15** 发布到GitHub Pages，支持V0.1/V0.2旧存档自动迁移。V0.4分所、V0.5历法、V0.6公约为后续内容。详细范围见[路线](docs/PRODUCT_SPEC.md#14-长期扩展路线)、[V0.2规格](docs/V0.2_SPEC.md)与[V0.3规格](docs/V0.3_SPEC.md)。
+V0.3.1及审查修复已于 **2026-10-15** 发布到GitHub Pages，支持V0.1/V0.2/V0.3旧存档自动迁移。V0.4分所、V0.5历法、V0.6公约为后续内容。详细范围见[路线](docs/PRODUCT_SPEC.md#14-长期扩展路线)、[V0.2规格](docs/V0.2_SPEC.md)与[V0.3规格](docs/V0.3_SPEC.md)。
 
-本地源码已完成 **V0.3.1「旧物与新用途」**：标准构件、装配目标与保留量、收音机四节点支线及两种分支、两种维修台改装、可选预制施工、状态街景和手机快捷安排。本轮尚未提交、推送或公开发布。固定范围见[V0.3.1规格](docs/V0.3.1_SPEC.md)，后两批按[修订方案](docs/EXPERIENCE_EXPANSION_PLAN.md#19-玩法审查后的固定修正)保留规划。
+现已发布 **V0.3.1「旧物与新用途」**：标准构件、装配目标与保留量、收音机四节点支线及两种分支、两种维修台改装、可选预制施工、状态街景和手机快捷安排。已完成提交、推送及公开站点验证。固定范围见[V0.3.1规格](docs/V0.3.1_SPEC.md)，后两批按[修订方案](docs/EXPERIENCE_EXPANSION_PLAN.md#19-玩法审查后的固定修正)保留规划。
 
 ## 本地运行
 
@@ -34,9 +34,9 @@ npm run preview    # 在 http://127.0.0.1:4173/DistrictZero/ 查看构建产物
 
 ## GitHub Pages 试玩
 
-在线试玩地址：[第0街区在线试玩](https://lxjmaster.github.io/DistrictZero/)，当前为 **V0.3「城际夜网」**。无需安装，桌面和手机浏览器均可打开。
+在线试玩地址：[第0街区在线试玩](https://lxjmaster.github.io/DistrictZero/)，当前为 **V0.3.1「旧物与新用途」**。无需安装，桌面和手机浏览器均可打开。
 
-V0.3游戏提交为 [`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit/87be2a00e22a2882df9d7369060d22323286b5b7)，[首次发布流程](https://github.com/lxjmaster/DistrictZero/actions/runs/38697657222)已成功。完整23项浏览器测试、线上资源一致性、新档、旧档迁移及合同修复验证见[验证记录](docs/VERIFICATION.md)。后续部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+V0.3.1游戏提交为 [`ad2b2cc`](https://github.com/lxjmaster/DistrictZero/commit/ad2b2cc8124e2aa505f535e5cd79a3ee31ca3657)，[发布流程](https://github.com/lxjmaster/DistrictZero/actions/runs/38717232020)已成功。102项单元/存档测试、32项浏览器测试、线上资源一致性、新档与旧档迁移验证见[验证记录](docs/VERIFICATION.md)。后续部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
 `.github/workflows/deploy-pages.yml` 在推送到 `master` 或手动运行时，使用 Node.js 22 安装锁定依赖，执行引擎与存档测试、类型检查和构建，再将 `dist/` 发布到 GitHub Pages。仓库 `Settings → Pages → Source` 使用 `GitHub Actions`。正式构建与本地预览都使用 `/DistrictZero/` 子路径。
 
@@ -54,7 +54,7 @@ V0.3游戏提交为 [`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit
 
 照明首次选择免费，以后切换消耗 5 零件。工作供给按可调整的优先级分配；库存满或原料不足时，产出与投入同时缩减。无人维修、停电、缺料和满仓都显示具体原因。
 
-## 本地新增：旧物与新用途
+## 旧物与新用途
 
 1. 归档“第一盏灯”，在“住客留了话”读完装配纸条，开放标准构件。旧章末存档也从这封信开始，不自动替你选择或领奖。
 2. 装配和维修共享本区维修台岗位。经营页可设置全城构件库存目标、零件与电量保留量；默认关闭，推荐备5构件、留20零件和10电量。达到目标时待命，施工用掉后继续补货；只备这一批可暂停。
@@ -97,7 +97,7 @@ V0.3游戏提交为 [`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit
 
 本地存档键为 `districtzero.save.v1` 和 `districtzero.save.backup.v1`。重置只替换这两个存档，不清除其他站点数据。
 
-本地V0.3.1使用存档结构4、数值版本0.3.1，自动迁移结构1/0.1.0、2/0.2.0与3/0.3.0。原库存、人手、设施、工程预留与进度、事件、时间余量、运输和报告保留；新构件与装配人数为0，库存目标关闭，故事与工具状态空置，旧工程预制份数为0。旧键名与写入锁保持不变。升级后首次写入会保留旧有效主档为恢复副本。当前线上V0.3仍使用结构3，不能读取新版结构4存档。未知或不兼容版本保留原始数据并停止自动写入，确认导入有效存档或重置后才允许替换。返回报告中的完工标识也会校验，异常报告可以从有效副本恢复，导入时则明确拒绝。
+V0.3.1使用存档结构4、数值版本0.3.1，自动迁移结构1/0.1.0、2/0.2.0与3/0.3.0。原库存、人手、设施、工程预留与进度、事件、时间余量、运输和报告保留；新构件与装配人数为0，库存目标关闭，故事与工具状态空置，旧工程预制份数为0。旧键名与写入锁保持不变。升级后首次写入会保留旧有效主档为恢复副本。升级后结构4存档不能导回V0.3。未知或不兼容版本保留原始数据并停止自动写入，确认导入有效存档或重置后才允许替换。返回报告中的完工标识也会校验，异常报告可以从有效副本恢复，导入时则明确拒绝。
 
 ## 实现与验证资料
 
@@ -105,7 +105,7 @@ V0.3游戏提交为 [`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit
 - [技术设计与测试场景](docs/TECHNICAL_PLAN.md)
 - [第二章内容与验收 C01–C08](docs/V0.2_SPEC.md)
 - [第三章内容与验收 N01–N08](docs/V0.3_SPEC.md)
-- [第一批体验扩充与验收 UX01–UX08、UX21（本地已实现）](docs/V0.3.1_SPEC.md)
+- [第一批体验扩充与验收 UX01–UX08、UX21（已发布）](docs/V0.3.1_SPEC.md)
 - [前三章体验扩充修订方案（后两批仍为规划）](docs/EXPERIENCE_EXPANSION_PLAN.md)
 - [试玩记录](docs/PLAYTEST.md)
 - [验证记录](docs/VERIFICATION.md)
