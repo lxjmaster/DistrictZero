@@ -1,0 +1,679 @@
+{
+  "format": "districtzero",
+  "schemaVersion": 3,
+  "balanceVersion": "0.3.0",
+  "savedAt": 1792053250000,
+  "state": {
+    "facilities": {
+      "generator": 2,
+      "recycler": 1,
+      "workbench": 1,
+      "dorm": 2,
+      "warehouse": 2,
+      "mailbox": 1
+    },
+    "population": {
+      "shadow": 3,
+      "echo": 3
+    },
+    "assignments": {
+      "shadow": {
+        "power": 2,
+        "salvage": 0,
+        "repair": 0,
+        "record": 0
+      },
+      "echo": {
+        "power": 0,
+        "salvage": 0,
+        "repair": 2,
+        "record": 1
+      }
+    },
+    "lighting": "bright",
+    "publicWorks": {
+      "relay": {
+        "built": true,
+        "enabled": true,
+        "condition": 860
+      },
+      "registry": {
+        "built": true,
+        "enabled": true,
+        "condition": 1185
+      }
+    },
+    "autoRepair": true,
+    "district": "district-0",
+    "resources": {
+      "energy": 192671,
+      "parts": 326818,
+      "memory": 35680
+    },
+    "earned": {
+      "energy": 6489931,
+      "parts": 3064805,
+      "memory": 556680
+    },
+    "ledger": {
+      "production": {
+        "energy": 6489931,
+        "parts": 3034805,
+        "memory": 507680
+      },
+      "rewards": {
+        "energy": 0,
+        "parts": 30000,
+        "memory": 49000
+      },
+      "operating": {
+        "energy": 4799260,
+        "parts": 174987,
+        "memory": 0
+      },
+      "reserved": {
+        "energy": 1394000,
+        "parts": 2633000,
+        "memory": 513000
+      },
+      "refunds": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0
+      },
+      "exports": {
+        "energy": 134000,
+        "parts": 100000,
+        "memory": 56000
+      },
+      "imports": {
+        "energy": 0,
+        "parts": 160000,
+        "memory": 48000
+      }
+    },
+    "arrivalSeconds": 0,
+    "arrivals": 12,
+    "lightingChosen": true,
+    "priority": [
+      "salvage",
+      "repair",
+      "record"
+    ],
+    "queue": [],
+    "completed": [
+      "P01",
+      "build:dorm:1",
+      "P02",
+      "build:warehouse:1",
+      "build:mailbox:1",
+      "R01",
+      "R02",
+      "P03",
+      "P04",
+      "P05",
+      "build:dorm:2",
+      "build:generator:2",
+      "district-1/build:dorm:1",
+      "district-1/build:recycler:1",
+      "district-1/build:dorm:2",
+      "district-1/build:recycler:2",
+      "district-2/build:dorm:1",
+      "district-2/build:mailbox:1",
+      "district-2/build:dorm:2",
+      "district-2/build:mailbox:2",
+      "public:relay",
+      "public:registry",
+      "R04",
+      "R03",
+      "P06",
+      "P07",
+      "P08",
+      "build:warehouse:2",
+      "P09",
+      "R05",
+      "R06",
+      "P10",
+      "P11"
+    ],
+    "events": {
+      "E01": {
+        "status": "claimed"
+      },
+      "E03": {
+        "status": "claimed",
+        "choice": "bright"
+      },
+      "E02": {
+        "status": "claimed"
+      },
+      "E04": {
+        "status": "claimed"
+      },
+      "E05": {
+        "status": "claimed"
+      },
+      "E06": {
+        "status": "claimed"
+      },
+      "E07": {
+        "status": "claimed",
+        "choice": "common"
+      },
+      "E08": {
+        "status": "claimed"
+      },
+      "E09": {
+        "status": "claimed"
+      },
+      "E10": {
+        "status": "claimed"
+      },
+      "E11": {
+        "status": "claimed"
+      },
+      "E12": {
+        "status": "claimed",
+        "choice": "reliable"
+      },
+      "E13": {
+        "status": "claimed"
+      },
+      "E14": {
+        "status": "claimed"
+      },
+      "E15": {
+        "status": "claimed"
+      }
+    },
+    "memoryProduced": true,
+    "address": "0-001",
+    "clock": {
+      "seconds": 9095,
+      "remainderMs": 0,
+      "lastAt": 1792053250000
+    },
+    "nextProject": 39,
+    "theme": "dark",
+    "report": {
+      "awayMs": 120000,
+      "seconds": 120,
+      "start": {
+        "energy": 296000,
+        "parts": 250000,
+        "memory": 50000
+      },
+      "end": {
+        "energy": 300000,
+        "parts": 250000,
+        "memory": 80000
+      },
+      "flows": {
+        "production": {
+          "energy": 66681,
+          "parts": 8159,
+          "memory": 30000
+        },
+        "rewards": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "operating": {
+          "energy": 62681,
+          "parts": 8159,
+          "memory": 0
+        },
+        "reserved": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "refunds": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "exports": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "imports": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        }
+      },
+      "completed": [],
+      "arrivals": {
+        "shadow": 0,
+        "echo": 0
+      },
+      "events": [],
+      "pending": [],
+      "reasons": [
+        "尚未安排工程",
+        "旧巷：零件满仓，回收工停止或减产",
+        "记忆满仓，记录员停止或减产",
+        "信笺里：记忆满仓，记录员停止或减产",
+        "电量满仓，发电工按消耗补充",
+        "雨城列车等待仓储空间卸货"
+      ],
+      "goal": "外派一位空闲夜工，补给雨城并取回第一只箱子",
+      "maintenance": 0,
+      "transport": {
+        "departures": 0,
+        "deliveries": 0,
+        "maintenance": 0
+      }
+    },
+    "city": {
+      "districts": {
+        "district-1": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 2,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 0
+          },
+          "population": {
+            "shadow": 4,
+            "echo": 0
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 2,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            }
+          },
+          "lighting": "dim",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        },
+        "district-2": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 0,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 2
+          },
+          "population": {
+            "shadow": 0,
+            "echo": 4
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            }
+          },
+          "lighting": "bright",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        }
+      },
+      "templates": [
+        {
+          "name": "旧巷回收班",
+          "district": "district-1",
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 2,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            }
+          },
+          "lighting": "dim",
+          "priority": [
+            "salvage",
+            "repair",
+            "record"
+          ]
+        }
+      ],
+      "maintenance": 4
+    },
+    "network": {
+      "priority": [
+        "station",
+        "rain"
+      ],
+      "nextTrip": 18,
+      "maintenance": 1,
+      "routes": {
+        "rain": {
+          "node": {
+            "resources": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0
+            },
+            "received": {
+              "energy": 50000,
+              "parts": 100000,
+              "memory": 0
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 60000
+            },
+            "used": {
+              "energy": 50000,
+              "parts": 100000,
+              "memory": 0
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 60000
+            },
+            "cycle": 48
+          },
+          "condition": 600,
+          "autoRepair": true,
+          "contract": {
+            "enabled": true,
+            "loads": 1,
+            "reserve": {
+              "energy": 50000,
+              "parts": 30000,
+              "memory": 10000
+            }
+          },
+          "staff": {
+            "district": "district-0",
+            "resident": "shadow"
+          },
+          "trip": {
+            "uid": "t-17",
+            "direction": "inbound",
+            "loads": 1,
+            "cargo": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 12000
+            },
+            "duration": 120,
+            "remaining": 72
+          },
+          "departures": 10,
+          "exports": 5,
+          "imports": 4
+        },
+        "station": {
+          "node": {
+            "resources": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0
+            },
+            "received": {
+              "energy": 60000,
+              "parts": 0,
+              "memory": 40000
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 160000,
+              "memory": 0
+            },
+            "used": {
+              "energy": 60000,
+              "parts": 0,
+              "memory": 40000
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 160000,
+              "memory": 0
+            },
+            "cycle": 60
+          },
+          "condition": 440,
+          "autoRepair": true,
+          "contract": {
+            "enabled": true,
+            "loads": 2,
+            "reserve": {
+              "energy": 50000,
+              "parts": 30000,
+              "memory": 10000
+            }
+          },
+          "staff": {
+            "district": "district-2",
+            "resident": "echo"
+          },
+          "trip": {
+            "uid": "t-15",
+            "direction": "outbound",
+            "loads": 2,
+            "cargo": {
+              "energy": 24000,
+              "parts": 0,
+              "memory": 16000
+            },
+            "duration": 180,
+            "remaining": 12
+          },
+          "departures": 7,
+          "exports": 3,
+          "imports": 3
+        }
+      }
+    },
+    "history": [
+      {
+        "second": 7775,
+        "text": "已处理交接事项：长站有人留灯"
+      },
+      {
+        "second": 7775,
+        "text": "长站补给列车发车，装载1份货物。"
+      },
+      {
+        "second": 7925,
+        "text": "完工：运单规范"
+      },
+      {
+        "second": 7955,
+        "text": "长站收到补给，已完整卸货。"
+      },
+      {
+        "second": 7965,
+        "text": "长站回程列车发车，装载1份货物。"
+      },
+      {
+        "second": 8130,
+        "text": "完工：联运调度"
+      },
+      {
+        "second": 8145,
+        "text": "长站物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8155,
+        "text": "完工：巡检配电亭"
+      },
+      {
+        "second": 8156,
+        "text": "长站补给列车发车，装载2份货物。"
+      },
+      {
+        "second": 8182,
+        "text": "雨城补给列车发车，装载1份货物。"
+      },
+      {
+        "second": 8302,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 8302,
+        "text": "雨城回程列车发车，装载1份货物。"
+      },
+      {
+        "second": 8336,
+        "text": "长站收到补给，已完整卸货。"
+      },
+      {
+        "second": 8336,
+        "text": "长站补给列车发车，装载2份货物。"
+      },
+      {
+        "second": 8422,
+        "text": "雨城物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8422,
+        "text": "雨城补给列车发车，装载1份货物。"
+      },
+      {
+        "second": 8455,
+        "text": "完工：编定联运时刻表"
+      },
+      {
+        "second": 8455,
+        "text": "新的交接事项：同一张时刻表"
+      },
+      {
+        "second": 8455,
+        "text": "已处理交接事项：同一张时刻表"
+      },
+      {
+        "second": 8480,
+        "text": "完工：巡检门牌事务所"
+      },
+      {
+        "second": 8516,
+        "text": "长站收到补给，已完整卸货。"
+      },
+      {
+        "second": 8516,
+        "text": "长站回程列车发车，装载2份货物。"
+      },
+      {
+        "second": 8530,
+        "text": "完工：维护雨城线路"
+      },
+      {
+        "second": 8542,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 8542,
+        "text": "雨城回程列车发车，装载1份货物。"
+      },
+      {
+        "second": 8662,
+        "text": "雨城物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8662,
+        "text": "雨城补给列车发车，装载1份货物。"
+      },
+      {
+        "second": 8696,
+        "text": "长站物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8696,
+        "text": "长站回程列车发车，装载2份货物。"
+      },
+      {
+        "second": 8782,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 8807,
+        "text": "雨城回程列车发车，装载1份货物。"
+      },
+      {
+        "second": 8876,
+        "text": "长站物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8927,
+        "text": "雨城物资回到第0街区，已完整卸货。"
+      },
+      {
+        "second": 8927,
+        "text": "长站补给列车发车，装载2份货物。"
+      },
+      {
+        "second": 8927,
+        "text": "雨城补给列车发车，装载1份货物。"
+      },
+      {
+        "second": 9047,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 9047,
+        "text": "雨城回程列车发车，装载1份货物。"
+      },
+      {
+        "second": 9090,
+        "text": "完工：让末班车每天抵达"
+      },
+      {
+        "second": 9090,
+        "text": "新的交接事项：每天都有人在等"
+      },
+      {
+        "second": 9095,
+        "text": "已处理交接事项：每天都有人在等"
+      }
+    ]
+  }
+}

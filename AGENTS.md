@@ -22,6 +22,14 @@ fixes to master, publishing through the existing GitHub Pages workflow, and
 verifying the public site. V0.3–V0.6 remain subsequent work. Do not request
 repeated approval for this unchanged publishing outcome.
 
+The user subsequently authorized implementing V0.3 after the roadmap audit.
+Implement and verify the complete local third chapter in docs/V0.3_SPEC.md,
+including migration from V0.1/V0.2. The previous publishing task is complete;
+V0.4–V0.6 remain subsequent work.
+
+The V0.3 local delivery is complete; see docs/VERIFICATION.md and docs/PLAYTEST.md.
+No V0.3 commit, push or publication was performed in this workline.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -30,6 +38,7 @@ Read these documents before implementation:
 2. docs/TECHNICAL_PLAN.md
 
 For V0.2 changes, also read docs/V0.2_SPEC.md and map verification to C01–C08.
+For V0.3 changes, read docs/V0.3_SPEC.md and map verification to N01–N08.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -64,11 +73,16 @@ src/game contains configuration, simulation, and save validation. src/app contai
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
-Current saves use schema 2 and balance 0.2.0, with explicit migration from schema
-1 / balance 0.1.0. Keep storage keys and writer lock stable. District resources
+Current saves use schema 3 and balance 0.3.0, with explicit migration from schema
+1 / balance 0.1.0 and schema 2 / balance 0.2.0. Keep storage keys and writer lock stable. District resources
 and projects are shared; facilities, residents, jobs, lighting, and public
 equipment belong to their district. Maintenance is repeatable and uses a separate
-completion counter. Keep the V0.1 migration fixture and regressions valid.
+completion counter. Keep the genuine V0.1/V0.2 migration fixtures and regressions valid.
+External nodes have independent inventories. Cargo belongs to its shipment until
+whole-load delivery; full destinations retain cargo and occupied vehicles.
+Exports/imports have separate ledger entries and imports do not increase earned
+production/reward totals. External workers retain home beds and cannot overlap
+local jobs or relocation. Route maintenance shares the existing work queue.
 
 ## Required Behavior
 
@@ -81,6 +95,8 @@ completion counter. Keep the V0.1 migration fixture and regressions valid.
 - Online, background, and offline progression share the same rules.
 - Return reports distinguish production, rewards, operating costs, project reservations, and refunds.
 - Only one browser tab owns simulation and save writes.
+- Both transport endpoints, recipes, in-transit cargo and home ledgers conserve resources.
+- Contract pauses preserve current shipments; route wear never cancels cargo.
 
 ## Verification and Delivery
 

@@ -172,7 +172,7 @@ test('BT-03/06: corrupt primary recovers; both corrupt slots wait for explicit r
   await expect(page.getByTestId('save-status')).toHaveText('已保存'); expect((await saved(page)).clock.seconds).toBe(0);
 });
 for (const [version, resolution] of [
-  [{ schemaVersion: 3, balanceVersion: '0.3.0' }, 'import'],
+  [{ schemaVersion: 4, balanceVersion: '0.4.0' }, 'import'],
   [{ schemaVersion: 2, balanceVersion: '0.2.1' }, 'reset']
 ] as const) {
   test(`BT-03/04/06: incompatible save ${JSON.stringify(version)} stays intact until confirmed ${resolution}`, async ({ page }) => {
@@ -209,7 +209,7 @@ for (const [version, resolution] of [
     }
     await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
     const resolved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVE_KEY);
-    expect(resolved.schemaVersion).toBe(2); expect(resolved.balanceVersion).toBe('0.2.0');
+    expect(resolved.schemaVersion).toBe(3); expect(resolved.balanceVersion).toBe('0.3.0');
   });
 }
 test('BT-08/FR-05/06: full storage, no repair worker, power exhaustion and recovery have visible reasons', async ({ page }) => {

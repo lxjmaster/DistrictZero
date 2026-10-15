@@ -8,12 +8,14 @@ export type Lighting = 'steady' | 'bright' | 'dim';
 export type DistrictId = 'district-0' | 'district-1' | 'district-2';
 export type BranchId = Exclude<DistrictId, 'district-0'>;
 export type PublicFacility = 'relay' | 'registry';
-export type MainProject = 'P01' | 'P02' | 'P03' | 'P04' | 'P05' | 'P06' | 'P07';
-export type Research = 'R01' | 'R02' | 'R03' | 'R04';
-export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}`;
-export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10';
-export type EventChoice = Lighting | 'common' | 'individual';
-export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds';
+export type MainProject = 'P01' | 'P02' | 'P03' | 'P04' | 'P05' | 'P06' | 'P07' | 'P08' | 'P09' | 'P10' | 'P11';
+export type Research = 'R01' | 'R02' | 'R03' | 'R04' | 'R05' | 'R06';
+export type RouteId = 'rain' | 'station';
+export type Direction = 'outbound' | 'inbound';
+export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}`;
+export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10' | 'E11' | 'E12' | 'E13' | 'E14' | 'E15';
+export type EventChoice = Lighting | 'common' | 'individual' | 'reliable' | 'express';
+export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports';
 export type Ledger = Record<Flow, Amounts>;
 export interface Project {
   uid: string;
@@ -37,6 +39,40 @@ export interface ReturnReport {
   pending: EventId[];
   reasons: string[];
   goal: string;
+  maintenance: number;
+  transport: { departures: number; deliveries: number; maintenance: number };
+}
+export interface NetworkNode {
+  resources: Amounts;
+  received: Amounts;
+  produced: Amounts;
+  used: Amounts;
+  shipped: Amounts;
+  cycle: number;
+}
+export interface Shipment {
+  uid: string;
+  direction: Direction;
+  loads: 1 | 2;
+  cargo: Amounts;
+  duration: number;
+  remaining: number;
+}
+export interface NetworkRoute {
+  node: NetworkNode;
+  condition: number;
+  staff: { district: DistrictId; resident: Resident } | null;
+  trip: Shipment | null;
+  contract: { enabled: boolean; loads: 1 | 2; reserve: Amounts };
+  autoRepair: boolean;
+  departures: number;
+  exports: number;
+  imports: number;
+}
+export interface NetworkState {
+  routes: Record<RouteId, NetworkRoute>;
+  priority: RouteId[];
+  nextTrip: number;
   maintenance: number;
 }
 export interface DistrictState {
@@ -74,6 +110,7 @@ export interface GameState extends DistrictState {
   report: ReturnReport | null;
   history: { second: number; text: string }[];
   city: { districts: Partial<Record<BranchId, DistrictState>>; templates: WorkTemplate[]; maintenance: number };
+  network: NetworkState;
 }
 export interface ProjectDefinition { id: DefinitionId; name: string; description: string; cost: Amounts; work: number }
 export type Action =
@@ -90,5 +127,10 @@ export type Action =
   | { type: 'template-save'; district: DistrictId; name: string }
   | { type: 'template-apply' | 'template-delete'; name: string }
   | { type: 'dismantle'; district: BranchId; facility: Facility | PublicFacility }
+  | { type: 'dispatch'; route: RouteId; direction: Direction; loads: 1 | 2 }
+  | { type: 'network-staff'; route: RouteId; district: DistrictId; resident: Resident; delta: -1 | 1 }
+  | { type: 'contract'; route: RouteId; enabled: boolean; loads: 1 | 2; reserve: Amounts }
+  | { type: 'network-priority'; order: RouteId[] }
+  | { type: 'route-auto'; route: RouteId; enabled: boolean }
   | { type: 'theme'; theme: 'dark' | 'light' }
   | { type: 'dismiss-report' };

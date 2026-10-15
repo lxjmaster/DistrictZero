@@ -1,0 +1,501 @@
+{
+  "format": "districtzero",
+  "schemaVersion": 2,
+  "balanceVersion": "0.2.0",
+  "savedAt": 1791969020000,
+  "state": {
+    "facilities": {
+      "generator": 2,
+      "recycler": 1,
+      "workbench": 1,
+      "dorm": 2,
+      "warehouse": 1,
+      "mailbox": 1
+    },
+    "population": {
+      "shadow": 3,
+      "echo": 3
+    },
+    "assignments": {
+      "shadow": {
+        "power": 2,
+        "salvage": 1,
+        "repair": 0,
+        "record": 0
+      },
+      "echo": {
+        "power": 0,
+        "salvage": 0,
+        "repair": 2,
+        "record": 1
+      }
+    },
+    "lighting": "bright",
+    "publicWorks": {
+      "relay": {
+        "built": true,
+        "enabled": true,
+        "condition": 1285
+      },
+      "registry": {
+        "built": true,
+        "enabled": true,
+        "condition": 1410
+      }
+    },
+    "autoRepair": true,
+    "district": "district-0",
+    "resources": {
+      "energy": 300000,
+      "parts": 250000,
+      "memory": 80000
+    },
+    "earned": {
+      "energy": 4260365,
+      "parts": 2020843,
+      "memory": 358000
+    },
+    "ledger": {
+      "production": {
+        "energy": 4260365,
+        "parts": 1990843,
+        "memory": 309000
+      },
+      "rewards": {
+        "energy": 0,
+        "parts": 30000,
+        "memory": 49000
+      },
+      "operating": {
+        "energy": 3190365,
+        "parts": 119843,
+        "memory": 0
+      },
+      "reserved": {
+        "energy": 800000,
+        "parts": 1661000,
+        "memory": 278000
+      },
+      "refunds": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0
+      }
+    },
+    "arrivalSeconds": 0,
+    "arrivals": 12,
+    "lightingChosen": true,
+    "priority": [
+      "salvage",
+      "repair",
+      "record"
+    ],
+    "queue": [],
+    "completed": [
+      "P01",
+      "build:dorm:1",
+      "P02",
+      "build:warehouse:1",
+      "build:mailbox:1",
+      "R01",
+      "R02",
+      "P03",
+      "P04",
+      "P05",
+      "build:dorm:2",
+      "build:generator:2",
+      "district-1/build:dorm:1",
+      "district-1/build:recycler:1",
+      "district-1/build:dorm:2",
+      "district-1/build:recycler:2",
+      "district-2/build:dorm:1",
+      "district-2/build:mailbox:1",
+      "district-2/build:dorm:2",
+      "district-2/build:mailbox:2",
+      "public:relay",
+      "public:registry",
+      "R04",
+      "R03",
+      "P06",
+      "P07"
+    ],
+    "events": {
+      "E01": {
+        "status": "claimed"
+      },
+      "E03": {
+        "status": "claimed",
+        "choice": "bright"
+      },
+      "E02": {
+        "status": "claimed"
+      },
+      "E04": {
+        "status": "claimed"
+      },
+      "E05": {
+        "status": "claimed"
+      },
+      "E06": {
+        "status": "claimed"
+      },
+      "E07": {
+        "status": "claimed",
+        "choice": "common"
+      },
+      "E08": {
+        "status": "claimed"
+      },
+      "E09": {
+        "status": "claimed"
+      },
+      "E10": {
+        "status": "claimed"
+      }
+    },
+    "memoryProduced": true,
+    "address": "0-001",
+    "clock": {
+      "seconds": 7045,
+      "remainderMs": 0,
+      "lastAt": 1791969020000
+    },
+    "nextProject": 29,
+    "theme": "dark",
+    "report": {
+      "awayMs": 900000,
+      "seconds": 900,
+      "start": {
+        "energy": 300000,
+        "parts": 250000,
+        "memory": 80000
+      },
+      "end": {
+        "energy": 300000,
+        "parts": 250000,
+        "memory": 80000
+      },
+      "flows": {
+        "production": {
+          "energy": 404554,
+          "parts": 12000,
+          "memory": 0
+        },
+        "rewards": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        },
+        "operating": {
+          "energy": 374554,
+          "parts": 0,
+          "memory": 0
+        },
+        "reserved": {
+          "energy": 30000,
+          "parts": 12000,
+          "memory": 0
+        },
+        "refunds": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0
+        }
+      },
+      "completed": [],
+      "arrivals": {
+        "shadow": 0,
+        "echo": 0
+      },
+      "events": [],
+      "pending": [],
+      "reasons": [
+        "尚未安排工程",
+        "零件满仓，回收工停止或减产",
+        "旧巷：零件满仓，回收工停止或减产",
+        "记忆满仓，记录员停止或减产",
+        "信笺里：记忆满仓，记录员停止或减产",
+        "电量满仓，发电工按消耗补充"
+      ],
+      "goal": "雨城联络线已接通。夜城有了第一位可以问候的邻居。",
+      "maintenance": 2
+    },
+    "city": {
+      "districts": {
+        "district-1": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 2,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 0
+          },
+          "population": {
+            "shadow": 4,
+            "echo": 0
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 2,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            }
+          },
+          "lighting": "dim",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        },
+        "district-2": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 0,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 2
+          },
+          "population": {
+            "shadow": 0,
+            "echo": 4
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 2
+            }
+          },
+          "lighting": "bright",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        }
+      },
+      "templates": [
+        {
+          "name": "旧巷回收班",
+          "district": "district-1",
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 2,
+              "repair": 0,
+              "record": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0
+            }
+          },
+          "lighting": "dim",
+          "priority": [
+            "salvage",
+            "repair",
+            "record"
+          ]
+        }
+      ],
+      "maintenance": 2
+    },
+    "history": [
+      {
+        "second": 3200,
+        "text": "新的交接事项：巷子的另一端"
+      },
+      {
+        "second": 3215,
+        "text": "已处理交接事项：巷子的另一端"
+      },
+      {
+        "second": 3655,
+        "text": "完工：为信笺里补上门牌"
+      },
+      {
+        "second": 3655,
+        "text": "新的交接事项：两家共用一块门牌"
+      },
+      {
+        "second": 3665,
+        "text": "已处理交接事项：两家共用一块门牌"
+      },
+      {
+        "second": 3780,
+        "text": "完工：夜居民宿舍 · 2级"
+      },
+      {
+        "second": 3867,
+        "text": "完工：手摇发电机 · 2级"
+      },
+      {
+        "second": 3900,
+        "text": "影子居民入住，带来一袋无人认领的螺丝。"
+      },
+      {
+        "second": 4020,
+        "text": "回声居民入住，带来一些旧声音。"
+      },
+      {
+        "second": 4085,
+        "text": "完工：夜居民宿舍 · 1级 · 旧巷"
+      },
+      {
+        "second": 4123,
+        "text": "完工：回收棚 · 1级 · 旧巷"
+      },
+      {
+        "second": 4193,
+        "text": "完工：夜居民宿舍 · 2级 · 旧巷"
+      },
+      {
+        "second": 4205,
+        "text": "影子居民入住，带来一袋无人认领的螺丝。住处：旧巷。"
+      },
+      {
+        "second": 4237,
+        "text": "完工：回收棚 · 2级 · 旧巷"
+      },
+      {
+        "second": 4295,
+        "text": "完工：夜居民宿舍 · 1级 · 信笺里"
+      },
+      {
+        "second": 4325,
+        "text": "回声居民入住，带来一些旧声音。住处：旧巷。"
+      },
+      {
+        "second": 4358,
+        "text": "完工：回声信箱 · 1级 · 信笺里"
+      },
+      {
+        "second": 4423,
+        "text": "完工：夜居民宿舍 · 2级 · 信笺里"
+      },
+      {
+        "second": 4445,
+        "text": "影子居民入住，带来一袋无人认领的螺丝。住处：旧巷。"
+      },
+      {
+        "second": 4445,
+        "text": "新的交接事项：有了各自的手艺"
+      },
+      {
+        "second": 4496,
+        "text": "完工：回声信箱 · 2级 · 信笺里"
+      },
+      {
+        "second": 4565,
+        "text": "回声居民入住，带来一些旧声音。住处：信笺里。"
+      },
+      {
+        "second": 4685,
+        "text": "影子居民入住，带来一袋无人认领的螺丝。住处：旧巷。"
+      },
+      {
+        "second": 4805,
+        "text": "回声居民入住，带来一些旧声音。住处：信笺里。"
+      },
+      {
+        "second": 4905,
+        "text": "回声居民迁居至信笺里。"
+      },
+      {
+        "second": 4925,
+        "text": "影子居民入住，带来一袋无人认领的螺丝。住处：旧巷。"
+      },
+      {
+        "second": 5005,
+        "text": "完工：建设配电亭"
+      },
+      {
+        "second": 5015,
+        "text": "已处理交接事项：有了各自的手艺"
+      },
+      {
+        "second": 5045,
+        "text": "回声居民入住，带来一些旧声音。住处：信笺里。"
+      },
+      {
+        "second": 5130,
+        "text": "完工：建设门牌事务所"
+      },
+      {
+        "second": 5305,
+        "text": "完工：巡检手册"
+      },
+      {
+        "second": 5430,
+        "text": "完工：地址索引"
+      },
+      {
+        "second": 5735,
+        "text": "完工：编成夜城地址簿"
+      },
+      {
+        "second": 5735,
+        "text": "新的交接事项：夜城有了通讯录"
+      },
+      {
+        "second": 5755,
+        "text": "已处理交接事项：夜城有了通讯录"
+      },
+      {
+        "second": 6120,
+        "text": "完工：接通雨城联络线"
+      },
+      {
+        "second": 6120,
+        "text": "新的交接事项：雨城接起了电话"
+      },
+      {
+        "second": 6145,
+        "text": "已处理交接事项：雨城接起了电话"
+      },
+      {
+        "second": 6530,
+        "text": "完工：巡检配电亭"
+      },
+      {
+        "second": 6655,
+        "text": "完工：巡检门牌事务所"
+      }
+    ]
+  }
+}

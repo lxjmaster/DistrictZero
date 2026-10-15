@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { RESIDENTS, RESOURCES, resourceNames, residentNames } from '../game/config';
-import { activeDistricts, CITY_RULES, cityCount, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, localBeds, localCount, localFree, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, specialization } from '../game/city';
-import { definitionFor, duration, enqueueReason, format, servicePreview } from '../game/engine';
+import { activeDistricts, CITY_RULES, cityCount, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, localBeds, localCount, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, specialization } from '../game/city';
+import { definitionFor, duration, enqueueReason, format, freeResidents, servicePreview } from '../game/engine';
 import type { Action, DistrictId, Facility, GameState, PublicFacility } from '../game/types';
 
 type Props = { state: GameState; district: DistrictId; send: (action: Action) => void; disabled: boolean };
 export function CityPage({ state, district, send, disabled, manage }: Props & { manage: (id: DistrictId) => void }) {
-  const services = servicePreview(state), current = districtState(state, district)!;
+  const services = servicePreview(state);
   return <div className="stack">
     <section className="panel city-map" aria-label="夜城地图">
       <div className="panel-title"><h2>灯光之间的路</h2><span className="caption">{activeDistricts(state).length} / 3 地址 · {cityCount(state)} 位居民</span></div>
@@ -19,11 +19,11 @@ export function CityPage({ state, district, send, disabled, manage }: Props & { 
           {d ? <><p className="small">地块 {plotsUsed(d)} / {DISTRICTS[id].plots} · 住处 {localCount(d)} / {localBeds(d, id)}</p><p className={spec ? 'specialty' : 'muted small'}>{spec === 'salvage' ? '回收街区 · 额外产出 +10%' : spec === 'record' ? '记录街区 · 额外产出 +10%' : '尚未形成专业组合'}</p><button aria-label={`管理${DISTRICTS[id].name}`} onClick={() => manage(id)}>安排这里 →</button></> : <p className="condition">{id === 'district-1' ? '完成旧巷测绘后开放' : '完成信笺里门牌工程后开放'}</p>}
         </article>;
       })}</div>
-      <div className="line-status"><span className="eyebrow">对外线路 / 0</span><h3>{state.completed.includes('P07') ? '第0街区 ── 雨城 · 已接通' : '第0街区 ── 雨城 · 等待接通'}</h3><p className="small muted">{state.completed.includes('P07') ? '电话那头的雨声，现在有人接听。运输合同将在下一章展开。' : '编成地址簿，维持回收与记录专业街区，再让公共设施为联络线供电。'}</p></div>
+      <div className="line-status"><span className="eyebrow">对外线路 / 0</span><h3>{state.completed.includes('P07') ? '第0街区 ── 雨城 · 已接通' : '第0街区 ── 雨城 · 等待接通'}</h3><p className="small muted">{state.completed.includes('P07') ? '电话那头的雨声，现在有人接听。在“夜网”页修复车厢，安排外派与真实运输。' : '编成地址簿，维持回收与记录专业街区，再让公共设施为联络线供电。'}</p></div>
     </section>
     <section className="panel" aria-label="居民迁居"><div className="panel-title"><h2>让人找到合适的住处</h2><span className="caption">当前：{DISTRICTS[district].name}</span></div>
       <p className="small muted">先撤回岗位，再迁居空闲居民。新住客优先选择供电正常的明灯（回声）或暗灯（影子），人数与到达顺序不变。</p>
-      {RESIDENTS.map(resident => <div className="relocation" key={resident}><p><strong>{residentNames[resident]}</strong><span className="small muted"> · 当前空闲 {localFree(current, resident)}</span></p><div className="button-row">{activeDistricts(state).filter(id => id !== district).map(to => <button key={to} disabled={disabled || localFree(current, resident) === 0 || localCount(districtState(state, to)!) >= localBeds(districtState(state, to)!, to)} aria-label={`迁居${residentNames[resident]}至${DISTRICTS[to].name}`} onClick={() => send({ type: 'relocate', resident, from: district, to })}>迁往{DISTRICTS[to].name} · 空床 {localBeds(districtState(state, to)!, to) - localCount(districtState(state, to)!)}</button>)}</div></div>)}
+      {RESIDENTS.map(resident => <div className="relocation" key={resident}><p><strong>{residentNames[resident]}</strong><span className="small muted"> · 当前空闲 {freeResidents(state, resident, district)}</span></p><div className="button-row">{activeDistricts(state).filter(id => id !== district).map(to => <button key={to} disabled={disabled || freeResidents(state, resident, district) === 0 || localCount(districtState(state, to)!) >= localBeds(districtState(state, to)!, to)} aria-label={`迁居${residentNames[resident]}至${DISTRICTS[to].name}`} onClick={() => send({ type: 'relocate', resident, from: district, to })}>迁往{DISTRICTS[to].name} · 空床 {localBeds(districtState(state, to)!, to) - localCount(districtState(state, to)!)}</button>)}</div></div>)}
       <p className="footnote">回收组合：2位影子 + 2级回收棚 + 暗灯。记录组合：2位回声 + 2级信箱 + 明灯。照明断供时专业加成暂时失效。</p>
     </section>
   </div>;

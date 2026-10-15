@@ -2,6 +2,8 @@ import { amounts, BASE, EVENTS, FACILITIES, FACILITY_IDS, FLOWS, INITIAL, INPUTS
 import type { Action, Amounts, DefinitionId, EventId, Facility, GameState, Job, Ledger, Lighting, Project, ProjectDefinition, Resident, ReturnReport } from './types';
 import type { DistrictId, PublicFacility } from './types';
 import { activeDistricts, arrivalInterval, CITY_RULES, cityPopulation, cityWorkers, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, localFree, localWorkers, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, scopedKey, specialization } from './city';
+import { awayWorkers, createNetwork, dispatch, NETWORK_RULES, networkReasons, ROUTE_IDS, ROUTES, routeOpen, tickNetwork } from './network';
+import type { RouteId } from './types';
 
 export function emptyLedger(): Ledger {
   return Object.fromEntries(FLOWS.map(f => [f, amounts()])) as Ledger;
@@ -17,13 +19,13 @@ export function createGame(now = 0): GameState {
     nextProject: 1, theme: 'dark', report: null,
     history: [{ second: 0, text: '收到工务交接单：请让这里有地方可去。' }],
     publicWorks: emptyDistrict().publicWorks, autoRepair: false,
-    city: { districts: {}, templates: [], maintenance: 0 }
+    city: { districts: {}, templates: [], maintenance: 0 }, network: createNetwork()
   };
 }
 export const populationCapacity = (s: GameState, id: DistrictId = 'district-0') => localBeds(districtState(s, id)!, id);
 export const populationCount = (s: GameState, id: DistrictId = 'district-0') => localCount(districtState(s, id)!);
 export const workers = (s: GameState, job: Job, id: DistrictId = 'district-0') => localWorkers(districtState(s, id)!, job);
-export const freeResidents = (s: GameState, type: Resident, id: DistrictId = 'district-0') => localFree(districtState(s, id)!, type);
+export const freeResidents = (s: GameState, type: Resident, id: DistrictId = 'district-0') => localFree(districtState(s, id)!, type) - awayWorkers(s, id, type);
 export const jobCapacity = (s: GameState, job: Job, id: DistrictId = 'district-0') => { const level = districtState(s, id)!.facilities[jobFacility[job]]; return level ? level + 1 : 0; };
 export const efficiency = (s: GameState, job: Job, id: DistrictId = 'district-0') => 1 + RULES.efficiencyGrowth * (districtState(s, id)!.facilities[jobFacility[job]] - 1);
 export function capacities(s: GameState): Amounts {
@@ -32,6 +34,7 @@ export function capacities(s: GameState): Amounts {
 }
 export const projectKey = (p: Pick<Project, 'definition' | 'targetLevel'> & { district?: DistrictId }) => scopedKey(p.definition.startsWith('build:') ? `${p.definition}:${p.targetLevel}` : p.definition, p.district);
 export function definitionFor(s: GameState, id: DefinitionId, targetLevel?: number, district: DistrictId = 'district-0'): ProjectDefinition {
+  if (id.startsWith('route:')) return { id, name: `维护${ROUTES[id.slice(6) as RouteId].name}线路`, description: '共用工务队列，维护完成后线路状态恢复至1000。已有列车继续运输。', cost: NETWORK_RULES.repairCost, work: NETWORK_RULES.repairWork };
   if (id.startsWith('public:') || id.startsWith('maintain:')) {
     const f = id.split(':')[1] as PublicFacility, d = PUBLIC_WORKS[f];
     return { id, name: `${id.startsWith('maintain:') ? '巡检' : '建设'}${d.name}`, description: d.text,
@@ -48,6 +51,11 @@ export function definitionFor(s: GameState, id: DefinitionId, targetLevel?: numb
 export function unlockReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0'): string | null {
   const local = districtState(s, district);
   if (!local) return '先测绘这个街区';
+  if (id.startsWith('route:')) {
+    const route = id.slice(6) as RouteId;
+    if (!ROUTE_IDS.includes(route) || district !== 'district-0' || !routeOpen(s, route)) return '先开放这条城际线路，在第0街区安排维护';
+    return s.network.routes[route].condition >= NETWORK_RULES.condition ? '线路状态完好' : null;
+  }
   if (id.startsWith('public:') || id.startsWith('maintain:')) {
     const f = id.split(':')[1] as PublicFacility;
     if (!PUBLIC_IDS.includes(f)) return '未知公共设施';
@@ -93,6 +101,14 @@ export function unlockReason(s: GameState, id: DefinitionId, district: DistrictI
     if (!support['district-0']!.public.relay || !support['district-0']!.public.registry) return '给第0街区的配电亭与门牌事务所供电，停用或耗尽时请恢复';
   }
   if (id === 'R04' && !activeDistricts(s).some(id => PUBLIC_IDS.some(f => districtState(s, id)!.publicWorks[f].built))) return '先建成一种公共设施';
+  if (['P08', 'P09', 'P10', 'P11', 'R05', 'R06'].includes(id) && !s.completed.includes('P07')) return '先接通雨城联络线';
+  if (id === 'P08' && s.events.E10?.status !== 'claimed') return '先读完并归档“雨城接起了电话”';
+  if ((id === 'P09' || id === 'R05') && (s.network.routes.rain.imports < 1 || s.events.E12?.status !== 'claimed')) return '先取回雨城的第一只箱子，并选择稳班或快班';
+  if (id === 'R06' && !s.completed.includes('P09')) return '先恢复长站货台';
+  if (id === 'P10' && (!s.completed.includes('R05') || !s.completed.includes('R06') || ROUTE_IDS.some(id => s.network.routes[id].imports < 1))) return '两地各完成一次回程，并研究运单规范、联运调度';
+  if (id === 'P11' && (!s.completed.includes('P10') || ROUTE_IDS.some(id => {
+    const route = s.network.routes[id]; return route.imports < 2 || !route.contract.enabled || !route.staff || route.condition <= 0;
+  }))) return '先编定时刻表，两地各完成两次回程，启用两个合同并安排外派、维护线路';
   return null;
 }
 export function enqueueReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0'): string | null {
@@ -185,7 +201,9 @@ export function eventTriggers(s: GameState, services = servicePreview(s)): Recor
     E04: s.facilities.mailbox > 0 && s.earned.memory >= RULES.researchUnlockMemory, E05: s.completed.includes('P03'),
     E06: s.completed.includes('P04'), E07: s.completed.includes('P05'),
     E08: Boolean(s.events.E08) || (Boolean(s.address) && activeDistricts(s).some(id => specialization(districtState(s, id)!, services[id]?.light))),
-    E09: s.completed.includes('P06'), E10: s.completed.includes('P07')
+    E09: s.completed.includes('P06'), E10: s.completed.includes('P07'),
+    E11: s.completed.includes('P08'), E12: s.network.routes.rain.imports > 0,
+    E13: s.completed.includes('P09'), E14: s.completed.includes('P10'), E15: s.completed.includes('P11')
   };
 }
 function triggerEvents(s: GameState, services?: Services) {
@@ -197,7 +215,10 @@ function triggerEvents(s: GameState, services?: Services) {
 }
 function completeProject(s: GameState, p: Project) {
   const d = districtState(s, p.district)!;
-  if (p.definition.startsWith('maintain:')) {
+  if (p.definition.startsWith('route:')) {
+    s.network.routes[p.definition.slice(6) as RouteId].condition = NETWORK_RULES.condition;
+    s.network.maintenance += 1;
+  } else if (p.definition.startsWith('maintain:')) {
     d.publicWorks[p.definition.slice(9) as PublicFacility].condition = CITY_RULES.condition;
     s.city.maintenance += 1;
   } else {
@@ -209,6 +230,8 @@ function completeProject(s: GameState, p: Project) {
       if (p.definition === 'P03') s.address = '0-001';
       if (p.definition === 'P04') s.city.districts['district-1'] = emptyDistrict();
       if (p.definition === 'P05') s.city.districts['district-2'] = emptyDistrict();
+      if (p.definition === 'P08') s.network.routes.rain.condition = NETWORK_RULES.condition;
+      if (p.definition === 'P09') s.network.routes.station.condition = NETWORK_RULES.condition;
     }
   }
   log(s, `完工：${definitionFor(s, p.definition, p.targetLevel, p.district).name}${p.district === 'district-0' ? '' : ` · ${DISTRICTS[p.district].name}`}`);
@@ -228,6 +251,7 @@ function scheduleMaintenance(s: GameState) {
       if (!enqueueReason(s, definition, id)) pushProject(s, definition, id);
     }
   }
+  for (const id of ROUTE_IDS) if (routeOpen(s, id) && s.network.routes[id].autoRepair && s.network.routes[id].condition <= NETWORK_RULES.threshold && !enqueueReason(s, `route:${id}`)) pushProject(s, `route:${id}`, 'district-0');
 }
 interface TickResult { lightOn: boolean; services: Services; lightingCost: number; publicCost: number; output: Record<Job, number>; costs: Record<Job, Amounts>; reasons: string[] }
 interface ProductionBudget { district: DistrictId; job: 'salvage' | 'record'; wanted: number; inputs: Amounts; resource: keyof Amounts; capacityBlocked: boolean; produced: number }
@@ -317,6 +341,7 @@ function tick(s: GameState): TickResult {
     }
   } else s.arrivalSeconds = 0;
   if (completed) completeProject(s, completed);
+  tickNetwork(s, capacities(s), text => log(s, text));
   triggerEvents(s, budget.services);
   return result;
 }
@@ -337,7 +362,17 @@ export function advanceTo(s: GameState, now: number): GameState {
   return advanced;
 }
 export function goal(s: GameState): string {
-  if (s.completed.includes('P07')) return '雨城联络线已接通。夜城有了第一位可以问候的邻居。';
+  if (s.completed.includes('P11')) return '末班车每天抵达。下一张城市图，正等待一间分所。';
+  if (s.completed.includes('P07')) {
+    if (s.events.E10?.status !== 'claimed') return '归档雨城的来信，开始修复末班车厢';
+    if (!s.completed.includes('P08')) return '修复末班车厢，让问候变成真正的抵达';
+    if (!s.network.routes.rain.imports) return '外派一位空闲夜工，补给雨城并取回第一只箱子';
+    if (s.events.E12?.status !== 'claimed') return '决定末班车采用稳班还是快班';
+    if (!s.completed.includes('P09')) return '恢复长站货台，接通第二条供需线路';
+    if (!s.completed.includes('R05') || !s.completed.includes('R06')) return '研究运单规范与联运调度，安排共享列车';
+    if (!s.completed.includes('P10')) return '两地各取回一车物资，编定联运时刻表';
+    return '两地各完成两次回程，启用供货合同，让末班车每天抵达';
+  }
   if (s.address) {
     if (s.events.E05?.status !== 'claimed') return '读完第一个地址的来信，开始测绘夜城';
     if (!s.completed.includes('P04')) return '测绘旧巷，让地图走出第0街区';
@@ -361,9 +396,9 @@ export function view(s: GameState) {
   for (const r of RESOURCES) {
     production[r] = next.ledger.production[r] - s.ledger.production[r];
     operating[r] = next.ledger.operating[r] - s.ledger.operating[r];
-    net[r] = production[r] - operating[r];
+    net[r] = production[r] - operating[r] + next.ledger.imports[r] - s.ledger.imports[r] - next.ledger.exports[r] + s.ledger.exports[r];
   }
-  const reasons = [...projectReasons(s), ...tickResult.reasons];
+  const reasons = [...projectReasons(s), ...tickResult.reasons, ...networkReasons(s, capacities(s))];
   for (const id of activeDistricts(s)) {
     const d = districtState(s, id)!;
     if (d.autoRepair && PUBLIC_IDS.some(f => d.publicWorks[f].built && d.publicWorks[f].enabled && d.publicWorks[f].condition <= CITY_RULES.repairThreshold && !s.queue.some(p => p.district === id && p.definition === `maintain:${f}`))) reasons.push(`${DISTRICTS[id].name}自动巡检等待队列空位`);
@@ -380,7 +415,8 @@ export function summarize(before: GameState, after: GameState, awayMs: number): 
     arrivals: { shadow: cityPopulation(after, 'shadow') - cityPopulation(before, 'shadow'), echo: cityPopulation(after, 'echo') - cityPopulation(before, 'echo') },
     events: (Object.keys(after.events) as EventId[]).filter(id => !before.events[id]),
     pending: (Object.keys(after.events) as EventId[]).filter(id => after.events[id]?.status === 'pending'),
-    reasons: view(after).reasons, goal: goal(after), maintenance: after.city.maintenance - before.city.maintenance
+    reasons: view(after).reasons, goal: goal(after), maintenance: after.city.maintenance - before.city.maintenance,
+    transport: { departures: ROUTE_IDS.reduce((n, id) => n + after.network.routes[id].departures - before.network.routes[id].departures, 0), deliveries: ROUTE_IDS.reduce((n, id) => n + after.network.routes[id].exports + after.network.routes[id].imports - before.network.routes[id].exports - before.network.routes[id].imports, 0), maintenance: after.network.maintenance - before.network.maintenance }
   };
 }
 export function refundPreview(s: GameState, p: Project) {
@@ -457,6 +493,9 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       } else if (action.event === 'E07') {
         if (action.choice !== 'common' && action.choice !== 'individual') return fail('请选择共灯或各留姓名');
         e.choice = action.choice;
+      } else if (action.event === 'E12') {
+        if (action.choice !== 'reliable' && action.choice !== 'express') return fail('请选择稳班或快班');
+        e.choice = action.choice;
       } else {
         const reward = EVENTS[action.event].reward, cap = capacities(s);
         if (RESOURCES.some(r => s.resources[r] + reward[r] > cap[r])) return fail('奖励所需容量不足，请先腾出空间；整份奖励保留待领取');
@@ -467,7 +506,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
     case 'relocate': {
       const from = districtState(s, action.from), to = districtState(s, action.to);
       if (!s.address || !from || !to || action.from === action.to || !RESIDENTS.includes(action.resident)) return fail('请选择两个已测绘的不同街区');
-      if (localFree(from, action.resident) <= 0) return fail('只能迁居空闲居民，请先撤回岗位');
+      if (freeResidents(s, action.resident, action.from) <= 0) return fail('只能迁居空闲居民，请先撤回岗位或召回外派夜工');
       if (localCount(to) >= localBeds(to, action.to)) return fail('目的街区没有空余住处');
       from.population[action.resident] -= 1; to.population[action.resident] += 1;
       log(s, `${action.resident === 'shadow' ? '影子居民' : '回声居民'}迁居至${DISTRICTS[action.to].name}。`);
@@ -498,7 +537,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       if (!t) return fail('模板不存在');
       if (action.type === 'template-delete') { s.city.templates = s.city.templates.filter(t => t.name !== action.name); break; }
       const d = districtState(s, t.district)!;
-      if (RESIDENTS.some(r => JOBS.reduce((n, j) => n + t.assignments[r][j], 0) > d.population[r])) return fail('模板所需居民不足，当前安排保留');
+      if (RESIDENTS.some(r => JOBS.reduce((n, j) => n + t.assignments[r][j], 0) + awayWorkers(s, t.district, r) > d.population[r])) return fail('模板所需居民不足或正在外派，当前安排保留');
       if (JOBS.some(j => RESIDENTS.reduce((n, r) => n + t.assignments[r][j], 0) > jobCapacity(s, j, t.district))) return fail('模板所需岗位容量不足，当前安排保留');
       if (d.lighting !== t.lighting) {
         if (!s.lightingChosen || s.resources.parts < RULES.switchParts) return fail('模板切换照明需要已开放照明与5零件，当前安排保留');
@@ -518,6 +557,36 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       const prefix = scopedKey(`${isPublic ? 'public' : 'build'}:${action.facility}`, action.district);
       s.completed = s.completed.filter(key => key !== prefix && !key.startsWith(`${prefix}:`));
       log(s, `${DISTRICTS[action.district].name}拆除闲置设施，空出一个地块。材料不返还。`); break;
+    }
+    case 'dispatch': {
+      const reason = dispatch(s, action.route, action.direction, action.loads, capacities(s), text => log(s, text));
+      if (reason) return fail(reason);
+      break;
+    }
+    case 'network-staff': {
+      if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route)) return fail('先开放这条线路');
+      const route = s.network.routes[action.route];
+      if (action.delta === -1) {
+        if (!route.staff || route.trip) return fail('没有可召回人员，或列车仍在运输、等待卸货');
+        route.staff = null;
+      } else {
+        if (action.delta !== 1 || route.staff || !districtState(s, action.district) || !RESIDENTS.includes(action.resident) || freeResidents(s, action.resident, action.district) <= 0) return fail('需要一名空闲夜工，请先撤回岗位');
+        route.staff = { district: action.district, resident: action.resident };
+      }
+      break;
+    }
+    case 'contract': {
+      if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route) || !s.completed.includes('R05')) return fail('先开放线路并研究运单规范');
+      if (typeof action.enabled !== 'boolean' || (action.loads !== 1 && action.loads !== 2) || !action.reserve || RESOURCES.some(r => !Number.isSafeInteger(action.reserve[r]) || action.reserve[r] < 0)) return fail('保留库存必须是非负数值，货物选择1或2份');
+      s.network.routes[action.route].contract = { enabled: action.enabled, loads: action.loads, reserve: { ...action.reserve } }; break;
+    }
+    case 'network-priority': {
+      if (action.order.length !== ROUTE_IDS.length || new Set(action.order).size !== ROUTE_IDS.length || !ROUTE_IDS.every(id => action.order.includes(id))) return fail('线路优先级必须完整且不重复');
+      s.network.priority = [...action.order]; break;
+    }
+    case 'route-auto': {
+      if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route) || !s.completed.includes('R04') || typeof action.enabled !== 'boolean') return fail('先开放线路并研究巡检手册');
+      s.network.routes[action.route].autoRepair = action.enabled; break;
     }
     case 'theme': s.theme = action.theme; break;
     case 'dismiss-report': s.report = null; break;

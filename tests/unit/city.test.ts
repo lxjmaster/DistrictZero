@@ -77,8 +77,9 @@ describe('V0.2 migration and address network', () => {
   });
   it('C01: migrates a genuine V0.1 browser save without changing original progress', () => {
     const raw = JSON.parse(oldText), migrated = decodeSave(oldText);
-    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(2);
-    for (const key of ['resources', 'earned', 'ledger', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(migrated.state[key]).toEqual(raw.state[key]);
+    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(3);
+    for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(migrated.state[key]).toEqual(raw.state[key]);
+    expect(migrated.state.ledger).toEqual({ ...raw.state.ledger, exports: { energy: 0, parts: 0, memory: 0 }, imports: { energy: 0, parts: 0, memory: 0 } });
     expect(migrated.state.city).toEqual({ districts: {}, templates: [], maintenance: 0 });
     expect(decodeSave(encodeSave(migrated.state, 0)).state).toEqual(migrated.state);
     const nearFull = migrated.state; stock(nearFull, 'energy', capacities(nearFull).energy - 50);
@@ -89,7 +90,7 @@ describe('V0.2 migration and address network', () => {
     s = act(s, { type: 'pause', uid: s.queue[0].uid }); s.clock.remainderMs = 721;
     s.report = summarize(old(), s, 70000);
     const raw = JSON.parse(encodeSave(s, 0)); raw.schemaVersion = 1; raw.balanceVersion = '0.1.0';
-    delete raw.state.city; delete raw.state.publicWorks; delete raw.state.autoRepair; delete raw.state.report.maintenance;
+    delete raw.state.network; delete raw.state.city; delete raw.state.publicWorks; delete raw.state.autoRepair; delete raw.state.report.maintenance;
     raw.state.queue.forEach((p: Record<string, unknown>) => { delete p.district; });
     const migrated = decodeSave(JSON.stringify(raw)).state;
     expect(migrated.queue).toEqual(s.queue); expect(migrated.clock).toEqual(s.clock); expect(migrated.ledger).toEqual(s.ledger); expect(migrated.report).toEqual(s.report);
@@ -103,7 +104,7 @@ describe('V0.2 migration and address network', () => {
     developed = finish(developed, 'build:recycler');
     const envelope = JSON.parse(encodeSave(developed, 0));
     envelope.schemaVersion = 1; envelope.balanceVersion = '0.1.0';
-    delete envelope.state.city; delete envelope.state.publicWorks; delete envelope.state.autoRepair; delete envelope.state.events.E08;
+    delete envelope.state.network; delete envelope.state.city; delete envelope.state.publicWorks; delete envelope.state.autoRepair; delete envelope.state.events.E08;
     const migrated = decodeSave(JSON.stringify(envelope)).state;
     expect(migrated.events.E08).toEqual({ status: 'pending' });
     expect(migrated.resources).toEqual(developed.resources); expect(migrated.earned).toEqual(developed.earned); expect(migrated.ledger).toEqual(developed.ledger);
@@ -234,7 +235,7 @@ describe('district economy, decisions, and automation', () => {
       (o: typeof raw) => { o.state.city.districts['district-1'].autoRepair = true; },
       (o: typeof raw) => { o.state.events.E07.choice = 'bright'; },
       (o: typeof raw) => { o.state.city.templates.push({ name: '伪造', district: 'district-9' }); },
-      (o: typeof raw) => { o.schemaVersion = 3; }
+      (o: typeof raw) => { o.schemaVersion = 4; }
     ]) { const broken = structuredClone(raw); mutate(broken); expect(() => decodeSave(JSON.stringify(broken))).toThrow(); }
     expect(definitionFor(decodeSave(oldText).state, 'P07').cost.memory).toBe(50000);
   });
