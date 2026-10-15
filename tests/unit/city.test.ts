@@ -1,3 +1,4 @@
+import { preExpansion } from '../legacy-shape';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { RESOURCES } from '../../src/game/config';
@@ -11,13 +12,13 @@ const old = () => decodeSave(oldText).state;
 function act(s: GameState, action: Action) {
   const result = applyAction(s, action); expect(result.error).toBeNull(); assertInvariants(result.state); return result.state;
 }
-function stock(s: GameState, resource: 'energy' | 'parts' | 'memory', value: number) {
+function stock(s: GameState, resource: keyof GameState['resources'], value: number) {
   const difference = value - s.resources[resource];
   if (difference >= 0) { s.ledger.production[resource] += difference; s.earned[resource] += difference; }
   else s.ledger.operating[resource] -= difference;
   s.resources[resource] = value;
 }
-function fill(s: GameState) { const cap = capacities(s); for (const r of RESOURCES) stock(s, r, cap[r]); }
+function fill(s: GameState) { const cap = capacities(s); for (const r of RESOURCES) if (r !== 'component') stock(s, r, cap[r]); }
 function finish(state: GameState, definition: DefinitionId, district: DistrictId = 'district-0') {
   let s = structuredClone(state); fill(s); s = act(s, { type: 'enqueue', definition, district });
   const uid = s.queue.at(-1)!.uid;
@@ -77,9 +78,9 @@ describe('V0.2 migration and address network', () => {
   });
   it('C01: migrates a genuine V0.1 browser save without changing original progress', () => {
     const raw = JSON.parse(oldText), migrated = decodeSave(oldText);
-    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(3);
-    for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(migrated.state[key]).toEqual(raw.state[key]);
-    expect(migrated.state.ledger).toEqual({ ...raw.state.ledger, exports: { energy: 0, parts: 0, memory: 0 }, imports: { energy: 0, parts: 0, memory: 0 } });
+    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(4);
+    for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
+    expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: { energy: 0, parts: 0, memory: 0 }, imports: { energy: 0, parts: 0, memory: 0 } }));
     expect(migrated.state.city).toEqual({ districts: {}, templates: [], maintenance: 0 });
     expect(decodeSave(encodeSave(migrated.state, 0)).state).toEqual(migrated.state);
     const nearFull = migrated.state; stock(nearFull, 'energy', capacities(nearFull).energy - 50);
@@ -89,11 +90,11 @@ describe('V0.2 migration and address network', () => {
     let s = advance(act(old(), { type: 'enqueue', definition: 'build:generator' }), 70000);
     s = act(s, { type: 'pause', uid: s.queue[0].uid }); s.clock.remainderMs = 721;
     s.report = summarize(old(), s, 70000);
-    const raw = JSON.parse(encodeSave(s, 0)); raw.schemaVersion = 1; raw.balanceVersion = '0.1.0';
+    const raw = preExpansion(JSON.parse(encodeSave(s, 0))); raw.schemaVersion = 1; raw.balanceVersion = '0.1.0';
     delete raw.state.network; delete raw.state.city; delete raw.state.publicWorks; delete raw.state.autoRepair; delete raw.state.report.maintenance;
     raw.state.queue.forEach((p: Record<string, unknown>) => { delete p.district; });
     const migrated = decodeSave(JSON.stringify(raw)).state;
-    expect(migrated.queue).toEqual(s.queue); expect(migrated.clock).toEqual(s.clock); expect(migrated.ledger).toEqual(s.ledger); expect(migrated.report).toEqual(s.report);
+    expect(migrated.queue).toEqual(s.queue); expect(migrated.clock).toEqual(s.clock); expect(migrated.ledger).toEqual(s.ledger); expect(preExpansion(migrated.report)).toEqual(preExpansion(s.report));
     const resumed = act(migrated, { type: 'resume', uid: migrated.queue[0].uid });
     expect(advance(resumed, 100000).facilities.generator).toBe(2);
     const broken = structuredClone(raw); broken.state.queue[0].reserved.parts++;
@@ -102,7 +103,7 @@ describe('V0.2 migration and address network', () => {
   it('C01/04: a developed legacy district gains a pending discovery without free rewards', () => {
     let developed = act(old(), { type: 'lighting', lighting: 'dim' });
     developed = finish(developed, 'build:recycler');
-    const envelope = JSON.parse(encodeSave(developed, 0));
+    const envelope = preExpansion(JSON.parse(encodeSave(developed, 0)));
     envelope.schemaVersion = 1; envelope.balanceVersion = '0.1.0';
     delete envelope.state.network; delete envelope.state.city; delete envelope.state.publicWorks; delete envelope.state.autoRepair; delete envelope.state.events.E08;
     const migrated = decodeSave(JSON.stringify(envelope)).state;
@@ -164,7 +165,7 @@ describe('district economy, decisions, and automation', () => {
     expect(view(common).lightingCost).toBeLessThan(sameNames.lightingCost);
     expect(view(common).output.record).toBeLessThan(sameNames.output.record);
     expect(applyAction(s, { type: 'event', event: 'E07', choice: 'common' }).error).toContain('处理');
-    const empty = structuredClone(s); for (const id of activeDistricts(empty)) districtState(empty, id)!.assignments = { shadow: { power: 0, salvage: 0, repair: 0, record: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 0 } };
+    const empty = structuredClone(s); for (const id of activeDistricts(empty)) districtState(empty, id)!.assignments = { shadow: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 } };
     stock(empty, 'energy', 0); expect(view(empty).services['district-1']!.light).toBe(false); assertInvariants(advance(empty, 1000));
   });
   it('C02/04: partial space and supply scale multi-district inputs, and rewards stay atomic', () => {
@@ -235,7 +236,7 @@ describe('district economy, decisions, and automation', () => {
       (o: typeof raw) => { o.state.city.districts['district-1'].autoRepair = true; },
       (o: typeof raw) => { o.state.events.E07.choice = 'bright'; },
       (o: typeof raw) => { o.state.city.templates.push({ name: '伪造', district: 'district-9' }); },
-      (o: typeof raw) => { o.schemaVersion = 4; }
+      (o: typeof raw) => { o.schemaVersion = 99; }
     ]) { const broken = structuredClone(raw); mutate(broken); expect(() => decodeSave(JSON.stringify(broken))).toThrow(); }
     expect(definitionFor(decodeSave(oldText).state, 'P07').cost.memory).toBe(50000);
   });

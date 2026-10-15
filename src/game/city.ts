@@ -17,7 +17,7 @@ export function emptyDistrict(): DistrictState {
   return {
     facilities: { generator: 0, recycler: 0, workbench: 0, dorm: 0, warehouse: 0, mailbox: 0 },
     population: { shadow: 0, echo: 0 },
-    assignments: { shadow: { power: 0, salvage: 0, repair: 0, record: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 0 } },
+    assignments: { shadow: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 } },
     lighting: 'steady', publicWorks: { relay: { built: false, enabled: true, condition: 0 }, registry: { built: false, enabled: true, condition: 0 } }, autoRepair: false
   };
 }
@@ -41,12 +41,13 @@ export const scopedKey = (key: string, id: DistrictId = 'district-0') => id === 
 export function dismantleReason(s: GameState, id: DistrictId, facility: Facility | PublicFacility): string | null {
   const d = districtState(s, id);
   if (id === 'district-0' || !d) return '只能调整已经测绘的新街区';
-  if (s.queue.some(p => p.district === id && p.definition.endsWith(`:${facility}`))) return '该设施还有未完成的工务项目';
+  if (s.queue.some(p => p.district === id && (p.definition.endsWith(`:${facility}`) || (facility === 'workbench' && p.definition.startsWith('mod:'))))) return '该设施还有未完成的工务项目';
   if (PUBLIC_IDS.includes(facility as PublicFacility)) return d.publicWorks[facility as PublicFacility].built ? null : '设施尚未建设';
   const f = facility as Facility;
   if (!FACILITY_IDS.includes(f) || !d.facilities[f]) return '设施尚未建设';
   const job = ({ generator: 'power', recycler: 'salvage', workbench: 'repair', mailbox: 'record' } as Partial<Record<Facility, Job>>)[f];
   if (job && localWorkers(d, job)) return '请先撤回该设施的工作人员';
+  if (f === 'workbench' && localWorkers(d, 'assemble')) return '请先撤回维修台的装配工';
   if (f === 'dorm' && localCount(d)) return '请先将居民迁往其他住处';
   return null;
 }

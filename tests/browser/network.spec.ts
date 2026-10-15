@@ -44,7 +44,7 @@ async function legacy(page: Page) {
   await page.clock.install({ time: START }); await page.clock.pauseAt(START); await page.goto('/');
   await expect(page.getByTestId('save-status')).toHaveText('已保存');
   await expect(page.getByRole('alert')).toContainText('V0.2存档已迁移'); await click(page, '知道了');
-  expect((await saved(page)).resources).toEqual(raw.state.resources);
+  expect((await saved(page)).resources).toEqual({ ...raw.state.resources, component: 0 });
   expect(JSON.parse(await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY)).schemaVersion).toBe(2);
 }
 
@@ -68,7 +68,7 @@ test('N05: three-decimal reserves save exactly on both routes and survive reload
       for (const [i, resource] of ['电量', '零件', '记忆'].entries()) await page.getByLabel(`${city}保留${resource}`).fill(values[i]);
       await expect(page.getByRole('button', { name: `保存${city}合同配置`, exact: true })).toBeEnabled();
       await click(page, `保存${city}合同配置`);
-      await expect.poll(async () => (await saved(page)).network.routes[id].contract).toEqual({ ...before.contract, reserve: expected });
+      await expect.poll(async () => (await saved(page)).network.routes[id].contract).toEqual({ ...before.contract, reserve: { ...expected, component: 0 } });
     }
   }
   await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存'); await click(page, '夜网');

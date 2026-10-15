@@ -48,13 +48,13 @@ describe('validated save and recovery', () => {
   it('allows an explicit incompatible replacement while preserving the recovery copy', () => {
     const memory = memoryStorage(), store = new SaveStorage(memory), state = createGame();
     const backup = encodeSave(advance(state, 60000), 60000);
-    memory.setItem(SAVE_KEY, JSON.stringify({ ...JSON.parse(backup), schemaVersion: 4 })); memory.setItem(BACKUP_KEY, backup);
+    memory.setItem(SAVE_KEY, JSON.stringify({ ...JSON.parse(backup), schemaVersion: 99 })); memory.setItem(BACKUP_KEY, backup);
     store.save(state, 0, { preserveBackup: true, replaceIncompatible: true });
     expect(decodeSave(memory.getItem(SAVE_KEY)!).state).toEqual(state); expect(memory.getItem(BACKUP_KEY)).toBe(backup);
   });
   it('preserves an incompatible recovery copy when the primary is corrupt', () => {
     const memory = memoryStorage(), store = new SaveStorage(memory);
-    const backup = JSON.stringify({ ...JSON.parse(encodeSave(createGame(), 0)), schemaVersion: 4 });
+    const backup = JSON.stringify({ ...JSON.parse(encodeSave(createGame(), 0)), schemaVersion: 99 });
     memory.setItem(SAVE_KEY, '{broken'); memory.setItem(BACKUP_KEY, backup);
     const loaded = store.load(); expect(loaded.blocked).toBe(true); expect(loaded.state).toBeNull(); expect(loaded.warning).toContain('版本不兼容');
     expect(memory.getItem(SAVE_KEY)).toBe('{broken'); expect(memory.getItem(BACKUP_KEY)).toBe(backup);

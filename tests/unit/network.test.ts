@@ -1,3 +1,4 @@
+import { preExpansion } from '../legacy-shape';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { advance, applyAction, capacities, createGame, freeResidents, summarize } from '../../src/game/engine';
@@ -47,10 +48,10 @@ function both(expanded = false) {
 describe('V0.3 migration, inventory and workers', () => {
   it('N01: migrates the genuine V0.2 chapter and its historical report without free cargo', () => {
     const raw = JSON.parse(v2Text), migrated = decodeSave(v2Text);
-    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(3);
-    for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'queue', 'city', 'clock', 'history'] as const) expect(migrated.state[key]).toEqual(raw.state[key]);
-    expect(migrated.state.ledger).toEqual({ ...raw.state.ledger, exports: amounts(), imports: amounts() });
-    expect(migrated.state.report).toEqual({ ...raw.state.report, flows: { ...raw.state.report.flows, exports: amounts(), imports: amounts() }, transport: { departures: 0, deliveries: 0, maintenance: 0 } });
+    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(4);
+    for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'queue', 'city', 'clock', 'history'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
+    expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: amounts(), imports: amounts() }));
+    expect(preExpansion(migrated.state.report)).toEqual(preExpansion({ ...raw.state.report, flows: { ...raw.state.report.flows, exports: amounts(), imports: amounts() }, transport: { departures: 0, deliveries: 0, maintenance: 0 } }));
     expect(migrated.state.network).toEqual(createNetwork()); expect(decodeSave(encodeSave(migrated.state, 0)).state).toEqual(migrated.state);
   });
   it('N01: rejects new content disguised as an old state or historical report', () => {
@@ -68,11 +69,11 @@ describe('V0.3 migration, inventory and workers', () => {
     let paused = act(decodeSave(v2Text).state, { type: 'enqueue', definition: 'build:generator' });
     paused = advance(paused, 1517); paused = act(paused, { type: 'pause', uid: paused.queue[0].uid });
     expect(paused.queue[0].reserved.parts).toBeGreaterThan(0); expect(paused.clock.remainderMs).toBe(517);
-    const oldSave = JSON.parse(encodeSave(paused, 0)); oldSave.schemaVersion = 2; oldSave.balanceVersion = '0.2.0';
+    const oldSave = preExpansion(JSON.parse(encodeSave(paused, 0))); oldSave.schemaVersion = 2; oldSave.balanceVersion = '0.2.0';
     delete oldSave.state.network;
     for (const flows of [oldSave.state.ledger, oldSave.state.report.flows]) { delete flows.exports; delete flows.imports; }
     delete oldSave.state.report.transport;
-    let migrated = decodeSave(JSON.stringify(oldSave)).state; expect(migrated).toEqual(paused);
+    let migrated = decodeSave(JSON.stringify(oldSave)).state; expect(preExpansion(migrated)).toEqual(preExpansion(paused));
     const reserved = { ...migrated.ledger.reserved };
     migrated = act(migrated, { type: 'resume', uid: migrated.queue[0].uid }); migrated = advance(migrated, 100000);
     expect(migrated.facilities.generator).toBe(3); expect(migrated.ledger.reserved).toEqual(reserved); assertInvariants(migrated);

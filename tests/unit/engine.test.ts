@@ -7,7 +7,7 @@ import type { Action, Facility, GameState } from '../../src/game/types';
 function act(s: GameState, a: Action) {
   const result = applyAction(s, a); expect(result.error).toBeNull(); return result.state;
 }
-function stock(s: GameState, resource: 'energy' | 'parts' | 'memory', value: number) {
+function stock(s: GameState, resource: keyof GameState['resources'], value: number) {
   const difference = value - s.resources[resource];
   if (difference >= 0) { s.ledger.production[resource] += difference; s.earned[resource] += difference; }
   else s.ledger.operating[resource] -= difference;
@@ -24,14 +24,14 @@ function ready(): GameState {
   s.population = { shadow: 3, echo: 3 }; s.arrivals = 4; s.events.E03 = { status: 'pending' };
   stock(s, 'energy', 250000); stock(s, 'parts', 200000); stock(s, 'memory', 45000);
   s.memoryProduced = true; s.events.E04 = { status: 'pending' };
-  s.assignments = { shadow: { power: 1, salvage: 1, repair: 1, record: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 1 } };
+  s.assignments = { shadow: { power: 1, salvage: 1, repair: 1, record: 0, assemble: 0 }, echo: { power: 0, salvage: 0, repair: 0, record: 1, assemble: 0 } };
   assertInvariants(s); return s;
 }
 describe('economy, assignment, and lighting', () => {
   it('UT-01/02: starts with two workers and produces actual resources without mutating input', () => {
     const s = createGame(), after = advance(s, 10000);
-    expect(after.resources).toEqual({ energy: 33500, parts: 12400, memory: 0 });
-    expect(after.earned).toEqual({ energy: 5000, parts: 2400, memory: 0 });
+    expect(after.resources).toEqual({ energy: 33500, parts: 12400, memory: 0, component: 0 });
+    expect(after.earned).toEqual({ energy: 5000, parts: 2400, memory: 0, component: 0 });
     expect(s.clock.seconds).toBe(0); assertInvariants(after);
   });
   it('UT-03: resident, facility, lighting, and research effects combine', () => {
@@ -88,12 +88,12 @@ describe('economy, assignment, and lighting', () => {
   it('UT-05/06: a later reservation reuses capacity-blocked production within the same tick budget', () => {
     const s = ready(), cap = capacities(s);
     for (const r of RESOURCES) stock(s, r, cap[r]);
-    s.priority = ['salvage', 'record', 'repair'];
+    s.priority = ['salvage', 'record', 'repair', 'assemble'];
     const planned = act(s, { type: 'enqueue', definition: 'R01' });
     const after = advance(planned, 1000), report = summarize(planned, after, 1000);
-    expect(report.flows.production).toEqual({ energy: 350, parts: 240, memory: 60 });
-    expect(report.flows.operating).toEqual({ energy: 350, parts: 30, memory: 0 });
-    expect(report.flows.reserved).toEqual({ energy: 0, parts: 50000, memory: 20000 });
+    expect(report.flows.production).toEqual({ energy: 350, parts: 240, memory: 60, component: 0 });
+    expect(report.flows.operating).toEqual({ energy: 350, parts: 30, memory: 0, component: 0 });
+    expect(report.flows.reserved).toEqual({ energy: 0, parts: 50000, memory: 20000, component: 0 });
     expect(after.queue[0].progress).toBe(1000);
     const settled = advance(after, 3600000);
     expect(settled.resources).toEqual(cap);
@@ -116,7 +116,7 @@ describe('economy, assignment, and lighting', () => {
   });
   it('UT-04: priorities allocate scarce input and lighting fails without power', () => {
     const s = ready(); s.assignments.shadow.power = 0; stock(s, 'energy', 175);
-    const normal = advance(s, 1000), recordFirst = advance(act(s, { type: 'priority', order: ['record', 'salvage', 'repair'] }), 1000);
+    const normal = advance(s, 1000), recordFirst = advance(act(s, { type: 'priority', order: ['record', 'salvage', 'repair', 'assemble'] }), 1000);
     expect(normal.ledger.production.memory - s.ledger.production.memory).toBe(30);
     expect(recordFirst.ledger.production.memory - s.ledger.production.memory).toBe(60);
     expect(view(advance(normal, 1000)).lightOn).toBe(false);

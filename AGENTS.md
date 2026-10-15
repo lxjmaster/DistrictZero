@@ -37,6 +37,22 @@ V0.3 is now published at https://lxjmaster.github.io/DistrictZero/; see
 docs/VERIFICATION.md for the release and public-site checks. Further pushes to
 master also deploy publicly. V0.4–V0.6 remain subsequent work.
 
+The user subsequently authorized implementing the corrected experience expansion
+without changing its fixed goals. The complete first batch, V0.3.1, is now
+implemented and verified locally against docs/V0.3.1_SPEC.md. This task includes
+assembly, the four L01 nodes and both branches, both workbench modifications,
+optional prefabrication, state-based streetscape, mobile shortcuts, reports,
+and schema 1/2/3 migration. It does not authorize a new commit, push, or public
+deployment under that earlier task. On 2026-10-15 the user additionally authorized
+committing and pushing the reviewed V0.3.1 implementation, including its review
+fixes, to master, with the existing automatic Pages deployment effect, followed
+by local implementation and verification of V0.3.2. The latest explicit instruction
+authorizes starting the second batch before independent human feedback has been
+sampled; record that feedback as unperformed and do not claim its experience
+criteria passed. V0.3.2 has no new push or deployment authorization. V0.3.3 remains
+planned. Do not change fixed values to make tests pass or silently reduce
+acceptance scope.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -46,6 +62,10 @@ Read these documents before implementation:
 
 For V0.2 changes, also read docs/V0.2_SPEC.md and map verification to C01–C08.
 For V0.3 changes, read docs/V0.3_SPEC.md and map verification to N01–N08.
+For V0.3.1 changes, read docs/V0.3.1_SPEC.md and the review dispositions in
+section 19 of docs/EXPERIENCE_EXPANSION_PLAN.md. The batch specification takes
+precedence over older candidate rules in the expansion proposal. Verify
+UX01–UX08 and UX21 alongside the original FR/C/N regressions.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -80,8 +100,9 @@ src/game contains configuration, simulation, and save validation. src/app contai
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
-Current saves use schema 3 and balance 0.3.0, with explicit migration from schema
-1 / balance 0.1.0 and schema 2 / balance 0.2.0. Keep storage keys and writer lock stable. District resources
+Local V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
+schema 1 / balance 0.1.0, schema 2 / balance 0.2.0, and schema 3 / balance 0.3.0.
+The published V0.3 still uses schema 3. Keep storage keys and writer lock stable. District resources
 and projects are shared; facilities, residents, jobs, lighting, and public
 equipment belong to their district. Maintenance is repeatable and uses a separate
 completion counter. Keep the genuine V0.1/V0.2 migration fixtures and regressions valid.
@@ -90,6 +111,16 @@ whole-load delivery; full destinations retain cargo and occupied vehicles.
 Exports/imports have separate ledger entries and imports do not increase earned
 production/reward totals. External workers retain home beds and cannot overlap
 local jobs or relocation. Route maintenance shares the existing work queue.
+
+src/game/experience.ts holds assembly, story, modification, and prefabrication
+configuration. Components stay in the home inventory and are excluded from
+existing city recipes/cargo. Repair and assembly share workbench slots. Assembly
+uses a city-wide inventory target and input reserves; it replenishes after use
+while enabled. New saves and migrations start with assembly disabled. Projects
+retain their selected prefab count through waiting, reservation, pause, cancel,
+and save round-trips. Optional payments use fulfillment; dismantling refunds do
+not increase earned totals. Workbench removal clears the active modification
+and retains ownership for rebuilding.
 
 ## Required Behavior
 

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { amounts, RESIDENTS, RESOURCES, residentNames, resourceNames, UNIT } from '../game/config';
+import { amounts, RESIDENTS, BASE_RESOURCES as RESOURCES, residentNames, resourceNames, UNIT } from '../game/config';
 import { DISTRICTS } from '../game/city';
 import { capacities, duration, enqueueReason, format, freeResidents } from '../game/engine';
 import { awayWorkers, cargoFor, departureReason, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, routeWear, travelSeconds, vehicleCapacity } from '../game/network';
 import type { Action, Amounts, DefinitionId, DistrictId, GameState, RouteId } from '../game/types';
+import { ProjectPayment } from './Experience';
 
 type Props = { state: GameState; district: DistrictId; disabled: boolean; send: (action: Action) => void };
 function parseReserve(values: Record<keyof Amounts, string>): Amounts | null {
@@ -59,7 +60,7 @@ function RouteCard({ state, district, disabled, send, id }: Props & { id: RouteI
       {!state.completed.includes('R05') && <p className="condition">研究“运单规范”后开放自动供货。</p>}{invalidReserve && <p className="short small">保留量需为0到1,000,000之间的有效数值，最多三位小数。</p>}
     </div>
     <div className="route-section"><h3>线路维护</h3><p className="small">线路状态 {route.condition} / {NETWORK_RULES.condition}；状态耗尽后停止新发车。</p><span className="meter"><span style={{ width: `${route.condition / NETWORK_RULES.condition * 100}%` }} /></span><p className="small muted">维护费用 <Cargo value={NETWORK_RULES.repairCost} /> · {format(NETWORK_RULES.repairWork, 0)} 工程点，完成恢复全部状态。</p>
-      <div className="button-row"><button aria-label={`安排维护${config.name}线路`} disabled={disabled || !!maintenanceReason} onClick={() => send({ type: 'enqueue', definition: `route:${id}` })}>安排线路维护</button><button aria-label={`${route.autoRepair ? '关闭' : '开启'}${config.name}自动维护`} disabled={disabled || !state.completed.includes('R04')} aria-pressed={route.autoRepair} onClick={() => send({ type: 'route-auto', route: id, enabled: !route.autoRepair })}>{route.autoRepair ? '关闭自动维护' : '开启自动维护'}</button></div><p className="condition">{maintenanceReason ?? '共用工务队列，维修工按原有安排施工。'} 自动维护在状态不超过200时加入队尾；巡检手册解锁。</p>
+      <ProjectPayment state={state} send={send} disabled={disabled} id={`route:${id}`} ariaLabel={`安排维护${config.name}线路`} buttonText="安排线路维护" /><div className="button-row"><button aria-label={`${route.autoRepair ? '关闭' : '开启'}${config.name}自动维护`} disabled={disabled || !state.completed.includes('R04')} aria-pressed={route.autoRepair} onClick={() => send({ type: 'route-auto', route: id, enabled: !route.autoRepair })}>{route.autoRepair ? '关闭自动维护' : '开启自动维护'}</button></div><p className="condition">{maintenanceReason ?? '共用工务队列，维修工按原有安排施工。'} 自动维护在状态不超过200时加入队尾；巡检手册解锁。</p>
     </div>
   </section>;
 }

@@ -1,7 +1,7 @@
-export type Resource = 'energy' | 'parts' | 'memory';
+export type Resource = 'energy' | 'parts' | 'memory' | 'component';
 export type Amounts = Record<Resource, number>;
 export type Resident = 'shadow' | 'echo';
-export type Job = 'power' | 'salvage' | 'repair' | 'record';
+export type Job = 'power' | 'salvage' | 'repair' | 'record' | 'assemble';
 export type WorkJob = Exclude<Job, 'power'>;
 export type Facility = 'generator' | 'recycler' | 'workbench' | 'dorm' | 'warehouse' | 'mailbox';
 export type Lighting = 'steady' | 'bright' | 'dim';
@@ -12,10 +12,13 @@ export type MainProject = 'P01' | 'P02' | 'P03' | 'P04' | 'P05' | 'P06' | 'P07' 
 export type Research = 'R01' | 'R02' | 'R03' | 'R04' | 'R05' | 'R06';
 export type RouteId = 'rain' | 'station';
 export type Direction = 'outbound' | 'inbound';
-export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}`;
+export type AssemblyMod = 'quickJig' | 'thriftBench';
+export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4';
+export type RadioChoice = 'dismantle' | 'restore';
+export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}`;
 export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10' | 'E11' | 'E12' | 'E13' | 'E14' | 'E15';
 export type EventChoice = Lighting | 'common' | 'individual' | 'reliable' | 'express';
-export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports';
+export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports' | 'fulfillment';
 export type Ledger = Record<Flow, Amounts>;
 export interface Project {
   uid: string;
@@ -25,6 +28,7 @@ export interface Project {
   progress: number;
   reserved: Amounts;
   district: DistrictId;
+  prefab: number;
 }
 export interface EventState { status: 'pending' | 'claimed'; choice?: EventChoice }
 export interface ReturnReport {
@@ -41,6 +45,8 @@ export interface ReturnReport {
   goal: string;
   maintenance: number;
   transport: { departures: number; deliveries: number; maintenance: number };
+  highlights: string[];
+  stories: StoryNode[];
 }
 export interface NetworkNode {
   resources: Amounts;
@@ -90,6 +96,12 @@ export interface WorkTemplate {
   lighting: Lighting;
   priority: WorkJob[];
 }
+export interface ExperienceState {
+  story: Partial<Record<StoryNode, { choice?: RadioChoice }>>;
+  blueprints: AssemblyMod[];
+  benches: Record<DistrictId, { built: AssemblyMod[]; active: AssemblyMod | null }>;
+  assembly: { enabled: boolean; target: number; reserve: Amounts };
+}
 export interface GameState extends DistrictState {
   district: 'district-0';
   resources: Amounts;
@@ -111,12 +123,17 @@ export interface GameState extends DistrictState {
   history: { second: number; text: string }[];
   city: { districts: Partial<Record<BranchId, DistrictState>>; templates: WorkTemplate[]; maintenance: number };
   network: NetworkState;
+  experience: ExperienceState;
 }
 export interface ProjectDefinition { id: DefinitionId; name: string; description: string; cost: Amounts; work: number }
 export type Action =
   | { type: 'assign'; resident: Resident; job: Job; delta: -1 | 1; district?: DistrictId }
   | { type: 'priority'; order: WorkJob[] }
-  | { type: 'enqueue'; definition: DefinitionId; district?: DistrictId }
+  | { type: 'enqueue'; definition: DefinitionId; district?: DistrictId; prefab?: number }
+  | { type: 'assembly-plan'; enabled: boolean; target: number; reserve: Amounts }
+  | { type: 'assembly-mod'; district: DistrictId; mod: AssemblyMod | null }
+  | { type: 'story'; node: StoryNode; choice?: RadioChoice }
+  | { type: 'scrap'; count: number }
   | { type: 'move'; uid: string; direction: -1 | 1 }
   | { type: 'pause' | 'resume' | 'cancel'; uid: string }
   | { type: 'lighting'; lighting: Lighting; district?: DistrictId }

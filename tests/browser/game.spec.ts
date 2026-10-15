@@ -75,7 +75,7 @@ for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 84
     expect((await saved(page)).facilities.generator).toBe(2);
     await wait(page, 3600);
     const full = await saved(page);
-    expect(full.resources).toEqual(capacities(full));
+    expect(full.resources).toEqual({ ...capacities(full), component: 0 });
     await expect(page.getByTestId('energy-stock')).toHaveText('300 / 300');
     await expect(page.getByTestId('parts-stock')).toHaveText('250 / 250');
     await expect(page.getByTestId('memory-stock')).toHaveText('80 / 80');
@@ -209,7 +209,7 @@ for (const [version, resolution] of [
     }
     await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
     const resolved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVE_KEY);
-    expect(resolved.schemaVersion).toBe(3); expect(resolved.balanceVersion).toBe('0.3.0');
+    expect(resolved.schemaVersion).toBe(4); expect(resolved.balanceVersion).toBe('0.3.1');
   });
 }
 test('BT-08/FR-05/06: full storage, no repair worker, power exhaustion and recovery have visible reasons', async ({ page }) => {

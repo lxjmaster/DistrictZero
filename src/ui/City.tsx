@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { RESIDENTS, RESOURCES, resourceNames, residentNames } from '../game/config';
+import { RESIDENTS, residentNames } from '../game/config';
 import { activeDistricts, CITY_RULES, cityCount, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, localBeds, localCount, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, specialization } from '../game/city';
-import { definitionFor, duration, enqueueReason, format, freeResidents, servicePreview } from '../game/engine';
+import { duration, format, freeResidents, servicePreview } from '../game/engine';
+import { ProjectPayment } from './Experience';
 import type { Action, DistrictId, Facility, GameState, PublicFacility } from '../game/types';
 
 type Props = { state: GameState; district: DistrictId; send: (action: Action) => void; disabled: boolean };
@@ -33,12 +34,10 @@ export function PublicInfrastructure({ state, district, send, disabled, dismantl
   return <section aria-label="公共设施"><div className="panel-title"><h2>公共设施与巡检</h2><span className="caption">地块 {plotsUsed(d)} / {DISTRICTS[district].plots}</span></div>
     <div className="facility-grid">{PUBLIC_IDS.map(f => {
       const config = PUBLIC_WORKS[f], equipment = d.publicWorks[f], definition = `${equipment.built ? 'maintain' : 'public'}:${f}` as const;
-      const reason = enqueueReason(state, definition, district), project = definitionFor(state, definition, undefined, district);
       return <article className="facility-card" key={f} data-testid={`public-${f}`}><div className="facility-heading"><span className="facility-mark">{f === 'relay' ? '↯' : '⌂'}</span><span className={`tag ${services[district]?.public[f] ? 'working' : ''}`}>{!equipment.built ? '尚未建设' : !equipment.enabled ? '已停用' : services[district]?.public[f] ? '供电运行' : '效果暂停'}</span></div><h3>{config.name}</h3><p className="muted">{config.text}</p>
         {state.events.E07?.choice === 'common' && <p className="small muted">共灯生效，实际维护 {format(Math.ceil(config.upkeep * CITY_RULES.sharedUpkeep))} 电量/秒。</p>}
         {equipment.built && <><p className="small">设备状态 {equipment.condition} / {CITY_RULES.condition} · 可运行 {duration(equipment.condition)}</p><span className="meter"><span style={{ width: `${equipment.condition / CITY_RULES.condition * 100}%` }} /></span><p className="muted small">巡检花费6零件、15电量、60工程点；完成恢复全部状态。</p></>}
-        <div className="project-facts"><span className="costs">{RESOURCES.filter(r => project.cost[r]).map(r => <span key={r}>{format(project.cost[r])} {resourceNames[r]}</span>)}</span><span>{format(project.work, 0)} 点</span></div>
-        <p className="condition">{reason ?? '费用在开工时预留，全城维修工共用一条队列。'}</p><button disabled={disabled || !!reason} aria-label={`安排${equipment.built ? '巡检' : '建设'}${config.name}`} onClick={() => send({ type: 'enqueue', district, definition })}>{equipment.built ? '安排巡检' : '安排建设'}</button>
+        <ProjectPayment state={state} send={send} disabled={disabled} id={definition} district={district} ariaLabel={`安排${equipment.built ? '巡检' : '建设'}${config.name}`} buttonText={equipment.built ? '安排巡检' : '安排建设'} />
         {equipment.built && <button className="quiet" disabled={disabled} aria-label={`${equipment.enabled ? '停用' : '启用'}${config.name}`} onClick={() => send({ type: 'public-toggle', district, facility: f })}>{equipment.enabled ? '停用，保留设备状态' : '重新启用'}</button>}
         {equipment.built && district !== 'district-0' && <button className="quiet danger" disabled={disabled || !!dismantleReason(state, district, f)} onClick={() => dismantle(f)}>拆除闲置{config.name}</button>}
       </article>;
