@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { SAVE_KEY, BACKUP_KEY } from '../../src/app/storage';
-import { advance } from '../../src/game/engine';
+import { advance, chapterProofs } from '../../src/game/engine';
 import { decodeSave, encodeSave } from '../../src/game/saves';
 import type { GameState } from '../../src/game/types';
 
@@ -54,7 +54,7 @@ async function legacy(page: Page) {
   return raw;
 }
 async function secondChapter(page: Page) {
-  const start = (await saved(page)).clock.seconds, milestones: Record<string, number> = {};
+  const initial = await saved(page), start = initial.clock.seconds, milestones: Record<string, number> = {};
   const mark = async (name: string) => { milestones[name] = (await saved(page)).clock.seconds - start; };
   await click(page, '安排测绘没有尽头的旧巷'); await wait(page, 380); await mark('alley');
   await click(page, '安排为信笺里补上门牌'); await wait(page, 10);
@@ -91,18 +91,21 @@ async function secondChapter(page: Page) {
   await click(page, '安排地址索引'); await wait(page, 130); await mark('newStudies');
   await click(page, '经营'); await click(page, '开启本区自动巡检');
   await click(page, '工务'); await click(page, '安排编成夜城地址簿'); await wait(page, 310); await mark('addressBook');
+  expect(chapterProofs(await saved(page))).toMatchObject({ production: true, cooperation: false });
   await click(page, '安排接通雨城联络线'); await wait(page, 10);
   await page.getByTestId('event-E09').getByRole('button', { name: '领取并归档' }).click();
   await wait(page, 390); await mark('externalLine');
   await page.getByTestId('event-E10').getByRole('button', { name: '读完并归档' }).click();
   let state = await saved(page); expect(state.completed).toEqual(expect.arrayContaining(['P04', 'P05', 'P06', 'P07', 'R03', 'R04']));
   expect(Object.values(state.events).every(e => e.status === 'claimed')).toBe(true);
+  const chapter = state;
   await wait(page, 900); await mark('automaticMaintenance'); state = await saved(page);
   expect(state.city.maintenance).toBeGreaterThanOrEqual(2); expect(state.report!.maintenance).toBeGreaterThanOrEqual(2);
   await click(page, '夜城'); await expect(page.getByRole('heading', { name: '第0街区 ── 雨城 · 已接通' })).toBeVisible(); await stockDoesNotOverflow(page);
   await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
   expect((await saved(page)).city.templates[0].name).toBe('旧巷回收班'); expect((await saved(page)).autoRepair).toBe(true);
-  return { milestones, state: await saved(page) };
+  const end = await saved(page);
+  return { milestones, initial, chapter, state: end, costs: { reserved: Object.fromEntries(Object.keys(chapter.resources).map(r => [r, chapter.ledger.reserved[r as keyof typeof chapter.resources] - initial.ledger.reserved[r as keyof typeof chapter.resources]])), operating: Object.fromEntries(Object.keys(chapter.resources).map(r => [r, chapter.ledger.operating[r as keyof typeof chapter.resources] - initial.ledger.operating[r as keyof typeof chapter.resources]])) } };
 }
 for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844]] as const) {
   test(`C08: V0.1 migration to the complete second chapter through ${name} UI`, async ({ page }, info) => {

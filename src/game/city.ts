@@ -41,7 +41,7 @@ export const scopedKey = (key: string, id: DistrictId = 'district-0') => id === 
 export function dismantleReason(s: GameState, id: DistrictId, facility: Facility | PublicFacility): string | null {
   const d = districtState(s, id);
   if (id === 'district-0' || !d) return '只能调整已经测绘的新街区';
-  if (s.queue.some(p => p.district === id && (p.definition.endsWith(`:${facility}`) || (facility === 'workbench' && p.definition.startsWith('mod:'))))) return '该设施还有未完成的工务项目';
+  if (s.queue.some(p => p.district === id && (p.definition.endsWith(`:${facility}`) || (facility === 'workbench' && p.definition.startsWith('mod:')) || (facility === 'mailbox' && p.definition.startsWith('mailmod:'))))) return '该设施还有未完成的工务项目';
   if (PUBLIC_IDS.includes(facility as PublicFacility)) return d.publicWorks[facility as PublicFacility].built ? null : '设施尚未建设';
   const f = facility as Facility;
   if (!FACILITY_IDS.includes(f) || !d.facilities[f]) return '设施尚未建设';

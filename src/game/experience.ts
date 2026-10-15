@@ -1,8 +1,11 @@
 import { amounts, cost, UNIT } from './config';
 import type { Amounts, AssemblyMod, DistrictId, ExperienceState, GameState, ProjectDefinition, StoryNode } from './types';
+import { commissionDone } from './neighborhood';
 
 export const MOD_IDS: AssemblyMod[] = ['quickJig', 'thriftBench'];
-export const STORY_IDS: StoryNode[] = ['L01-1', 'L01-2', 'L01-3', 'L01-4'];
+export const RADIO_STORY_IDS: StoryNode[] = ['L01-1', 'L01-2', 'L01-3', 'L01-4'];
+export const LETTER_STORY_IDS: StoryNode[] = ['L02-1', 'L02-2', 'L02-3', 'L02-4'];
+export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS];
 export const ASSEMBLY = {
   capacity: 30 * UNIT, warehouseCapacity: 10 * UNIT,
   recipes: {
@@ -18,7 +21,8 @@ export const ASSEMBLY = {
 } as const;
 export const STORY_NAMES: Record<StoryNode, string> = {
   'L01-1': '没有插头的收音机', 'L01-2': '留下外壳，还是留下声音',
-  'L01-3': '多出来的那一下', 'L01-4': '第一站的广播'
+  'L01-3': '多出来的那一下', 'L01-4': '第一站的广播',
+  'L02-1': '总投进同一扇窗', 'L02-2': '门牌背面的字', 'L02-3': '可以代收吗', 'L02-4': '每个人都收到了'
 };
 export function createExperience(): ExperienceState {
   return {
@@ -31,6 +35,10 @@ export const assemblyUnlocked = (s: GameState) => Boolean(s.experience.story['L0
 export const radioChoice = (s: GameState) => s.experience.story['L01-2']?.choice;
 export function storyAvailable(s: GameState, id: StoryNode): boolean {
   if (!STORY_IDS.includes(id) || s.experience.story[id]) return false;
+  if (id === 'L02-1') return s.completed.includes('P04');
+  if (id === 'L02-2') return Boolean(s.experience.story['L02-1']) && s.events.E07?.status === 'claimed';
+  if (id === 'L02-3') return Boolean(s.experience.story['L02-2']) && commissionDone(s, 'CM03-1');
+  if (id === 'L02-4') return Boolean(s.experience.story['L02-3']) && s.completed.includes('P06');
   if (id === 'L01-1') return s.events.E01?.status === 'claimed';
   if (id === 'L01-2') return Boolean(s.experience.story['L01-1']);
   if (id === 'L01-3') return Boolean(s.experience.story['L01-2']) && s.completed.includes('P02');
@@ -38,6 +46,10 @@ export function storyAvailable(s: GameState, id: StoryNode): boolean {
 }
 export const pendingStories = (s: GameState) => STORY_IDS.filter(id => storyAvailable(s, id));
 export function storyText(s: GameState, id: StoryNode): string {
+  if (id === 'L02-1') return '邮递员沿着晾衣绳走来：“旧巷画进地图以后，终于不用先问路。”他指了指委托板：修灯的住客、巷口的老人都留了话。另一张纸上写着停在半层的楼梯——那扇门也应该有一个投递地址。F02有限线索已记下，先去首访确认住户。';
+  if (id === 'L02-2') return s.events.E07?.choice === 'common' ? '两家在门牌背面画了一盏灯。“轮到谁，谁就留到晚一点。”邮递员不必分清先敲哪边，两扇窗已经商量好轮流照着路。共灯的经营效果保留。' : '门牌背面留着两行名字，笔迹深浅不同。“我们住得近，也可以各有自己的那一行。”邮递员照着两行字分别投递，各留姓名的经营效果保留。';
+  if (id === 'L02-3') return `屋檐已经搭好，邮递员补上一份投递匣图样。“清单可以交给它，新的决定还得等你。”${commissionDone(s, 'CM03-2') ? '那封信已经投进窗口，窗后的人正在写回信。' : '窗口仍等你核实线索、完成投递，还没有记作送达。'}`;
+  if (id === 'L02-4') return `地址簿把两扇窗写在同一页，邮递员终于知道每一封信该去哪里。${commissionDone(s, 'CM03-2') ? '这次投递已经完成，两家各自留下一张回执，等你去委托板收好。' : '那份窗口委托还没有投递，回执也仍在等；地址被找到，不等于信已经送达。'}${s.events.E07?.choice === 'common' ? '今晚留灯的人换成了另一家。' : '两行名字下面，各多了一枚小小的邮戳。'}`;
   const restored = radioChoice(s) === 'restore';
   if (id === 'L01-1') return '灯亮以后，有人把一台没有插头的收音机放在维修台上。“它以前每天报时。后来，时间不肯认它了。”工具箱里有一张装配纸条：把零件做成标准构件，施工时能先在桌上接好，再搬到现场。住客问，你愿不愿意留下它的声音。';
   if (id === 'L01-2') return `${s.facilities.dorm ? '住客从亮着灯的窗口探出头。' : '来人仍在站台边等一个住处。'}拆下外壳，能留下两份完好的构件和一套快速夹具图样；修复声音，需要投入材料，旧图纸里还夹着一张节料台面的做法。以后可以补学另一种图样，这台收音机的命运会保留下来。`;
@@ -54,7 +66,7 @@ export function assemblyRecipe(s: GameState, district: DistrictId) {
   return ASSEMBLY.recipes[mod ?? 'ordinary'];
 }
 export function prefabLimit(definition: ProjectDefinition): number {
-  if (definition.id.startsWith('mod:') || definition.id.startsWith('blueprint:')) return 0;
+  if (definition.id.startsWith('mod:') || definition.id.startsWith('blueprint:') || definition.id.startsWith('mailmod:')) return 0;
   return Math.min(ASSEMBLY.maxPrefab, Math.floor(definition.cost.parts / ASSEMBLY.prefabParts), Math.floor(definition.work / (2 * ASSEMBLY.prefabWork)));
 }
 export function prefabricated(definition: ProjectDefinition, count: number): ProjectDefinition {

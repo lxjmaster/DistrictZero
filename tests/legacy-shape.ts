@@ -4,5 +4,5 @@
 export function preExpansion<T>(value: T): T {
   if (Array.isArray(value)) return value.filter(v => v !== 'assemble').map(preExpansion) as T;
   if (value === null || typeof value !== 'object') return value;
-  return Object.fromEntries(Object.entries(value).filter(([key]) => !['component', 'assemble', 'prefab', 'experience', 'fulfillment', 'highlights', 'stories'].includes(key)).map(([key, v]) => [key, preExpansion(v)])) as T;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => !['component', 'assemble', 'prefab', 'experience', 'fulfillment', 'highlights', 'stories', 'neighborhood', 'fieldReserved', 'legacyChapter'].includes(key)).map(([key, v]) => [key, preExpansion(v)])) as T;
 }

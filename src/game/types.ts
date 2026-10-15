@@ -13,12 +13,14 @@ export type Research = 'R01' | 'R02' | 'R03' | 'R04' | 'R05' | 'R06';
 export type RouteId = 'rain' | 'station';
 export type Direction = 'outbound' | 'inbound';
 export type AssemblyMod = 'quickJig' | 'thriftBench';
-export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4';
+export type MailboxMod = 'voiceBox' | 'dispatchBox';
+export type Modification = AssemblyMod | MailboxMod;
+export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4' | 'L02-1' | 'L02-2' | 'L02-3' | 'L02-4';
 export type RadioChoice = 'dismantle' | 'restore';
-export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}`;
+export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}` | `mailmod:${MailboxMod}`;
 export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10' | 'E11' | 'E12' | 'E13' | 'E14' | 'E15';
 export type EventChoice = Lighting | 'common' | 'individual' | 'reliable' | 'express';
-export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports' | 'fulfillment';
+export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports' | 'fulfillment' | 'fieldReserved';
 export type Ledger = Record<Flow, Amounts>;
 export interface Project {
   uid: string;
@@ -29,6 +31,7 @@ export interface Project {
   reserved: Amounts;
   district: DistrictId;
   prefab: number;
+  legacyChapter: boolean;
 }
 export interface EventState { status: 'pending' | 'claimed'; choice?: EventChoice }
 export interface ReturnReport {
@@ -47,6 +50,7 @@ export interface ReturnReport {
   transport: { departures: number; deliveries: number; maintenance: number };
   highlights: string[];
   stories: StoryNode[];
+  neighborhood: { deliveries: number; fieldReturns: number; pending: number; held: Amounts };
 }
 export interface NetworkNode {
   resources: Amounts;
@@ -98,9 +102,29 @@ export interface WorkTemplate {
 }
 export interface ExperienceState {
   story: Partial<Record<StoryNode, { choice?: RadioChoice }>>;
-  blueprints: AssemblyMod[];
+  blueprints: Modification[];
   benches: Record<DistrictId, { built: AssemblyMod[]; active: AssemblyMod | null }>;
   assembly: { enabled: boolean; target: number; reserve: Amounts };
+}
+export type CommissionGroup = 'CM01' | 'CM02' | 'CM03' | 'CM04' | 'CM05' | 'CM06';
+export type CommissionStage = `${CommissionGroup}-${1 | 2 | 3}`;
+export type FieldSite = 'F01' | 'F02' | 'F03' | 'F04';
+export type FieldKind = 'first' | 'clue' | 'supply';
+export interface FieldOrder { site: FieldSite; district: DistrictId; resident: Resident }
+export interface FieldTrip extends FieldOrder {
+  uid: string; kind: FieldKind; duration: number; remaining: number; reserved: Amounts;
+}
+export type FieldResult = { uid: string; site: FieldSite } & ({ kind: FieldKind } | { kind: 'refund'; refund: Amounts });
+export interface NeighborhoodState {
+  commissions: { completed: CommissionStage[]; tracked: CommissionStage[]; shown: Partial<Record<CommissionStage, number>>; nextShown: number };
+  field: {
+    active: FieldTrip | null; queue: FieldOrder[]; pending: FieldResult[];
+    sites: Record<FieldSite, { first: 'a' | 'b' | null; clue: boolean; supplies: number }>;
+    nextTrip: number; returns: number; recalls: number;
+    consumed: Amounts; refunded: Amounts; rewarded: Amounts;
+  };
+  mailboxes: Record<DistrictId, { built: MailboxMod[]; active: MailboxMod | null }>;
+  delegation: { enabled: boolean; district: DistrictId; stages: CommissionStage[]; reserve: Amounts; deliveries: number };
 }
 export interface GameState extends DistrictState {
   district: 'district-0';
@@ -124,6 +148,7 @@ export interface GameState extends DistrictState {
   city: { districts: Partial<Record<BranchId, DistrictState>>; templates: WorkTemplate[]; maintenance: number };
   network: NetworkState;
   experience: ExperienceState;
+  neighborhood: NeighborhoodState;
 }
 export interface ProjectDefinition { id: DefinitionId; name: string; description: string; cost: Amounts; work: number }
 export type Action =
@@ -132,6 +157,15 @@ export type Action =
   | { type: 'enqueue'; definition: DefinitionId; district?: DistrictId; prefab?: number }
   | { type: 'assembly-plan'; enabled: boolean; target: number; reserve: Amounts }
   | { type: 'assembly-mod'; district: DistrictId; mod: AssemblyMod | null }
+  | { type: 'mailbox-mod'; district: DistrictId; mod: MailboxMod | null }
+  | { type: 'commission-show'; stages: CommissionStage[] }
+  | { type: 'commission-track' | 'commission-untrack' | 'commission-deliver'; stage: CommissionStage }
+  | { type: 'field-start'; site: FieldSite; kind: FieldKind; district: DistrictId; resident: Resident }
+  | { type: 'field-recall' }
+  | { type: 'field-claim'; uid: string; choice?: 'a' | 'b' }
+  | { type: 'field-queue'; orders: FieldOrder[] }
+  | { type: 'delegate-plan'; district: DistrictId; stages: CommissionStage[]; reserve: Amounts }
+  | { type: 'delegate-pause' }
   | { type: 'story'; node: StoryNode; choice?: RadioChoice }
   | { type: 'scrap'; count: number }
   | { type: 'move'; uid: string; direction: -1 | 1 }

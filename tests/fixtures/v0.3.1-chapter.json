@@ -1,0 +1,400 @@
+{
+  "format": "districtzero",
+  "schemaVersion": 4,
+  "balanceVersion": "0.3.1",
+  "savedAt": 1792058400000,
+  "state": {
+    "facilities": {
+      "generator": 1,
+      "recycler": 1,
+      "workbench": 1,
+      "dorm": 1,
+      "warehouse": 1,
+      "mailbox": 1
+    },
+    "population": {
+      "shadow": 2,
+      "echo": 2
+    },
+    "assignments": {
+      "shadow": {
+        "power": 1,
+        "salvage": 1,
+        "repair": 0,
+        "record": 0,
+        "assemble": 0
+      },
+      "echo": {
+        "power": 0,
+        "salvage": 0,
+        "repair": 1,
+        "record": 1,
+        "assemble": 0
+      }
+    },
+    "lighting": "bright",
+    "publicWorks": {
+      "relay": {
+        "built": false,
+        "enabled": true,
+        "condition": 0
+      },
+      "registry": {
+        "built": false,
+        "enabled": true,
+        "condition": 0
+      }
+    },
+    "autoRepair": false,
+    "district": "district-0",
+    "resources": {
+      "energy": 300000,
+      "parts": 245050,
+      "memory": 80000,
+      "component": 0
+    },
+    "earned": {
+      "energy": 1382167,
+      "parts": 714800,
+      "memory": 149000,
+      "component": 0
+    },
+    "ledger": {
+      "production": {
+        "energy": 1382167,
+        "parts": 714800,
+        "memory": 135000,
+        "component": 0
+      },
+      "rewards": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 14000,
+        "component": 0
+      },
+      "operating": {
+        "energy": 932167,
+        "parts": 49750,
+        "memory": 0,
+        "component": 0
+      },
+      "reserved": {
+        "energy": 180000,
+        "parts": 430000,
+        "memory": 69000,
+        "component": 0
+      },
+      "refunds": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0
+      },
+      "exports": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0
+      },
+      "imports": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0
+      },
+      "fulfillment": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0
+      }
+    },
+    "arrivalSeconds": 0,
+    "arrivals": 2,
+    "lightingChosen": true,
+    "priority": [
+      "salvage",
+      "repair",
+      "record",
+      "assemble"
+    ],
+    "queue": [],
+    "completed": [
+      "P01",
+      "build:dorm:1",
+      "P02",
+      "build:warehouse:1",
+      "build:mailbox:1",
+      "R01",
+      "R02",
+      "P03"
+    ],
+    "events": {
+      "E01": {
+        "status": "claimed"
+      },
+      "E03": {
+        "status": "claimed",
+        "choice": "bright"
+      },
+      "E02": {
+        "status": "claimed"
+      },
+      "E04": {
+        "status": "claimed"
+      },
+      "E05": {
+        "status": "claimed"
+      }
+    },
+    "memoryProduced": true,
+    "address": "0-001",
+    "clock": {
+      "seconds": 2825,
+      "remainderMs": 0,
+      "lastAt": 1792058400000
+    },
+    "nextProject": 9,
+    "theme": "dark",
+    "report": null,
+    "city": {
+      "districts": {},
+      "templates": [],
+      "maintenance": 0
+    },
+    "network": {
+      "routes": {
+        "rain": {
+          "node": {
+            "resources": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "received": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "used": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "cycle": 0
+          },
+          "condition": 0,
+          "staff": null,
+          "trip": null,
+          "contract": {
+            "enabled": false,
+            "loads": 1,
+            "reserve": {
+              "energy": 50000,
+              "parts": 50000,
+              "memory": 20000,
+              "component": 0
+            }
+          },
+          "autoRepair": false,
+          "departures": 0,
+          "exports": 0,
+          "imports": 0
+        },
+        "station": {
+          "node": {
+            "resources": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "received": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "used": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0
+            },
+            "cycle": 0
+          },
+          "condition": 0,
+          "staff": null,
+          "trip": null,
+          "contract": {
+            "enabled": false,
+            "loads": 1,
+            "reserve": {
+              "energy": 50000,
+              "parts": 50000,
+              "memory": 20000,
+              "component": 0
+            }
+          },
+          "autoRepair": false,
+          "departures": 0,
+          "exports": 0,
+          "imports": 0
+        }
+      },
+      "priority": [
+        "rain",
+        "station"
+      ],
+      "nextTrip": 1,
+      "maintenance": 0
+    },
+    "experience": {
+      "story": {
+        "L01-1": {}
+      },
+      "blueprints": [],
+      "benches": {
+        "district-0": {
+          "built": [],
+          "active": null
+        },
+        "district-1": {
+          "built": [],
+          "active": null
+        },
+        "district-2": {
+          "built": [],
+          "active": null
+        }
+      },
+      "assembly": {
+        "enabled": false,
+        "target": 5000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 20000,
+          "memory": 0,
+          "component": 0
+        }
+      }
+    },
+    "history": [
+      {
+        "second": 0,
+        "text": "收到工务交接单：请让这里有地方可去。"
+      },
+      {
+        "second": 85,
+        "text": "完工：让临时路灯亮起"
+      },
+      {
+        "second": 85,
+        "text": "新的交接事项：第一盏灯"
+      },
+      {
+        "second": 85,
+        "text": "已处理交接事项：第一盏灯"
+      },
+      {
+        "second": 335,
+        "text": "完工：夜居民宿舍 · 1级"
+      },
+      {
+        "second": 455,
+        "text": "回声居民入住，带来一些旧声音。"
+      },
+      {
+        "second": 455,
+        "text": "一名回声居民抵达，照明选择等你决定。"
+      },
+      {
+        "second": 455,
+        "text": "已处理交接事项：有人来住"
+      },
+      {
+        "second": 575,
+        "text": "回声居民入住，带来一些旧声音。"
+      },
+      {
+        "second": 575,
+        "text": "完工：给站牌写上“0”"
+      },
+      {
+        "second": 575,
+        "text": "新的交接事项：站牌上的0"
+      },
+      {
+        "second": 575,
+        "text": "已处理交接事项：站牌上的0"
+      },
+      {
+        "second": 725,
+        "text": "完工：后场仓库 · 1级"
+      },
+      {
+        "second": 875,
+        "text": "完工：回声信箱 · 1级"
+      },
+      {
+        "second": 1055,
+        "text": "信箱收到一封明天的信，两项研究开放。"
+      },
+      {
+        "second": 1075,
+        "text": "已处理交接事项：一封明天的信"
+      },
+      {
+        "second": 1675,
+        "text": "完工：工具规范"
+      },
+      {
+        "second": 1925,
+        "text": "完工：回声整理"
+      },
+      {
+        "second": 2675,
+        "text": "完工：修复旧站台"
+      },
+      {
+        "second": 2675,
+        "text": "新的交接事项：第一个地址"
+      },
+      {
+        "second": 2825,
+        "text": "已处理交接事项：第一个地址"
+      },
+      {
+        "second": 2825,
+        "text": "住客回信：没有插头的收音机。"
+      }
+    ]
+  }
+}

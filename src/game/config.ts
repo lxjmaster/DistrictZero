@@ -1,7 +1,7 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.3.1';
+export const BALANCE_VERSION = '0.3.2';
 export const BASE_RESOURCES = ['energy', 'parts', 'memory'] as const;
 export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record', 'assemble'];
@@ -9,9 +9,9 @@ export const WORK_JOBS = ['salvage', 'repair', 'record', 'assemble'] as const;
 export const RESIDENTS: Resident[] = ['shadow', 'echo'];
 export const FACILITY_IDS: Facility[] = ['generator', 'recycler', 'workbench', 'dorm', 'warehouse', 'mailbox'];
 export const EVENT_IDS: EventId[] = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'E09', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15'];
-export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds', 'exports', 'imports', 'fulfillment'];
+export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds', 'exports', 'imports', 'fulfillment', 'fieldReserved'];
 export const resourceNames = { energy: '电量', parts: '零件', memory: '记忆', component: '标准构件' };
-export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '实际返还', exports: '发出货物', imports: '运回物资', fulfillment: '支线与拆回支出' };
+export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '实际返还', exports: '发出货物', imports: '运回物资', fulfillment: '支线与委托支出', fieldReserved: '外勤补给预留' };
 export const residentNames = { shadow: '影子居民', echo: '回声居民' };
 export const jobNames = { power: '发电工', salvage: '回收工', repair: '维修工', record: '记录员', assemble: '装配工' };
 export const jobFacility: Record<Job, Facility> = { power: 'generator', salvage: 'recycler', repair: 'workbench', record: 'mailbox', assemble: 'workbench' };
@@ -45,8 +45,8 @@ export const PROJECTS = {
   R02: { id: 'R02', name: '回声整理', description: '把声音放回它发生的地方。记忆产出永久提升 20%。', cost: cost(50, 0, 20), work: 300000 },
   P04: { id: 'P04', name: '测绘没有尽头的旧巷', description: '巷子每晚多出一扇窗。沿着仍有人使用的路测绘，登记旧巷 0-002，开放迁居与分区建设。', cost: cost(100, 60, 20), work: 450000 },
   P05: { id: 'P05', name: '为信笺里补上门牌', description: '那些没有收件地址的信，终于有了住处。登记信笺里 0-003，与第0街区相连。', cost: cost(120, 60, 25), work: 540000 },
-  P06: { id: 'P06', name: '编成夜城地址簿', description: '给两个新区各留下至少两位居民，在第0街区建成配电亭与门牌事务所，确认如何共用门牌。三个地方开始互相找到。', cost: cost(160, 80, 35), work: 720000 },
-  P07: { id: 'P07', name: '接通雨城联络线', description: '维持回收与记录两种专业街区，给第0街区的两种公共设施供电。线路图的终点终于可以写下雨城。', cost: cost(220, 120, 50), work: 900000 },
+  P06: { id: 'P06', name: '编成夜城地址簿', description: '给两个新区各留下至少两位居民，全城建成至少一种公共设施，确认如何共用门牌。三个地方开始互相找到。', cost: cost(160, 80, 35), work: 720000 },
+  P07: { id: 'P07', name: '接通雨城联络线', description: '维持三个街区照明，以一处在岗且有供料的专业街区，或旧巷与信笺里的两份委托协作证明联络。线路图的终点终于可以写下雨城。', cost: cost(220, 120, 50), work: 900000 },
   R03: { id: 'R03', name: '地址索引', description: '不必从头查完所有门牌。居民到达间隔从 120 秒缩短为 90 秒。', cost: cost(60, 20, 20), work: 300000 },
   R04: { id: 'R04', name: '巡检手册', description: '把下一次检查写进值班安排。开放按区自动巡检：设备状态不超过 300 时加入队尾；开放线路后也可安排自动维护。', cost: cost(80, 30, 25), work: 360000 },
   P08: { id: 'P08', name: '修复末班车厢', description: '雨城已经接起电话，还需要一辆真的会抵达的车。修复车厢，开放雨城供需、外派夜工与第一辆共享列车。', cost: cost(120, 80, 30), work: 420000 },

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { amounts, RESOURCES, resourceNames, UNIT } from '../game/config';
 import { districtState, DISTRICTS, localCount } from '../game/city';
 import { definitionFor, duration, enqueueReason, format, missingCost, view, workers } from '../game/engine';
-import { ASSEMBLY, assemblyRecipe, assemblyUnlocked, MOD_IDS, pendingStories, prefabLimit, radioChoice, STORY_IDS, STORY_NAMES, storyText } from '../game/experience';
+import { ASSEMBLY, assemblyRecipe, assemblyUnlocked, MOD_IDS, pendingStories, prefabLimit, radioChoice, RADIO_STORY_IDS, STORY_NAMES, storyText } from '../game/experience';
+import { commissionDone } from '../game/neighborhood';
 import type { Action, Amounts, DefinitionId, DistrictId, Facility, GameState, RadioChoice } from '../game/types';
 
 type Send = (action: Action) => void;
@@ -38,9 +39,9 @@ export function ResidentInbox({ state, send, disabled }: Props) {
   const pending = pendingStories(state);
   if (!pending.length) return null;
   return <section className="panel resident-inbox" aria-label="住客来信">
-    <div className="panel-title"><h2>住客留了话</h2><span className="caption">带收音机的住客</span></div>
+    <div className="panel-title"><h2>住客留了话</h2><span className="caption">住客与邮递员</span></div>
     {pending.map(id => <article key={id} data-testid={`story-${id}`} className="resident-letter">
-      <span className="eyebrow">{id} / 旧物与新用途</span><h3>{STORY_NAMES[id]}</h3><p>{storyText(state, id)}</p>
+      <span className="eyebrow">{id} / {id.startsWith('L02') ? '两封信，一个门牌' : '旧物与新用途'}</span><h3>{STORY_NAMES[id]}</h3><p>{storyText(state, id)}</p>
       {id === 'L01-2' ? <div className="story-options">{(['dismantle', 'restore'] as RadioChoice[]).map(choice => {
         const payment = choice === 'restore' ? ASSEMBLY.restoreCost : amounts(), reward = choice === 'dismantle' ? ASSEMBLY.dismantleReward : amounts();
         const missing = missingCost(state, payment), full = RESOURCES.some(r => state.resources[r] - payment[r] + reward[r] > view(state).capacities[r]);
@@ -49,12 +50,12 @@ export function ResidentInbox({ state, send, disabled }: Props) {
           <button disabled={disabled || missing.length > 0 || full} onClick={() => send({ type: 'story', node: id, choice })}>{choice === 'dismantle' ? '拆解收音机' : '修复收音机'}</button>
           {(missing.length > 0 || full) && <p className="short small">{full ? '需要2构件的奖励空间，选择会保留。' : missing.join('，')}</p>}
         </div>;
-      })}</div> : <button disabled={disabled} onClick={() => send({ type: 'story', node: id })}>{id === 'L01-1' ? '读完装配纸条' : '读完住客回信'}</button>}
+      })}</div> : <button disabled={disabled} onClick={() => send({ type: 'story', node: id })}>{id === 'L01-1' ? '读完装配纸条' : id.startsWith('L02') ? '读完邮递员回访' : '读完住客回信'}</button>}
       <p className="footnote">可以先放在这里。主线与生产照常继续，决定会等你回来。</p>
     </article>)}
   </section>;
 }
-function parseUnits(text: string): number | null {
+export function parseUnits(text: string): number | null {
   const value = text.trim();
   if (!/^(?:\d+(?:\.\d{0,3})?|\.\d{1,3})$/.test(value)) return null;
   const [whole, fraction = ''] = value.split('.');
@@ -101,8 +102,8 @@ export function ResidentArchive({ state, send, disabled }: Props) {
   if (!assemblyUnlocked(state)) return null;
   return <section className="panel" aria-label="住客档案"><div className="panel-title"><h2>带收音机的住客</h2><span className="caption">第一次见面：临时路灯下</span></div>
     <p className="small">{radioChoice(state) === 'restore' ? '你留下了声音。窗口的收音机仍记得报时。' : radioChoice(state) === 'dismantle' ? '你留下了外壳。住客正在把旧物变成工具盒。' : '收音机放在维修台旁，住客仍在等你的决定。'}</p>
-    {STORY_IDS.filter(id => state.experience.story[id]).map(id => <details className="archive-event" key={id}><summary>{STORY_NAMES[id]}<span className="small muted">已确认</span></summary><p>{storyText(state, id)}</p></details>)}
-    {state.experience.story['L01-3'] && <p className="footnote">已收好线索：{radioChoice(state) === 'restore' ? '未登记的半层与旧调频' : '站台储物柜的编号'}。后续外勤调查开放后可继续寻找。</p>}
+    {RADIO_STORY_IDS.filter(id => state.experience.story[id]).map(id => <details className="archive-event" key={id}><summary>{STORY_NAMES[id]}<span className="small muted">已确认</span></summary><p>{storyText(state, id)}</p></details>)}
+    {state.experience.story['L01-3'] && <p className="footnote">已收好线索：{radioChoice(state) === 'restore' ? '未登记的半层与旧调频' : '站台储物柜的编号'}。可在事项的外勤调查继续寻找。</p>}
     {state.completed.includes('P03') && MOD_IDS.filter(mod => !state.experience.blueprints.includes(mod)).map(mod => <article className="mod-card" key={mod}><h3>整理工具清单：{ASSEMBLY.recipes[mod].name}</h3><ProjectPayment state={state} send={send} disabled={disabled} id={`blueprint:${mod}`} ariaLabel={`补学${ASSEMBLY.recipes[mod].name}蓝图`} buttonText="安排整理工具清单" /></article>)}
   </section>;
 }
@@ -111,17 +112,22 @@ export function StreetScene({ state, district, open }: { state: GameState; distr
   const housing = d.facilities.dorm > 0, mail = d.facilities.mailbox > 0, table = d.facilities.workbench > 0;
   const restored = district === 'district-0' && radioChoice(state) === 'restore';
   const toolbox = district === 'district-0' && radioChoice(state) === 'dismantle' && Boolean(state.experience.story['L01-3']);
+  const clothesline = district === 'district-1' && commissionDone(state, 'CM02-2');
+  const delivery = district === 'district-2' && commissionDone(state, 'CM03-2'), receipt = district === 'district-2' && commissionDone(state, 'CM03-3');
+  const named = district === 'district-2' && state.events.E07?.choice === 'individual', shared = district === 'district-2' && state.events.E07?.choice === 'common';
+  const shade = district === 'district-0' && commissionDone(state, 'CM01-2');
+  const life = clothesline ? '晾衣绳下留着通行的路' : receipt ? '窗口收好了两张回执' : delivery ? '窗口已投递，待回信' : named ? '门牌背面有两行名字' : shared ? '两家轮流留灯' : '';
   const building = state.queue.some(p => p.district === district && p.status === 'running');
   const facts = [
     { name: '路灯', status: !state.completed.includes('P01') ? '待修复' : lit ? '亮着' : '待供电', page: 'work' as const },
     { name: '住所', status: housing ? `${localCount(d)}人入住` : '待建设', page: 'operate' as const, target: 'facilities' },
     { name: '维修台', status: table ? toolbox ? '工具盒' : `${d.facilities.workbench}级` : '待建设', page: 'operate' as const, target: assemblyUnlocked(state) ? 'assembly' : 'facilities' },
-    { name: '信箱', status: mail ? '可记录' : '待建设', page: 'operate' as const, target: 'facilities' },
+    { name: '信箱', status: mail ? state.neighborhood.mailboxes[district].active === 'voiceBox' ? '留声匣' : state.neighborhood.mailboxes[district].active === 'dispatchBox' ? '投递匣' : '可记录' : '待建设', page: 'operate' as const, target: 'facilities' },
     { name: '旧物', status: restored ? housing ? '窗边收音机' : '修好的声音' : toolbox ? '外壳有新用途' : '等一封来信', page: 'archive' as const },
     { name: '工务', status: building ? '施工中' : state.address ? '地址已登记' : '等维修单', page: 'work' as const }
   ];
   return <div className="street-scene" aria-label={`${DISTRICTS[district].name}街景`} data-testid="street-scene">
-    <svg viewBox="0 0 640 140" role="img" aria-label={`${lit ? '路灯亮着' : '路灯等待修复或供电'}；${housing ? `${localCount(d)}人有了住处` : '住所尚未建成'}；${building ? '工务正在施工' : '工务按安排等待'}${restored ? '；收音机的声音留了下来' : toolbox ? '；维修台旁放着工具盒' : ''}`}>
+    <svg viewBox="0 0 640 140" role="img" aria-label={`${lit ? '路灯亮着' : '路灯等待修复或供电'}；${housing ? `${localCount(d)}人有了住处` : '住所尚未建成'}；${building ? '工务正在施工' : '工务按安排等待'}${life ? `；${life}` : ''}${shade ? '；灯罩把光留在路面' : ''}${restored ? '；收音机的声音留了下来' : toolbox ? '；维修台旁放着工具盒' : ''}`}>
       <path d="M16 124H624 M18 130H622" className="street-road" />
       {lit && <ellipse cx="65" cy="118" rx="48" ry="8" className="lamp-pool" />}
       <path d="M65 122V32H86" className="scene-line" /><path d="M76 33L74 41H97L94 33" className={lit ? 'scene-lit' : 'scene-building'} />
@@ -139,9 +145,13 @@ export function StreetScene({ state, district, open }: { state: GameState; distr
       <path d="M480 115V55H520" className="scene-line" /><rect x="489" y="50" width="37" height="22" className={state.completed.includes('P02') ? 'scene-lit' : 'scene-window'} />
       {state.completed.includes('P02') && <text x="504" y="66" className="scene-number">0</text>}
       {restored && <g className="scene-radio"><rect x={housing ? 192 : 272} y={housing ? 64 : 58} width="22" height="14" rx="2" className="scene-lit" /><path d={housing ? 'M198 65L196 57' : 'M278 59L276 51'} className="scene-line" /></g>}
+      {shade && <path d="M71 31H101L105 41H67Z" className="scene-line" />}
+      {district === 'district-1' && <g className={clothesline ? 'scene-built' : 'scene-ghost'}><path d="M120 33L218 28 M133 32V46H146V31 M178 30V44H193V29" className="scene-line" />{clothesline && <path d="M122 119H220" className="scene-lit" />}</g>}
+      {district === 'district-2' && <g className="scene-built"><rect x="531" y="37" width="34" height="37" className={shared ? 'scene-lit' : 'scene-building'} /><rect x="577" y="37" width="34" height="37" className={named ? 'scene-lit' : 'scene-window'} /><path d="M533 52H563 M579 52H609" className="scene-line" />{named && <path d="M543 82H597 M543 88H597" className="scene-line" />}{(delivery || receipt) && <g><rect x="554" y="93" width="34" height="19" className="scene-lit" /><path d="M554 93L571 104L588 93" className="scene-line" />{receipt && <path d="M589 96L594 101L604 89" className="scene-line" />}</g>}</g>}
       {building && <g className="scene-construction"><path d="M552 110V86H591V110 M552 91H591 M561 86L571 100 M577 86L587 100" className="scene-line" /><circle cx="571" cy="78" r="4" className="scene-lit" /></g>}
       {state.completed.includes('P01') && district === 'district-0' && <g className="scene-people"><circle cx="44" cy="105" r="3" /><path d="M44 109V121 M41 115H47" /><circle cx="81" cy="104" r="3" /><path d="M81 108V121 M78 114H84" /></g>}
     </svg>
+    {life && <p className="street-life" data-testid="street-life">{life}。{named ? '各留姓名，让每封回信都写得清楚。' : shared ? '今晚的灯留给后来的人。' : '这是你和街坊一起留下的变化。'}</p>}
     <div className="scene-destinations">{facts.map(fact => <button key={fact.name} onClick={() => open(fact.page, fact.target)} aria-label={`查看${fact.name}：${fact.status}`}><span>{fact.name}</span><small>{fact.status}</small></button>)}</div>
   </div>;
 }

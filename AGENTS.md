@@ -50,8 +50,19 @@ by local implementation and verification of V0.3.2. The latest explicit instruct
 authorizes starting the second batch before independent human feedback has been
 sampled; record that feedback as unperformed and do not claim its experience
 criteria passed. V0.3.2 has no new push or deployment authorization. V0.3.3 remains
-planned. Do not change fixed values to make tests pass or silently reduce
+planned. V0.3.1 and its publication documentation are now pushed through
+`ac72f1e`; both Pages workflows succeeded. Implement V0.3.2 against
+`docs/V0.3.2_SPEC.md` locally. Do not change fixed values to make tests pass or silently reduce
 acceptance scope.
+
+V0.3.2 is now implemented and verified locally: 137 engine/storage tests,
+36 browser tests, type checking, the production build and isolated preview
+passed on 2026-10-15. See docs/VERIFICATION.md and docs/PLAYTEST.md for the
+required scenarios, measured routes and unsampled human feedback. The local
+workspace uses schema 5; the published site remains V0.3.1 / schema 4. No
+V0.3.2 commit, push or deployment has been performed. The pre-existing
+127.0.0.1:5173 development server remains available for this local handoff;
+the task-owned 4173 preview server was stopped.
 
 ## Authoritative Design
 
@@ -66,6 +77,8 @@ For V0.3.1 changes, read docs/V0.3.1_SPEC.md and the review dispositions in
 section 19 of docs/EXPERIENCE_EXPANSION_PLAN.md. The batch specification takes
 precedence over older candidate rules in the expansion proposal. Verify
 UX01–UX08 and UX21 alongside the original FR/C/N regressions.
+For V0.3.2 changes, read docs/V0.3.2_SPEC.md. Verify UX09–UX13 and the
+shared UX19/UX20 boundaries, while retaining the original regressions.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -100,7 +113,8 @@ src/game contains configuration, simulation, and save validation. src/app contai
 
 Save keys are districtzero.save.v1 and districtzero.save.backup.v1. Origin changes, including a different port, use different browser storage. Preserve user saves; reset only isolated test data or through an explicitly confirmed game reset.
 
-Published V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
+Local V0.3.2 uses schema 5 / balance 0.3.2, with genuine schema 1/2/3/4
+migration. Published V0.3.1 saves use schema 4 and balance 0.3.1, with explicit migration from
 schema 1 / balance 0.1.0, schema 2 / balance 0.2.0, and schema 3 / balance 0.3.0.
 V0.3.1 was published on 2026-10-15 at the Pages URL above. Historical V0.3 uses schema 3. Keep storage keys and writer lock stable. District resources
 and projects are shared; facilities, residents, jobs, lighting, and public
@@ -121,6 +135,15 @@ retain their selected prefab count through waiting, reservation, pause, cancel,
 and save round-trips. Optional payments use fulfillment; dismantling refunds do
 not increase earned totals. Workbench removal clears the active modification
 and retains ownership for rebuilding.
+
+src/game/neighborhood.ts holds explicit commissions, field sites, mailbox tools,
+and delegation rules. Field supplies use fieldReserved, rewards use rewards,
+optional deliveries use fulfillment, and actual recalls use refunds. Held supplies
+and pending refund packages conserve separately; pending rewards are not inventory.
+Only one field resident may be away globally, in addition to route staff; both
+occupancies apply to assignment, relocation, templates, and save validation.
+Delegation executes at most one explicitly confirmed stage per second and never
+accepts a successor. Old queued chapter compatibility belongs only to that item.
 
 ## Required Behavior
 
