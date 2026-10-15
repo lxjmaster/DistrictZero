@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { setImmediate } from 'node:timers/promises';
 import { describe, expect, it } from 'vitest';
 import { amounts, JOBS, RESIDENTS, RESOURCES, UNIT } from '../../src/game/config';
 import { activeDistricts, dismantleReason, districtState } from '../../src/game/city';
@@ -240,10 +241,14 @@ describe('V0.3.2 source-version validation, report and elapsed-time equivalence'
     ];
     for (const mutate of mutations) { const bad = JSON.parse(valid); mutate(bad.state); expect(() => decodeSave(JSON.stringify(bad))).toThrow(); }
   });
-  it.each([900, 86400, 604800])('UX08/11/18/20: %i seconds match irregular segments, preserve pending choices and reconcile held supplies', seconds => {
+  it.each([900, 86400, 604800])('UX08/11/18/20: %i seconds match irregular segments, preserve pending choices and reconcile held supplies', async seconds => {
+    // Let Vitest receive worker messages between CPU-bound simulations on CI.
+    await setImmediate();
     let s = delegateReady(); s = act(s, { type: 'commission-track', stage: 'CM01-1' }); s = act(s, { type: 'delegate-plan', district: 'district-0', stages: ['CM01-1'], reserve: amounts() });
     s = act(s, { type: 'field-start', site: 'F02', kind: 'first', district: 'district-0', resident: 'shadow' });
-    const one = advance(s, seconds * 1000); let segmented = s, left = seconds * 1000;
+    const one = advance(s, seconds * 1000);
+    await setImmediate();
+    let segmented = s, left = seconds * 1000;
     for (const size of [123, 997, 4011, 17003, 30137]) { if (left <= 0) break; const n = Math.min(size, left); segmented = advance(segmented, n); left -= n; }
     segmented = advance(segmented, left); expect(segmented).toEqual(one); assertInvariants(one);
     expect(one.neighborhood.field.sites.F02.first).toBeNull(); expect(one.neighborhood.field.pending).toHaveLength(1); expect(one.neighborhood.delegation.deliveries).toBe(1);
