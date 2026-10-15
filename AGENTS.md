@@ -27,8 +27,15 @@ Implement and verify the complete local third chapter in docs/V0.3_SPEC.md,
 including migration from V0.1/V0.2. The previous publishing task is complete;
 V0.4–V0.6 remain subsequent work.
 
-The V0.3 local delivery is complete; see docs/VERIFICATION.md and docs/PLAYTEST.md.
-No V0.3 commit, push or publication was performed in this workline.
+The V0.3 local delivery and review fixes are complete. On 2026-10-15 the user
+additionally authorized committing and pushing the complete V0.3 and review
+fixes to master, publishing through the existing GitHub Pages workflow,
+verifying the public site, and updating the repository documentation with the
+deployed Pages URL. Do not request repeated approval for this unchanged outcome.
+
+V0.3 is now published at https://lxjmaster.github.io/DistrictZero/; see
+docs/VERIFICATION.md for the release and public-site checks. Further pushes to
+master also deploy publicly. V0.4–V0.6 remain subsequent work.
 
 ## Authoritative Design
 

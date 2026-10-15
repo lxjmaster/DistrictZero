@@ -35,7 +35,7 @@
 
 `tests/fixtures/v0.2-chapter.json`保留真实旧版第二章样本，`v0.3-chapter.json`保留本轮真实第三章桌面样本。`tests/browser/network.spec.ts`在`test-results/`生成`*-v0.3-playtest.json`、`*-v0.3-save.json`、夜网/满仓等待/线路控件截图及`v0.3-offline-report.json`。这些结果目录可由测试重建。
 
-V0.3本轮为本地交付，没有提交、推送或发布。两种班次的这条路线可完成；真人理解、真实触摸设备、Safari/Firefox与长期经济平衡尚未验证，数值仍为试玩候选。
+上述为本地试玩证据。V0.3及合同审查修复随后已发布到[GitHub Pages](https://lxjmaster.github.io/DistrictZero/)，发布与线上检查见[验证记录](VERIFICATION.md)。两种班次的这条路线可完成；真人理解、真实触摸设备、Safari/Firefox与长期经济平衡尚未验证，数值仍为试玩候选。
 
 ## V0.2：夜城与地址
 

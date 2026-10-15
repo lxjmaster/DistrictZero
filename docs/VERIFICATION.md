@@ -1,6 +1,20 @@
 # DistrictZero 验证记录
 
-以下按阶段保留实际验证记录，包括当时的交付边界。V0.1、V0.2已发布；V0.3本轮为本地交付，没有提交、推送或发布。部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+当前线上版本为 **V0.3「城际夜网」**：[在线试玩](https://lxjmaster.github.io/DistrictZero/)。以下按阶段保留实际验证记录，包括当时的交付边界；历史本地交付记录不代表当前发布状态。后续部署记录见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+
+## V0.3 发布
+
+日期：2026-10-15。用户授权将完整V0.3及合同审查修复提交、推送、发布，并在仓库说明中写明Pages地址。游戏提交为[`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit/87be2a00e22a2882df9d7369060d22323286b5b7)，[发布流程38697657222](https://github.com/lxjmaster/DistrictZero/actions/runs/38697657222)构建与部署均成功。
+
+| 已执行检查 | 结果 |
+| --- | --- |
+| 发布前 `npm run test:e2e` | **23项全部通过**：原20项与3项合同回归，包含三章桌面/手机流程、旧档迁移、离线报告、存档恢复和多标签页 |
+| GitHub Actions | Node.js 22安装锁定依赖，**70项引擎/存档测试**、类型检查、生产构建及Pages部署全部通过 |
+| 公开地址与资源 | `https://lxjmaster.github.io/DistrictZero/`返回HTTP 200；公开脚本`index-BIzrhI4_.js`与样式`index-BoUXrwom.css`均与已验证本地构建逐字节一致 |
+| 线上新档与迁移 | 隔离Chromium上下文验证设置显示V0.3，新档保存结构3/数值0.3.0；真实V0.2章节样本迁移后可进入夜网、安排末班车厢 |
+| 线上合同回归 | 手机390×844下`1.001`保存为内部1001；清空草稿仍可暂停，已保存配置及在途货物保留；重开恢复精确小数，无横向溢出和脚本错误 |
+
+本轮沿用源码未变的本地70项测试及构建证据，CI重新执行后通过。公开页面检查全部使用隔离测试上下文，未访问玩家浏览器数据；没有新增依赖或临时脚本。保留本地开发服务、构建与浏览器测试报告供复核。
 
 ## V0.3 审查修复
 

@@ -2,9 +2,11 @@
 
 从一个未被登记的地址开始，修复被遗忘的地方。单人浏览器文字经营游戏：两名夜工、一盏灯、一个仍可建设的未来。
 
-当前本地版本 **V0.3「城际夜网」**，包含完整前三章：三个相连街区、雨城与长站两处独立供需节点、三种资源、六种基础设施、两种公共设施、十一项主线、十五个事件和六项研究。首章登记 **0-001**，第二章登记 **0-002、0-003**，第三章开放双向运输、外派夜工、共享列车、自动合同与线路维护。
+**在线试玩：[第0街区 · GitHub Pages](https://lxjmaster.github.io/DistrictZero/)**
 
-V0.1、V0.2已发布；V0.3本轮为本地交付，尚未提交、推送或发布。V0.4分所、V0.5历法、V0.6公约为后续内容。详细范围见[路线](docs/PRODUCT_SPEC.md#14-长期扩展路线)、[V0.2规格](docs/V0.2_SPEC.md)与[V0.3规格](docs/V0.3_SPEC.md)。
+当前线上版本 **V0.3「城际夜网」**，包含完整前三章：三个相连街区、雨城与长站两处独立供需节点、三种资源、六种基础设施、两种公共设施、十一项主线、十五个事件和六项研究。首章登记 **0-001**，第二章登记 **0-002、0-003**，第三章开放双向运输、外派夜工、共享列车、自动合同与线路维护。
+
+V0.3及合同审查修复已于 **2026-10-15** 发布到GitHub Pages，支持V0.1/V0.2旧存档自动迁移。V0.4分所、V0.5历法、V0.6公约为后续内容。详细范围见[路线](docs/PRODUCT_SPEC.md#14-长期扩展路线)、[V0.2规格](docs/V0.2_SPEC.md)与[V0.3规格](docs/V0.3_SPEC.md)。
 
 ## 本地运行
 
@@ -30,7 +32,9 @@ npm run preview    # 在 http://127.0.0.1:4173/DistrictZero/ 查看构建产物
 
 ## GitHub Pages 试玩
 
-在线试玩地址：[第0街区在线试玩](https://lxjmaster.github.io/DistrictZero/)，此前发布的版本为V0.2。V0.3请使用本地地址试玩；部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
+在线试玩地址：[第0街区在线试玩](https://lxjmaster.github.io/DistrictZero/)，当前为 **V0.3「城际夜网」**。无需安装，桌面和手机浏览器均可打开。
+
+V0.3游戏提交为 [`87be2a0`](https://github.com/lxjmaster/DistrictZero/commit/87be2a00e22a2882df9d7369060d22323286b5b7)，[首次发布流程](https://github.com/lxjmaster/DistrictZero/actions/runs/38697657222)已成功。完整23项浏览器测试、线上资源一致性、新档、旧档迁移及合同修复验证见[验证记录](docs/VERIFICATION.md)。后续部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
 `.github/workflows/deploy-pages.yml` 在推送到 `master` 或手动运行时，使用 Node.js 22 安装锁定依赖，执行引擎与存档测试、类型检查和构建，再将 `dist/` 发布到 GitHub Pages。仓库 `Settings → Pages → Source` 使用 `GitHub Actions`。正式构建与本地预览都使用 `/DistrictZero/` 子路径。
 
