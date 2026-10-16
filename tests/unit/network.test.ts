@@ -1,10 +1,10 @@
 import { preExpansion } from '../legacy-shape';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { advance, applyAction, capacities, createGame, freeResidents, summarize } from '../../src/game/engine';
+import { activateNetworkRules, advance, applyAction, capacities, createGame, freeResidents, summarize } from '../../src/game/engine';
 import { activeDistricts, districtState } from '../../src/game/city';
 import { amounts, RESIDENTS, RESOURCES } from '../../src/game/config';
-import { createNetwork, NETWORK_RULES, ROUTE_IDS, ROUTES } from '../../src/game/network';
+import { createNetwork, NETWORK_RULES, productResource, ROUTE_IDS, ROUTES } from '../../src/game/network';
 import { assertInvariants, decodeSave, encodeSave } from '../../src/game/saves';
 import type { Action, DefinitionId, GameState, Resource } from '../../src/game/types';
 
@@ -48,11 +48,11 @@ function both(expanded = false) {
 describe('V0.3 migration, inventory and workers', () => {
   it('N01: migrates the genuine V0.2 chapter and its historical report without free cargo', () => {
     const raw = JSON.parse(v2Text), migrated = decodeSave(v2Text);
-    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(6);
     for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'queue', 'city', 'clock', 'history'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
     expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: amounts(), imports: amounts() }));
     expect(preExpansion(migrated.state.report)).toEqual(preExpansion({ ...raw.state.report, flows: { ...raw.state.report.flows, exports: amounts(), imports: amounts() }, transport: { departures: 0, deliveries: 0, maintenance: 0 } }));
-    expect(migrated.state.network).toEqual(createNetwork()); expect(decodeSave(encodeSave(migrated.state, 0)).state).toEqual(migrated.state);
+    expect(migrated.state.network).toEqual({ ...createNetwork(), legacyPending: true }); expect(decodeSave(encodeSave(migrated.state, 0)).state).toEqual(migrated.state);
   });
   it('N01: rejects new content disguised as an old state or historical report', () => {
     for (const alter of [
@@ -133,6 +133,31 @@ describe('V0.3 migration, inventory and workers', () => {
 });
 
 describe('V0.3 contracts, maintenance and time', () => {
+  it('UX15/19: newly opened routes get normal targets once and later contract edits preserve explicit zero targets', () => {
+    let s = activateNetworkRules(old(), 0);
+    for (const id of ROUTE_IDS) expect(s.network.routes[id].contract.targets).toEqual(amounts());
+    s = finish(s, 'P08');
+    expect(s.network.routes.rain.contract.targets).toEqual(amounts(0, 0, capacities(s).memory));
+    expect(s.network.routes.rain.contract.enabled).toBe(false);
+    s = act(s, { type: 'network-staff', route: 'rain', district: 'district-0', resident: 'shadow', delta: 1 });
+    s = advance(act(s, { type: 'dispatch', route: 'rain', direction: 'outbound', loads: 1 }), 120000);
+    s = advance(act(s, { type: 'dispatch', route: 'rain', direction: 'inbound', loads: 1 }), 120000);
+    s = act(s, { type: 'event', event: 'E12', choice: 'reliable' });
+    s = finish(finish(s, 'P09'), 'R05');
+    expect(s.network.routes.station.contract.targets).toEqual(amounts(0, capacities(s).parts));
+    expect(s.network.routes.station.contract.enabled).toBe(false);
+    for (const id of ROUTE_IDS) {
+      const defaults = structuredClone(s.network.routes[id].contract);
+      expect(defaults.targets[productResource(id, 'normal')]).toBe(capacities(s)[productResource(id, 'normal')]);
+      s = act(s, { type: 'contract', route: id, enabled: true, loads: defaults.loads, reserve: defaults.reserve, targets: amounts() });
+      s = decodeSave(encodeSave(s, 0)).state;
+      s = act(s, { type: 'contract', route: id, enabled: true, loads: defaults.loads, reserve: defaults.reserve, buffer: 3 });
+      expect(s.network.routes[id].contract.targets).toEqual(amounts());
+    }
+    s = advance(s, 1000);
+    for (const id of ROUTE_IDS) { expect(s.network.routes[id].trip).toBeNull(); expect(s.network.routes[id].contract.targets).toEqual(amounts()); }
+    assertInvariants(s);
+  });
   it('N05: route priority competes for the single vehicle and R06 enables real parallel batches', () => {
     let s = both(); fill(s);
     for (const id of ROUTE_IDS) s = act(s, { type: 'contract', route: id, enabled: true, loads: 1, reserve: amounts() });

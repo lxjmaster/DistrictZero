@@ -111,8 +111,8 @@ for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 84
   test(`C08: V0.1 migration to the complete second chapter through ${name} UI`, async ({ page }, info) => {
     await page.setViewportSize({ width, height }); const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     const raw = await legacy(page);
-    expect((await saved(page)).resources).toEqual({ ...raw.state.resources, component: 0 }); expect((await saved(page)).clock.seconds).toBe(raw.state.clock.seconds);
-    const backup = await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY); expect(JSON.parse(backup).schemaVersion).toBe(1); expect(decodeSave(backup).state.resources).toEqual({ ...raw.state.resources, component: 0 });
+    expect((await saved(page)).resources).toEqual({ ...raw.state.resources, component: 0, rainFilm: 0, railCore: 0 }); expect((await saved(page)).clock.seconds).toBe(raw.state.clock.seconds);
+    const backup = await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY); expect(JSON.parse(backup).schemaVersion).toBe(1); expect(decodeSave(backup).state.resources).toEqual({ ...raw.state.resources, component: 0, rainFilm: 0, railCore: 0 });
     const result = await secondChapter(page);
     await writeFile(info.outputPath(`${name}-v0.2-playtest.json`), JSON.stringify({ viewport: { width, height }, ...result }, null, 2));
     await click(page, '夜城');

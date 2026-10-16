@@ -12,7 +12,7 @@ export class SaveStorage {
     let primary: string | null;
     try { primary = this.store.getItem(SAVE_KEY); } catch { return { state: null, warning: '浏览器存储不可用。可继续游玩，请导出存档保留进度。' }; }
     if (primary) {
-      try { const loaded = decodeSave(primary); return { state: loaded.state, warning: loaded.migratedFrom ? `${({ 1: 'V0.1', 2: 'V0.2', 3: 'V0.3', 4: 'V0.3.1' })[loaded.migratedFrom]}存档已迁移：原有进度保留，可继续建设夜城与城际夜网。` : null }; }
+      try { const loaded = decodeSave(primary); return { state: loaded.state, warning: loaded.migratedFrom ? `${({ 1: 'V0.1', 2: 'V0.2', 3: 'V0.3', 4: 'V0.3.1', 5: 'V0.3.2' })[loaded.migratedFrom]}存档已迁移：原有进度保留，可继续建设夜城与城际夜网。` : null }; }
       catch (error) { if (error instanceof SaveVersionError) return incompatibleLoad(); /* read valid recovery copy */ }
     }
     let backup: string | null = null;

@@ -5,7 +5,8 @@ import { commissionDone } from './neighborhood';
 export const MOD_IDS: AssemblyMod[] = ['quickJig', 'thriftBench'];
 export const RADIO_STORY_IDS: StoryNode[] = ['L01-1', 'L01-2', 'L01-3', 'L01-4'];
 export const LETTER_STORY_IDS: StoryNode[] = ['L02-1', 'L02-2', 'L02-3', 'L02-4'];
-export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS];
+export const TRAIN_STORY_IDS: StoryNode[] = ['L03-1', 'L03-2', 'L03-3', 'L03-4'];
+export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS];
 export const ASSEMBLY = {
   capacity: 30 * UNIT, warehouseCapacity: 10 * UNIT,
   recipes: {
@@ -22,11 +23,12 @@ export const ASSEMBLY = {
 export const STORY_NAMES: Record<StoryNode, string> = {
   'L01-1': '没有插头的收音机', 'L01-2': '留下外壳，还是留下声音',
   'L01-3': '多出来的那一下', 'L01-4': '第一站的广播',
-  'L02-1': '总投进同一扇窗', 'L02-2': '门牌背面的字', 'L02-3': '可以代收吗', 'L02-4': '每个人都收到了'
+  'L02-1': '总投进同一扇窗', 'L02-2': '门牌背面的字', 'L02-3': '可以代收吗', 'L02-4': '每个人都收到了',
+  'L03-1': '空箱上的名字', 'L03-2': '运单上的笔迹', 'L03-3': '长站的第0节', 'L03-4': '明天仍会寄来'
 };
 export function createExperience(): ExperienceState {
   return {
-    story: {}, blueprints: [],
+    story: {}, blueprints: [], archives: [],
     benches: { 'district-0': { built: [], active: null }, 'district-1': { built: [], active: null }, 'district-2': { built: [], active: null } },
     assembly: { enabled: false, target: 5 * UNIT, reserve: amounts(10 * UNIT, 20 * UNIT) }
   };
@@ -34,7 +36,11 @@ export function createExperience(): ExperienceState {
 export const assemblyUnlocked = (s: GameState) => Boolean(s.experience.story['L01-1']);
 export const radioChoice = (s: GameState) => s.experience.story['L01-2']?.choice;
 export function storyAvailable(s: GameState, id: StoryNode): boolean {
-  if (!STORY_IDS.includes(id) || s.experience.story[id]) return false;
+  if (!STORY_IDS.includes(id) || s.experience.story[id] || id.startsWith('L03') && s.network.legacyPending) return false;
+  if (id === 'L03-1') return s.completed.includes('P08');
+  if (id === 'L03-2') return Boolean(s.experience.story['L03-1']) && s.events.E12?.status === 'claimed';
+  if (id === 'L03-3') return Boolean(s.experience.story['L03-2']) && s.completed.includes('P09');
+  if (id === 'L03-4') return Boolean(s.experience.story['L03-3']) && s.completed.includes('P11');
   if (id === 'L02-1') return s.completed.includes('P04');
   if (id === 'L02-2') return Boolean(s.experience.story['L02-1']) && s.events.E07?.status === 'claimed';
   if (id === 'L02-3') return Boolean(s.experience.story['L02-2']) && commissionDone(s, 'CM03-1');
@@ -46,6 +52,10 @@ export function storyAvailable(s: GameState, id: StoryNode): boolean {
 }
 export const pendingStories = (s: GameState) => STORY_IDS.filter(id => storyAvailable(s, id));
 export function storyText(s: GameState, id: StoryNode): string {
+  if (id === 'L03-1') return '车厢修好后，座位下面有一只空箱。箱盖写着长站站务员的称呼：“如果到站时还有空位，替候车的人留一把椅子。”它不是已经送到的货物，只留下一条回信地址。';
+  if (id === 'L03-2') return s.events.E12?.choice === 'express' ? '站务员把运单压在箱底：“快班来得早，接头要更勤检查。”箱子没有额外奖励；等待的人知道该在哪一边抬头看车。' : '站务员在运单上画了一条平直的线：“稳班慢一点，接头就能多用几趟。”候车的人把椅子转向灯还亮着的一边。';
+  if (id === 'L03-3') return '长站第0节不在车厢号码表上，却有人在那里交班。F06有限线索已经记下，实际运回轨芯后可去首访。强化货架增加20运量、每车多用2电；护轨挂架减四分之一磨损，保留原运量。图样还需委托或调查发现，方案由你选择。';
+  if (id === 'L03-4') return `站务员回信：“明天仍会给这里留一只空箱。”现在${Object.values(s.network.routes).filter(r => r.contract.enabled).length}条合同启用，雨城${s.network.routes.rain.node.mode === 'specialty' ? '封装雨声' : '整理记忆'}，长站${s.network.routes.station.node.mode === 'specialty' ? '整备轨芯' : '回收旧轨'}；${s.network.vehicle.active === 'freightRack' ? '强化货架替货物多留了一格' : s.network.vehicle.active === 'railGuard' ? '护轨挂架替下一班照看接头' : '普通车辆仍按原来的运量运行'}。空白城市图留给未来的分所，尚未发现的胶片、轨芯和档案仍等你去认识。`;
   if (id === 'L02-1') return '邮递员沿着晾衣绳走来：“旧巷画进地图以后，终于不用先问路。”他指了指委托板：修灯的住客、巷口的老人都留了话。另一张纸上写着停在半层的楼梯——那扇门也应该有一个投递地址。F02有限线索已记下，先去首访确认住户。';
   if (id === 'L02-2') return s.events.E07?.choice === 'common' ? '两家在门牌背面画了一盏灯。“轮到谁，谁就留到晚一点。”邮递员不必分清先敲哪边，两扇窗已经商量好轮流照着路。共灯的经营效果保留。' : '门牌背面留着两行名字，笔迹深浅不同。“我们住得近，也可以各有自己的那一行。”邮递员照着两行字分别投递，各留姓名的经营效果保留。';
   if (id === 'L02-3') return `屋檐已经搭好，邮递员补上一份投递匣图样。“清单可以交给它，新的决定还得等你。”${commissionDone(s, 'CM03-2') ? '那封信已经投进窗口，窗后的人正在写回信。' : '窗口仍等你核实线索、完成投递，还没有记作送达。'}`;
@@ -66,7 +76,7 @@ export function assemblyRecipe(s: GameState, district: DistrictId) {
   return ASSEMBLY.recipes[mod ?? 'ordinary'];
 }
 export function prefabLimit(definition: ProjectDefinition): number {
-  if (definition.id.startsWith('mod:') || definition.id.startsWith('blueprint:') || definition.id.startsWith('mailmod:')) return 0;
+  if (definition.id.startsWith('mod:') || definition.id.startsWith('blueprint:') || definition.id.startsWith('mailmod:') || definition.id.startsWith('vehiclemod:')) return 0;
   return Math.min(ASSEMBLY.maxPrefab, Math.floor(definition.cost.parts / ASSEMBLY.prefabParts), Math.floor(definition.work / (2 * ASSEMBLY.prefabWork)));
 }
 export function prefabricated(definition: ProjectDefinition, count: number): ProjectDefinition {

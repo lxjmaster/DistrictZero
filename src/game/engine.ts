@@ -2,8 +2,9 @@ import { amounts, BASE, EVENTS, FACILITIES, FACILITY_IDS, FLOWS, INITIAL, INPUTS
 import type { Action, Amounts, DefinitionId, EventId, Facility, GameState, Job, Ledger, Lighting, Project, ProjectDefinition, Resident, ReturnReport } from './types';
 import type { DistrictId, PublicFacility } from './types';
 import { activeDistricts, arrivalInterval, CITY_RULES, cityPopulation, cityWorkers, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, localWorkers, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, scopedKey, specialization } from './city';
-import { awayWorkers, createNetwork, dispatch, NETWORK_RULES, networkReasons, ROUTE_IDS, ROUTES, routeOpen, tickNetwork } from './network';
-import type { RouteId } from './types';
+import { awayWorkers, createNetwork, dispatch, NETWORK_RULES, networkReasons, ROUTE_IDS, ROUTES, routeOpen, tickNetwork, inventoryLimits, networkProof, validContract, MODES, productResource, occupiedVehicles } from './network';
+import type { RouteId, VehicleMod } from './types';
+import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_COST, VEHICLE_MOD_IDS, VEHICLE_MODS, VEHICLE_WORK } from './journey';
 import { ASSEMBLY, assemblyRecipe, assemblyUnlocked, createExperience, MOD_IDS, pendingStories, prefabLimit, prefabricated, STORY_NAMES, storyAvailable } from './experience';
 import type { AssemblyMod, MailboxMod } from './types';
 import { COMMISSION_IDS, commissionDone, commissionVisible, createNeighborhood, deliverCommission, delegationReason, fieldOpenReason, fieldStartReason, heldFieldSupplies, idleResidents, MAIL_MOD_IDS, MAIL_MODS, NEIGHBORHOOD_RULES, recallField, claimField, startField, tickNeighborhood } from './neighborhood';
@@ -34,10 +35,26 @@ export const jobSlotsUsed = (s: GameState, job: Job, id: DistrictId = 'district-
 export const efficiency = (s: GameState, job: Job, id: DistrictId = 'district-0') => 1 + RULES.efficiencyGrowth * (districtState(s, id)!.facilities[jobFacility[job]] - 1);
 export function capacities(s: GameState): Amounts {
   const level = activeDistricts(s).reduce((n, id) => n + districtState(s, id)!.facilities.warehouse, 0);
-  return amounts(INITIAL.capacities.energy + level * WAREHOUSE_CAPACITY.energy, INITIAL.capacities.parts + level * WAREHOUSE_CAPACITY.parts, INITIAL.capacities.memory + level * WAREHOUSE_CAPACITY.memory, ASSEMBLY.capacity + level * ASSEMBLY.warehouseCapacity);
+  return amounts(INITIAL.capacities.energy + level * WAREHOUSE_CAPACITY.energy, INITIAL.capacities.parts + level * WAREHOUSE_CAPACITY.parts, INITIAL.capacities.memory + level * WAREHOUSE_CAPACITY.memory, ASSEMBLY.capacity + level * ASSEMBLY.warehouseCapacity, NETWORK_RULES.specialtyCapacity + level * NETWORK_RULES.specialtyWarehouse, NETWORK_RULES.specialtyCapacity + level * NETWORK_RULES.specialtyWarehouse);
+}
+export const stockLimits = (s: GameState) => inventoryLimits(s, capacities(s));
+export function activateNetworkRules(state: GameState, at: number): GameState {
+  const s = structuredClone(state);
+  if (!s.network.legacyPending) return s;
+  const cap = capacities(s);
+  for (const id of ROUTE_IDS) if (routeOpen(s, id)) {
+    const targets = amounts(); targets[productResource(id, 'normal')] = cap[productResource(id, 'normal')];
+    s.network.routes[id].contract.targets = targets;
+  }
+  s.network.legacyPending = false; s.network.rulesSince = Math.max(s.clock.lastAt, Math.floor(at));
+  return s;
 }
 export const projectKey = (p: Pick<Project, 'definition' | 'targetLevel'> & { district?: DistrictId }) => scopedKey(p.definition.startsWith('build:') ? `${p.definition}:${p.targetLevel}` : p.definition, p.district);
 function baseDefinitionFor(s: GameState, id: DefinitionId, targetLevel?: number, district: DistrictId = 'district-0'): ProjectDefinition {
+  if (id.startsWith('vehiclemod:')) {
+    const mod = id.slice(11) as VehicleMod;
+    return { id, name: `制作${VEHICLE_MODS[mod].name}`, description: VEHICLE_MODS[mod].text, cost: VEHICLE_COST, work: VEHICLE_WORK };
+  }
   if (id.startsWith('mailmod:')) {
     const mod = id.slice(8) as MailboxMod;
     return { id, name: `制作${MAIL_MODS[mod].name}`, description: MAIL_MODS[mod].text, cost: NEIGHBORHOOD_RULES.mailCost, work: NEIGHBORHOOD_RULES.mailWork };
@@ -66,6 +83,12 @@ export function definitionFor(s: GameState, id: DefinitionId, targetLevel?: numb
 export function unlockReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0', legacyChapter = false): string | null {
   const local = districtState(s, district);
   if (!local) return '先测绘这个街区';
+  if (id.startsWith('vehiclemod:')) {
+    const mod = id.slice(11) as VehicleMod;
+    if (!VEHICLE_MOD_IDS.includes(mod) || district !== 'district-0') return '请选择全网车辆方案，在第0街区制作';
+    if (!s.completed.includes('P08') || !s.experience.blueprints.includes(mod)) return '需要车队和对应蓝图';
+    return s.network.vehicle.built.includes(mod) ? '已经制作过这个车辆方案' : null;
+  }
   if (id.startsWith('mailmod:')) {
     const mod = id.slice(8) as MailboxMod;
     if (!MAIL_MOD_IDS.includes(mod)) return '未知信箱方案';
@@ -142,9 +165,10 @@ export function unlockReason(s: GameState, id: DefinitionId, district: DistrictI
   if ((id === 'P09' || id === 'R05') && (s.network.routes.rain.imports < 1 || s.events.E12?.status !== 'claimed')) return '先取回雨城的第一只箱子，并选择稳班或快班';
   if (id === 'R06' && !s.completed.includes('P09')) return '先恢复长站货台';
   if (id === 'P10' && (!s.completed.includes('R05') || !s.completed.includes('R06') || ROUTE_IDS.some(id => s.network.routes[id].imports < 1))) return '两地各完成一次回程，并研究运单规范、联运调度';
-  if (id === 'P11' && (!s.completed.includes('P10') || ROUTE_IDS.some(id => {
-    const route = s.network.routes[id]; return route.imports < 2 || !route.contract.enabled || !route.staff || route.condition <= 0;
-  }))) return '先编定时刻表，两地各完成两次回程，启用两个合同并安排外派、维护线路';
+  if (id === 'P11' && !legacyChapter) {
+    if (s.network.legacyPending) { if (!legacyChapterReady(s, 'P11')) return '先编定时刻表，两地各完成两次回程，启用两个合同并安排外派、维护线路'; }
+    else if (!s.completed.includes('P10') || ROUTE_IDS.some(id => s.network.routes[id].imports < 1) || !networkProof(s, capacities(s))) return '先编定时刻表，两地各一次回程，并维持至少一条可响应需求或目标已满足的有效合同';
+  }
   return null;
 }
 export function enqueueReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0'): string | null {
@@ -175,7 +199,7 @@ function log(s: GameState, text: string) {
   if (s.history.length > 40) s.history.shift();
 }
 function credit(s: GameState, resource: keyof Amounts, value: number, source: 'production' | 'rewards' | 'refunds') {
-  const actual = Math.min(value, capacities(s)[resource] - s.resources[resource]);
+  const actual = Math.min(value, stockLimits(s)[resource] - s.resources[resource]);
   s.resources[resource] += actual;
   s.ledger[source][resource] += actual;
   if (source !== 'refunds') s.earned[resource] += actual;
@@ -229,10 +253,10 @@ function serviceBudget(s: GameState, energy: number): { services: Services; ligh
   return { services, lighting, upkeep };
 }
 export function servicePreview(s: GameState): Services {
-  return serviceBudget(s, Math.min(capacities(s).energy, s.resources.energy + powerBudget(s))).services;
+  return serviceBudget(s, Math.min(stockLimits(s).energy, s.resources.energy + powerBudget(s))).services;
 }
 export function chapterProofs(s: GameState) {
-  const services = servicePreview(s), capacity = capacities(s);
+  const services = servicePreview(s), capacity = stockLimits(s);
   const supply = serviceBudget(s, Math.min(capacity.energy, s.resources.energy + powerBudget(s)));
   const energy = s.resources.energy + powerBudget(s) - supply.lighting - supply.upkeep;
   const details = activeDistricts(s).map(id => {
@@ -250,7 +274,8 @@ export function chapterProofs(s: GameState) {
 }
 // Only migration calls this. A compatibility flag belongs to one old queue item,
 // never to future projects or newly started chapters.
-export function legacyChapterReady(s: GameState, id: 'P06' | 'P07') {
+export function legacyChapterReady(s: GameState, id: 'P06' | 'P07' | 'P11') {
+  if (id === 'P11') return s.completed.includes('P10') && ROUTE_IDS.every(id => { const r = s.network.routes[id]; return r.imports >= 2 && r.contract.enabled && r.staff !== null && r.condition > 0; });
   if (id === 'P06') return s.completed.includes('P05') && s.events.E07?.status === 'claimed' && s.publicWorks.relay.built && s.publicWorks.registry.built && ['district-1', 'district-2'].every(id => localCount(districtState(s, id as DistrictId) ?? emptyDistrict()) >= 2);
   const services = servicePreview(s), specs = activeDistricts(s).map(id => specialization(districtState(s, id)!, services[id]?.light));
   return s.completed.includes('P06') && specs.includes('salvage') && specs.includes('record') && Boolean(services['district-0']?.public.relay && services['district-0']?.public.registry);
@@ -287,14 +312,21 @@ function completeProject(s: GameState, p: Project) {
       s.completed.push(key);
       if (p.definition.startsWith('build:')) d.facilities[p.definition.slice(6) as Facility] = p.targetLevel;
       if (p.definition.startsWith('public:')) d.publicWorks[p.definition.slice(7) as PublicFacility] = { built: true, enabled: true, condition: CITY_RULES.condition };
+      if (p.definition.startsWith('vehiclemod:')) s.network.vehicle.built.push(p.definition.slice(11) as VehicleMod);
       if (p.definition.startsWith('mailmod:')) s.neighborhood.mailboxes[p.district].built.push(p.definition.slice(8) as MailboxMod);
       if (p.definition.startsWith('mod:')) s.experience.benches[p.district].built.push(p.definition.slice(4) as AssemblyMod);
       if (p.definition.startsWith('blueprint:') && !s.experience.blueprints.includes(p.definition.slice(10) as AssemblyMod)) s.experience.blueprints.push(p.definition.slice(10) as AssemblyMod);
       if (p.definition === 'P03') s.address = '0-001';
       if (p.definition === 'P04') s.city.districts['district-1'] = emptyDistrict();
       if (p.definition === 'P05') s.city.districts['district-2'] = emptyDistrict();
-      if (p.definition === 'P08') s.network.routes.rain.condition = NETWORK_RULES.condition;
-      if (p.definition === 'P09') s.network.routes.station.condition = NETWORK_RULES.condition;
+      if (p.definition === 'P08' || p.definition === 'P09') {
+        const id = p.definition === 'P08' ? 'rain' : 'station', route = s.network.routes[id];
+        route.condition = NETWORK_RULES.condition;
+        if (!s.network.legacyPending) {
+          const resource = productResource(id, 'normal');
+          route.contract.targets[resource] = capacities(s)[resource];
+        }
+      }
     }
   }
   log(s, `完工：${definitionFor(s, p.definition, p.targetLevel, p.district).name}${p.district === 'district-0' ? '' : ` · ${DISTRICTS[p.district].name}`}`);
@@ -322,7 +354,7 @@ function tick(s: GameState): TickResult {
   s.clock.seconds += 1;
   scheduleMaintenance(s);
   const result: TickResult = { lightOn: false, services: {}, lightingCost: 0, publicCost: 0, output: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 }, costs: { power: amounts(), salvage: amounts(), repair: amounts(), record: amounts(), assemble: amounts() }, reasons: [] };
-  const capacity = capacities(s), districts = activeDistricts(s), powerWanted = powerBudget(s);
+  const capacity = stockLimits(s), districts = activeDistricts(s), powerWanted = powerBudget(s);
   result.output.power = perform(s, powerWanted, amounts(), capacity.energy - s.resources.energy, 'energy');
   const budget = serviceBudget(s, s.resources.energy);
   result.services = budget.services; result.lightingCost = budget.lighting; result.publicCost = budget.upkeep;
@@ -425,7 +457,7 @@ function tick(s: GameState): TickResult {
   } else s.arrivalSeconds = 0;
   if (completed) completeProject(s, completed);
   tickNetwork(s, capacities(s), text => log(s, text));
-  tickNeighborhood(s, capacities(s), id => budget.services[id]?.light ?? false, text => log(s, text));
+  tickNeighborhood(s, stockLimits(s), id => budget.services[id]?.light ?? false, text => log(s, text));
   triggerEvents(s, budget.services);
   return result;
 }
@@ -455,7 +487,7 @@ export function goal(s: GameState): string {
     if (!s.completed.includes('P09')) return '恢复长站货台，接通第二条供需线路';
     if (!s.completed.includes('R05') || !s.completed.includes('R06')) return '研究运单规范与联运调度，安排共享列车';
     if (!s.completed.includes('P10')) return '两地各取回一车物资，编定联运时刻表';
-    return '两地各完成两次回程，启用供货合同，让末班车每天抵达';
+    return '两地各一次回程，维持一条有目标的有效合同，让末班车每天抵达';
   }
   if (s.address) {
     if (s.events.E05?.status !== 'claimed') return '读完第一个地址的来信，开始测绘夜城';
@@ -485,7 +517,7 @@ export function view(s: GameState) {
   const reasons = [...projectReasons(s), ...tickResult.reasons, ...networkReasons(s, capacities(s))];
   const field = s.neighborhood.field, plan = s.neighborhood.delegation;
   if (field.queue.length && !field.active) { const why = fieldStartReason(s, field.queue[0], 'supply'); if (why) reasons.push(`预排外勤：${why}`); }
-  if (plan.enabled && plan.stages.length) { const why = delegationReason(s, servicePreview(s)[plan.district]?.light ?? false, capacities(s)); if (why) reasons.push(why); }
+  if (plan.enabled && plan.stages.length) { const why = delegationReason(s, servicePreview(s)[plan.district]?.light ?? false, stockLimits(s)); if (why) reasons.push(why); }
   for (const id of activeDistricts(s)) {
     const d = districtState(s, id)!;
     if (d.autoRepair && PUBLIC_IDS.some(f => d.publicWorks[f].built && d.publicWorks[f].enabled && d.publicWorks[f].condition <= CITY_RULES.repairThreshold && !s.queue.some(p => p.district === id && p.definition === `maintain:${f}`))) reasons.push(`${DISTRICTS[id].name}自动巡检等待队列空位`);
@@ -507,6 +539,7 @@ export function summarize(before: GameState, after: GameState, awayMs: number): 
     , stories: pendingStories(after), highlights: [
       ...after.completed.filter(id => !before.completed.includes(id)).map(key => `完工：${completionName(key)}`),
       ...(cityPopulation(after, 'echo') + cityPopulation(after, 'shadow') > cityPopulation(before, 'echo') + cityPopulation(before, 'shadow') ? ['新的窗口亮了，住客已经入住。'] : []),
+      ...(['rainFilm', 'railCore'] as const).filter(r => after.ledger.imports[r] > before.ledger.imports[r]).map(r => `${resourceNames[r]}实际到货 ${format(after.ledger.imports[r] - before.ledger.imports[r])}，可用于调查、委托与收藏。`),
       ...(after.resources.component > before.resources.component ? [`备好了 ${format(after.resources.component - before.resources.component)} 构件，可用于预制施工或改装。`] : [])
       , ...(after.neighborhood.field.returns > before.neighborhood.field.returns ? [`外勤已返程 ${after.neighborhood.field.returns - before.neighborhood.field.returns} 次，结果等你领取。`] : []),
       ...(after.neighborhood.delegation.deliveries > before.neighborhood.delegation.deliveries ? [`投递匣完成 ${after.neighborhood.delegation.deliveries - before.neighborhood.delegation.deliveries} 项已确认委托。`] : [])
@@ -519,7 +552,7 @@ export function refundPreview(s: GameState, p: Project) {
   const work = definitionFor(s, p.definition, p.targetLevel, p.district, p.prefab).work;
   for (const r of RESOURCES) {
     full[r] = Math.floor(p.reserved[r] / UNIT * (work - p.progress) / work) * UNIT;
-    actual[r] = Math.min(full[r], capacities(s)[r] - s.resources[r]);
+    actual[r] = Math.min(full[r], stockLimits(s)[r] - s.resources[r]);
     overflow[r] = full[r] - actual[r];
   }
   return { full, actual, overflow };
@@ -528,6 +561,25 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
   const s = structuredClone(state);
   const fail = (error: string) => ({ state, error });
   switch (action.type) {
+    case 'production-mode': {
+      if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route) || !MODES.includes(action.mode) || s.network.legacyPending) return fail('请先通车并完成旧版时间结算');
+      const node = s.network.routes[action.route].node;
+      if (node.mode === action.mode) return fail('已经使用这个生产模式');
+      node.mode = action.mode; node.cycle = 0;
+      log(s, `${ROUTES[action.route].name}切换生产模式，未结算周期已清零；库存及在途货物保留。`); break;
+    }
+    case 'vehicle-mod': {
+      if (occupiedVehicles(s)) return fail('全网途中或待卸列车清空后才能切换车辆方案');
+      if (action.mod !== null && !s.network.vehicle.built.includes(action.mod)) return fail('需要先制作车辆方案');
+      s.network.vehicle.active = action.mod; break;
+    }
+    case 'archive': {
+      if (!ARCHIVE_IDS.includes(action.id) || !archivesUnlocked(s) || s.experience.archives.includes(action.id)) return fail('档案尚未开放或已经复原');
+      const def = ARCHIVES[action.id], missing = missingCost(s, def.cost);
+      if (missing.length) return fail(missing.join('，'));
+      spend(s, def.cost, 'fulfillment'); s.experience.archives.push(action.id);
+      log(s, `档案复原：${def.name}。${def.text}`); break;
+    }
     case 'mailbox-mod': {
       const d = districtState(s, action.district), box = s.neighborhood.mailboxes[action.district];
       if (!d?.facilities.mailbox || !box || action.mod !== null && !box.built.includes(action.mod)) return fail('需要本区信箱和已制作的方案');
@@ -551,7 +603,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       break;
     }
     case 'commission-deliver': {
-      const reason = deliverCommission(s, action.stage, capacities(s), text => log(s, text));
+      const reason = deliverCommission(s, action.stage, stockLimits(s), text => log(s, text));
       if (reason) return fail(reason);
       break;
     }
@@ -561,12 +613,12 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       break;
     }
     case 'field-recall': {
-      const reason = recallField(s, capacities(s), text => log(s, text));
+      const reason = recallField(s, stockLimits(s), text => log(s, text));
       if (reason) return fail(reason);
       break;
     }
     case 'field-claim': {
-      const reason = claimField(s, action.uid, capacities(s), text => log(s, text), action.choice);
+      const reason = claimField(s, action.uid, stockLimits(s), text => log(s, text), action.choice);
       if (reason) return fail(reason);
       break;
     }
@@ -606,7 +658,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
     }
     case 'assembly-plan': {
       if (!assemblyUnlocked(s)) return fail('先阅读装配纸条');
-      if (typeof action.enabled !== 'boolean' || !Number.isSafeInteger(action.target) || action.target < 0 || action.target > ASSEMBLY.maxSetting || !action.reserve || RESOURCES.some(r => !Number.isSafeInteger(action.reserve[r]) || action.reserve[r] < 0 || action.reserve[r] > ASSEMBLY.maxSetting) || action.reserve.memory || action.reserve.component) return fail('目标与保留量需为0至1,000,000，最多3位小数；装配只保留电量和零件');
+      if (typeof action.enabled !== 'boolean' || !Number.isSafeInteger(action.target) || action.target < 0 || action.target > ASSEMBLY.maxSetting || !action.reserve || RESOURCES.some(r => !Number.isSafeInteger(action.reserve[r]) || action.reserve[r] < 0 || action.reserve[r] > ASSEMBLY.maxSetting) || action.reserve.memory || action.reserve.component || action.reserve.rainFilm || action.reserve.railCore) return fail('目标与保留量需为0至1,000,000，最多3位小数；装配只保留电量和零件');
       s.experience.assembly = { enabled: action.enabled, target: action.target, reserve: { ...action.reserve } }; break;
     }
     case 'assembly-mod': {
@@ -621,7 +673,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
         const payment = action.choice === 'restore' ? ASSEMBLY.restoreCost : amounts(), reward = action.choice === 'dismantle' ? ASSEMBLY.dismantleReward : amounts();
         const missing = missingCost(s, payment);
         if (missing.length) return fail(missing.join('，'));
-        if (RESOURCES.some(r => s.resources[r] - payment[r] + reward[r] > capacities(s)[r])) return fail('奖励所需容量不足，整份来信保留待处理');
+        if (RESOURCES.some(r => s.resources[r] - payment[r] + reward[r] > stockLimits(s)[r])) return fail('奖励所需容量不足，整份来信保留待处理');
         spend(s, payment, 'fulfillment');
         for (const r of RESOURCES) credit(s, r, reward[r], 'rewards');
         const mod = action.choice === 'restore' ? 'thriftBench' : 'quickJig';
@@ -638,7 +690,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
     case 'scrap': {
       if (!assemblyUnlocked(s) || !Number.isSafeInteger(action.count) || action.count < 1 || action.count * UNIT > s.resources.component) return fail('请选择库存内的整份构件');
       const returned = action.count * ASSEMBLY.scrapParts;
-      if (returned > capacities(s).parts - s.resources.parts) return fail('拆回零件所需空间不足');
+      if (returned > stockLimits(s).parts - s.resources.parts) return fail('拆回零件所需空间不足');
       spend(s, amounts(0, 0, 0, action.count * UNIT), 'fulfillment');
       credit(s, 'parts', returned, 'refunds'); break;
     }
@@ -686,7 +738,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
         if (action.choice !== 'reliable' && action.choice !== 'express') return fail('请选择稳班或快班');
         e.choice = action.choice;
       } else {
-        const reward = EVENTS[action.event].reward, cap = capacities(s);
+        const reward = EVENTS[action.event].reward, cap = stockLimits(s);
         if (RESOURCES.some(r => s.resources[r] + reward[r] > cap[r])) return fail('奖励所需容量不足，请先腾出空间；整份奖励保留待领取');
         for (const r of RESOURCES) credit(s, r, reward[r], 'rewards');
       }
@@ -744,8 +796,8 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       else d.facilities[action.facility as Facility] = 0;
       if (action.facility === 'workbench') s.experience.benches[action.district].active = null;
       if (action.facility === 'mailbox') s.neighborhood.mailboxes[action.district].active = null;
-      const cap = capacities(s);
-      if (RESOURCES.some(r => s.resources[r] > cap[r])) return fail('拆除后仓储容量不足，请先使用库存');
+      const cap = stockLimits(s);
+      if (RESOURCES.some(r => s.resources[r] > cap[r])) return fail('拆除后仓储不足以容纳库存和在途预留，请先使用库存或等货到站');
       const prefix = scopedKey(`${isPublic ? 'public' : 'build'}:${action.facility}`, action.district);
       s.completed = s.completed.filter(key => key !== prefix && !key.startsWith(`${prefix}:`));
       log(s, `${DISTRICTS[action.district].name}拆除闲置设施，空出一个地块。材料不返还。`); break;
@@ -767,10 +819,16 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       }
       break;
     }
+    case 'contract-pause': {
+      if (!ROUTE_IDS.includes(action.route)) return fail('未知线路');
+      s.network.routes[action.route].contract.enabled = false; break;
+    }
     case 'contract': {
       if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route) || !s.completed.includes('R05')) return fail('先开放线路并研究运单规范');
-      if (typeof action.enabled !== 'boolean' || (action.loads !== 1 && action.loads !== 2) || !action.reserve || RESOURCES.some(r => !Number.isSafeInteger(action.reserve[r]) || action.reserve[r] < 0)) return fail('保留库存必须是非负数值，货物选择1或2份');
-      s.network.routes[action.route].contract = { enabled: action.enabled, loads: action.loads, reserve: { ...action.reserve } }; break;
+      const before = s.network.routes[action.route].contract, targets = action.targets ?? { ...before.targets };
+      const contract = { ...before, enabled: action.enabled, loads: action.loads, reserve: action.reserve, targets, buffer: action.buffer ?? before.buffer, manifest: action.manifest ?? { normal: action.loads, specialty: 0 }, order: action.order ?? before.order };
+      if (!validContract(action.route, contract)) return fail('合同需有效目标、保留量、1–8周期缓冲和0–32整包货单');
+      s.network.routes[action.route].contract = structuredClone(contract); break;
     }
     case 'network-priority': {
       if (action.order.length !== ROUTE_IDS.length || new Set(action.order).size !== ROUTE_IDS.length || !ROUTE_IDS.every(id => action.order.includes(id))) return fail('线路优先级必须完整且不重复');
@@ -801,6 +859,7 @@ export function parseCompletionKey(key: string): { district: DistrictId; local: 
   const district = (pieces.length === 2 ? pieces[0] : 'district-0') as DistrictId, local = pieces.at(-1)!;
   if (!DISTRICT_IDS.includes(district) || (pieces.length === 2 && district === 'district-0')) return null;
   if (Object.hasOwn(PROJECTS, local)) return district === 'district-0' ? { district, local } : null;
+  if (local.startsWith('vehiclemod:') && VEHICLE_MOD_IDS.includes(local.slice(11) as VehicleMod)) return district === 'district-0' ? { district, local } : null;
   if (local.startsWith('mailmod:') && MAIL_MOD_IDS.includes(local.slice(8) as MailboxMod)) return { district, local };
   if (local.startsWith('mod:') && MOD_IDS.includes(local.slice(4) as AssemblyMod)) return { district, local };
   if (local.startsWith('blueprint:') && MOD_IDS.includes(local.slice(10) as AssemblyMod)) return district === 'district-0' ? { district, local } : null;
@@ -815,6 +874,7 @@ export function completionName(key: string): string {
   const { district, local } = parsed;
   let name: string;
   if (Object.hasOwn(PROJECTS, local)) name = PROJECTS[local as keyof typeof PROJECTS].name;
+  else if (local.startsWith('vehiclemod:')) name = `制作${VEHICLE_MODS[local.slice(11) as VehicleMod].name}`;
   else if (local.startsWith('mailmod:')) name = `制作${MAIL_MODS[local.slice(8) as MailboxMod].name}`;
   else if (local.startsWith('mod:') || local.startsWith('blueprint:')) name = `${local.startsWith('mod:') ? '制作' : '整理工具清单：'}${ASSEMBLY.recipes[local.split(':')[1] as AssemblyMod].name}`;
   else if (local.startsWith('public:')) name = `建设${PUBLIC_WORKS[local.slice(7) as PublicFacility].name}`;

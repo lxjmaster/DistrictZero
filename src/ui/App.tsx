@@ -2,13 +2,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import type { GameController, Snapshot } from '../app/controller';
 import { BALANCE_VERSION, EVENTS, EVENT_IDS, FACILITIES, FACILITY_IDS, FLOWS, JOBS, jobNames, POLICIES, RESIDENTS, RESOURCES, residentNames, resourceNames, flowNames } from '../game/config';
-import { completionName, definitionFor, duration, enqueueReason, format, freeResidents, jobCapacity, jobSlotsUsed, populationCapacity, populationCount, projectReasons, refundPreview, view, workers } from '../game/engine';
+import { completionName, definitionFor, duration, enqueueReason, format, freeResidents, jobCapacity, jobSlotsUsed, populationCapacity, populationCount, projectReasons, refundPreview, stockLimits, view, workers } from '../game/engine';
 import { activeDistricts, arrivalInterval, cityCount, cityPopulation, cityWorkers, dismantleReason, districtState, DISTRICTS, CITY_RULES } from '../game/city';
 import { CityPage, PublicInfrastructure, WorkTemplates } from './City';
-import { NetworkPage } from './Network';
+import { JourneyArchive, NetworkPage } from './Network';
 import { ChapterProofPanel, MailboxPanel, MattersPage, NeighborhoodArchive } from './Neighborhood';
 import { fieldWorkers } from '../game/neighborhood';
-import { awayWorkers } from '../game/network';
+import { awayWorkers, reservedSpace } from '../game/network';
 import { assemblyUnlocked, pendingStories } from '../game/experience';
 import { AssemblyPanel, ProjectPayment, ResidentArchive, ResidentInbox, StreetScene } from './Experience';
 import type { Action, Amounts, BranchId, DefinitionId, DistrictId, Facility, GameState, Lighting, PublicFacility, ReturnReport } from '../game/types';
@@ -24,18 +24,18 @@ function PanelTitle({ note, children }: { note?: ReactNode; children: ReactNode 
   return <div className="panel-title"><h2>{children}</h2>{note && <span className="caption">{note}</span>}</div>;
 }
 function ResourcePanel({ state }: { state: GameState }) {
-  const current = view(state);
+  const current = view(state), held = reservedSpace(state, 'home');
   return <section className="panel resources" aria-label="街区资源">
     <PanelTitle note="每秒净变化">夜间物资</PanelTitle>
-    {RESOURCES.filter(r => r !== 'component' || assemblyUnlocked(state) || state.resources.component > 0).map((r, i) => <details className={`resource resource-${r}`} key={r}>
-      <summary><span className="resource-label"><span className="resource-icon">{['↯', '◇', '◌', '▧'][i]}</span>{resourceNames[r]}</span>
+    {RESOURCES.filter(r => r === 'component' ? assemblyUnlocked(state) || state.resources.component > 0 : r === 'rainFilm' || r === 'railCore' ? state.resources[r] > 0 || state.ledger.imports[r] > 0 || state.earned[r] > 0 || state.network.routes[r === 'rainFilm' ? 'rain' : 'station'].node.mode === 'specialty' : true).map((r) => <details className={`resource resource-${r}`} key={r}>
+      <summary><span className="resource-label"><span className="resource-icon">{{ energy: '↯', parts: '◇', memory: '◌', component: '▧', rainFilm: '▥', railCore: '⊞' }[r]}</span>{resourceNames[r]}</span>
         <strong data-testid={`${r}-stock`}>{format(state.resources[r])}<small> / {format(current.capacities[r], 0)}</small></strong>
         <span className={`rate ${current.net[r] < 0 ? 'negative' : ''}`}>{current.net[r] > 0 ? '+' : ''}{format(current.net[r])}/秒</span>
         <span className="meter"><span style={{ width: `${state.resources[r] / current.capacities[r] * 100}%` }} /></span>
       </summary>
       <div className="resource-detail"><p>本秒生产 {format(current.production[r])} · 消耗 {format(current.operating[r])} · 净变化 {format(current.net[r])}</p>
-        {state.completed.includes('P08') && <p>发车与到货也计入净变化；本城和外部城市分别保存库存。</p>}
-        <p>{r === 'energy' ? `发电 ${format(current.output.power)}；全城照明 ${format(current.lightingCost)}、公共设施 ${format(current.publicCost)}；回收 ${format(current.costs.salvage.energy)}、维修 ${format(current.costs.repair.energy)}、记录 ${format(current.costs.record.energy)}、装配 ${format(current.costs.assemble.energy)}。` : r === 'parts' ? `回收 ${format(current.output.salvage)}；记录消耗 ${format(current.costs.record.parts)}，装配消耗 ${format(current.costs.assemble.parts)}/秒。` : r === 'memory' ? `记录 ${format(current.output.record)}；故事奖励等待你领取。` : `装配 ${format(current.output.assemble)}/秒；目标 ${format(state.experience.assembly.target)}。用于预制施工和工具改装，最多50%工程量可提前预制。`}</p>
+        {state.completed.includes('P08') && <p>发车与到货也计入净变化；本城和外部城市分别保存库存。</p>}{held[r] > 0 && <p>另有 {format(held[r])} 空间为在途货物预留，尚未入库；生产最多备到 {format(current.capacities[r] - held[r])}。</p>}
+        <p>{r === 'energy' ? `发电 ${format(current.output.power)}；全城照明 ${format(current.lightingCost)}、公共设施 ${format(current.publicCost)}；回收 ${format(current.costs.salvage.energy)}、维修 ${format(current.costs.repair.energy)}、记录 ${format(current.costs.record.energy)}、装配 ${format(current.costs.assemble.energy)}。` : r === 'parts' ? `回收 ${format(current.output.salvage)}；记录消耗 ${format(current.costs.record.parts)}，装配消耗 ${format(current.costs.assemble.parts)}/秒。` : r === 'memory' ? `记录 ${format(current.output.record)}；故事奖励等待你领取。` : r !== 'component' ? '城市特产：用于本章调查、委托、车辆方案与档案复原；完成有限用途后可停供。' : `装配 ${format(current.output.assemble)}/秒；目标 ${format(state.experience.assembly.target)}。用于预制施工和工具改装，最多50%工程量可提前预制。`}</p>
         <p className="small">自动外勤出发与委托代办也计入本秒净变化，费用与奖励分别记账。</p><p>累计取得 {format(state.earned[r])}</p>
         {FLOWS.map(f => <p key={f}>{flowNames[f]}：{format(state.ledger[f][r])}</p>)}
       </div>
@@ -131,8 +131,8 @@ function EventInbox({ state, send, disabled }: { state: GameState; send: Send; d
     {pending.map(id => <article className="event" key={id} data-testid={`event-${id}`}><span className="eyebrow">{id} / 待你处理</span><h3>{EVENTS[id].name}</h3><p>{EVENTS[id].text}</p>
       {id === 'E03' ? <><p className="small muted">第一次选择免费。明灯：记忆 +25%；暗灯：回收 +25%，记忆 −10%。维护均为 0.10 电量/秒。</p><div className="event-options"><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'bright' })}>选择明灯</button><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'dim' })}>选择暗灯</button></div></> : id === 'E07' ? <><p className="small">共灯：全城照明和公共设施用电 −20%；各留姓名：全城记忆产出 +5%。决定归档后持续生效。</p><div className="event-options"><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'common' })}>共用一盏灯</button><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'individual' })}>各留姓名</button></div></> : id === 'E12' ? <><p className="small">稳班：每次发车磨损80；快班：后续运输时间缩短20%，每次磨损150。选择持续生效。</p><div className="event-options"><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'reliable' })}>采用稳班</button><button disabled={disabled} onClick={() => send({ type: 'event', event: id, choice: 'express' })}>采用快班</button></div></> : <>
         {RESOURCES.some(r => EVENTS[id].reward[r] > 0) && <p className="small">奖励 <Costs value={EVENTS[id].reward} /> · 各项奖励需有足够仓储空间</p>}
-        <button disabled={disabled || RESOURCES.some(r => state.resources[r] + EVENTS[id].reward[r] > view(state).capacities[r])} onClick={() => send({ type: 'event', event: id })}>{RESOURCES.some(r => EVENTS[id].reward[r] > 0) ? '领取并归档' : '读完并归档'}</button>
-        {RESOURCES.some(r => state.resources[r] + EVENTS[id].reward[r] > view(state).capacities[r]) && <p className="short small">奖励所需容量不足，整份奖励留在这里等你。</p>}
+        <button disabled={disabled || RESOURCES.some(r => state.resources[r] + EVENTS[id].reward[r] > stockLimits(state)[r])} onClick={() => send({ type: 'event', event: id })}>{RESOURCES.some(r => EVENTS[id].reward[r] > 0) ? '领取并归档' : '读完并归档'}</button>
+        {RESOURCES.some(r => state.resources[r] + EVENTS[id].reward[r] > stockLimits(state)[r]) && <p className="short small">奖励所需容量不足，整份奖励留在这里等你。</p>}
       </>}
     </article>)}
   </section>;
@@ -149,13 +149,13 @@ function Report({ report, close, disabled }: { report: ReturnReport; close: () =
     <details className="report-ledger"><summary>展开详细账本与完工记录</summary>
       <p className="small muted">外勤补给出发时记预留；待领调查奖励不计实际入库，召回补给只有领取后记返还。</p>
       <p className="small muted">{report.completed.length ? `完成：${report.completed.map(completionName).join('、')}。` : '本次没有工程完工。'}新增影子 {report.arrivals.shadow} 位、回声 {report.arrivals.echo} 位。完成巡检 {report.maintenance} 次。列车发车 {report.transport.departures} 次，到货 {report.transport.deliveries} 次，线路维护 {report.transport.maintenance} 次。</p>
-      <div className="report-resources">{RESOURCES.filter(r => r !== 'component' || report.start.component || report.end.component || FLOWS.some(f => report.flows[f].component)).map(r => <div key={r}><h3>{resourceNames[r]}</h3><p>{format(report.start[r])} → <strong>{format(report.end[r])}</strong></p>{FLOWS.map(f => <p className="small" key={f}><span>{flowNames[f]}</span><span>{format(report.flows[f][r])}</span></p>)}</div>)}</div>
+      <div className="report-resources">{RESOURCES.filter(r => ['energy', 'parts', 'memory'].includes(r) || report.start[r] || report.end[r] || FLOWS.some(f => report.flows[f][r])).map(r => <div key={r}><h3>{resourceNames[r]}</h3><p>{format(report.start[r])} → <strong>{format(report.end[r])}</strong></p>{FLOWS.map(f => <p className="small" key={f}><span>{flowNames[f]}</span><span>{format(report.flows[f][r])}</span></p>)}</div>)}</div>
     </details>
   </section>;
 }
 function Archive({ state, send, disabled }: { state: GameState; send: Send; disabled: boolean }) {
   return <div className="stack"><section className="panel address-card"><span className="eyebrow">地点名录 / 第一章</span><h2>{state.address ? '第0街区 · 0-001' : '第0街区 · 尚未登记'}</h2><p>{state.address ? '这里已经是一个有效的存在。从站台到旧巷、信笺里，夜城正在形成一套可以互相找到的地址。' : '只要有人开始生活、使用和记住它，空白也能成为第一个地址。'}</p></section>
-    <ResidentArchive state={state} send={send} disabled={disabled} /><NeighborhoodArchive state={state} />
+    <ResidentArchive state={state} send={send} disabled={disabled} /><NeighborhoodArchive state={state} /><JourneyArchive state={state} send={send} disabled={disabled} />
     <section><PanelTitle note="明天的信带来的方法">研究档案</PanelTitle><div className="facility-grid">{(state.address ? ['R01', 'R02', 'R03', 'R04', ...(state.completed.includes('P07') ? ['R05', 'R06'] as const : [])] as const : ['R01', 'R02'] as const).map(id => <ProjectCard key={id} id={id} state={state} send={send} disabled={disabled} />)}</div></section>
     <section className="panel"><PanelTitle>居民名录</PanelTitle>{RESIDENTS.map(type => <p key={type}><strong>{residentNames[type]} · {cityPopulation(state, type)} 位</strong><br /><span className="muted">{type === 'shadow' ? '习惯收集无人认领的旧设备。回收产出提升 20%。' : '能够整理留在旧物里的声音。记忆产出提升 20%。'}</span></p>)}</section>
     <section className="panel"><PanelTitle note={`${EVENT_IDS.filter(id => state.events[id]?.status === 'claimed').length} / ${EVENT_IDS.length} 份`}>交接档案</PanelTitle>{EVENT_IDS.map(id => <details className="archive-event" key={id}><summary>{state.events[id] ? EVENTS[id].name : '尚未抵达的交接事项'} <span className="muted small">{state.events[id]?.status === 'claimed' ? '已归档' : state.events[id] ? '待处理' : '未发现'}</span></summary>{state.events[id] && <p>{EVENTS[id].text}{state.events[id]?.choice && ` 当时选择：${state.events[id]!.choice === 'common' ? '共用一盏灯' : state.events[id]!.choice === 'individual' ? '各留姓名' : state.events[id]!.choice === 'reliable' ? '采用稳班' : state.events[id]!.choice === 'express' ? '采用快班' : POLICIES[state.events[id]!.choice as Lighting].name}。`}</p>}</details>)}</section>
@@ -196,7 +196,7 @@ export function App({ controller }: { controller: GameController }) {
   const disabled = !snapshot.owner || snapshot.busy !== null, current = view(state);
   const send: Send = action => { void controller.dispatch(action); };
   const focusPanel = (id: string) => { const element = document.getElementById(id); element?.scrollIntoView({ block: 'start', behavior: 'instant' }); element?.focus({ preventScroll: true }); };
-  const openScene = (next: 'operate' | 'work' | 'archive', target?: string) => { setPage(next); if (target) requestAnimationFrame(() => focusPanel(target)); };
+  const openScene = (next: 'operate' | 'work' | 'archive' | 'network', target?: string) => { setPage(next); if (target) requestAnimationFrame(() => focusPanel(target)); };
   const pendingCount = EVENT_IDS.filter(id => state.events[id]?.status === 'pending').length + pendingStories(state).length + state.neighborhood.field.pending.length + state.neighborhood.commissions.tracked.length;
   const mains = state.address ? ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08', 'P09', 'P10', 'P11'] as const : ['P01', 'P02', 'P03'] as const;
   const nextMain = mains.find(id => !state.completed.includes(id));

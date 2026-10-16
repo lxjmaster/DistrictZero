@@ -78,7 +78,7 @@ describe('V0.2 migration and address network', () => {
   });
   it('C01: migrates a genuine V0.1 browser save without changing original progress', () => {
     const raw = JSON.parse(oldText), migrated = decodeSave(oldText);
-    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(6);
     for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
     expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: { energy: 0, parts: 0, memory: 0 }, imports: { energy: 0, parts: 0, memory: 0 } }));
     expect(migrated.state.city).toEqual({ districts: {}, templates: [], maintenance: 0 });
@@ -108,7 +108,7 @@ describe('V0.2 migration and address network', () => {
     delete envelope.state.network; delete envelope.state.city; delete envelope.state.publicWorks; delete envelope.state.autoRepair; delete envelope.state.events.E08;
     const migrated = decodeSave(JSON.stringify(envelope)).state;
     expect(migrated.events.E08).toEqual({ status: 'pending' });
-    expect(migrated.resources).toEqual(developed.resources); expect(migrated.earned).toEqual(developed.earned); expect(migrated.ledger).toEqual(developed.ledger);
+    expect(preExpansion(migrated.resources)).toEqual(preExpansion(developed.resources)); expect(preExpansion(migrated.earned)).toEqual(preExpansion(developed.earned)); expect(preExpansion(migrated.ledger)).toEqual(preExpansion(developed.ledger));
     const bad = structuredClone(envelope); bad.state.earned.parts++;
     expect(() => decodeSave(JSON.stringify(bad))).toThrow('累计取得');
   });

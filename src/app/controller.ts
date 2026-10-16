@@ -1,4 +1,4 @@
-import { advance, applyAction, createGame, summarize } from '../game/engine';
+import { advance, activateNetworkRules, applyAction, createGame, summarize } from '../game/engine';
 import { decodeSave, encodeSave, SaveVersionError } from '../game/saves';
 import type { Action, GameState } from '../game/types';
 import { BrowserSession } from './session';
@@ -50,7 +50,11 @@ export class GameController {
       // Reload only after the previous writer has released ownership.
       const loaded = this.storage.load();
       this.publish({ state: loaded.state ?? createGame(this.now()), owner: true, session: 'active', message: loaded.warning, storageBlocked: loaded.blocked ?? false });
-      await this.serialize(async () => { await this.catchUp(true); this.save(); });
+      await this.serialize(async () => {
+        // Long settlement already saves once. A second identical save would
+        // immediately rotate away the valid pre-migration recovery copy.
+        if (!await this.catchUp(true)) this.save();
+      });
       if (this.stopped) return;
       this.interval = setInterval(() => {
         if (this.snapshot.busy !== null) return;
@@ -103,10 +107,13 @@ export class GameController {
       }
       if (this.stopped) return;
     }
+    // The captured time is the explicit boundary between old offline rules and new contracts.
+    state = activateNetworkRules(state, now);
     state = { ...state, clock: { ...state.clock, lastAt: Math.max(now, state.clock.lastAt) } };
     if ((returning && elapsed >= 1000) || long) state.report = summarize(before, state, elapsed);
     this.publish({ state, busy: null });
     if (long) this.save(saveOptions);
+    return long;
   }
   private save(options: SaveOptions = {}) {
     if (!this.snapshot.owner) return;

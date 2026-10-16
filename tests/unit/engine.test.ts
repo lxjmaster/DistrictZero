@@ -30,8 +30,8 @@ function ready(): GameState {
 describe('economy, assignment, and lighting', () => {
   it('UT-01/02: starts with two workers and produces actual resources without mutating input', () => {
     const s = createGame(), after = advance(s, 10000);
-    expect(after.resources).toEqual({ energy: 33500, parts: 12400, memory: 0, component: 0 });
-    expect(after.earned).toEqual({ energy: 5000, parts: 2400, memory: 0, component: 0 });
+    expect(after.resources).toEqual({ energy: 33500, parts: 12400, memory: 0, component: 0, rainFilm: 0, railCore: 0 });
+    expect(after.earned).toEqual({ energy: 5000, parts: 2400, memory: 0, component: 0, rainFilm: 0, railCore: 0 });
     expect(s.clock.seconds).toBe(0); assertInvariants(after);
   });
   it('UT-03: resident, facility, lighting, and research effects combine', () => {
@@ -91,9 +91,9 @@ describe('economy, assignment, and lighting', () => {
     s.priority = ['salvage', 'record', 'repair', 'assemble'];
     const planned = act(s, { type: 'enqueue', definition: 'R01' });
     const after = advance(planned, 1000), report = summarize(planned, after, 1000);
-    expect(report.flows.production).toEqual({ energy: 350, parts: 240, memory: 60, component: 0 });
-    expect(report.flows.operating).toEqual({ energy: 350, parts: 30, memory: 0, component: 0 });
-    expect(report.flows.reserved).toEqual({ energy: 0, parts: 50000, memory: 20000, component: 0 });
+    expect(report.flows.production).toEqual({ energy: 350, parts: 240, memory: 60, component: 0, rainFilm: 0, railCore: 0 });
+    expect(report.flows.operating).toEqual({ energy: 350, parts: 30, memory: 0, component: 0, rainFilm: 0, railCore: 0 });
+    expect(report.flows.reserved).toEqual({ energy: 0, parts: 50000, memory: 20000, component: 0, rainFilm: 0, railCore: 0 });
     expect(after.queue[0].progress).toBe(1000);
     const settled = advance(after, 3600000);
     expect(settled.resources).toEqual(cap);

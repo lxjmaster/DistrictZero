@@ -4,9 +4,9 @@ import { awayWorkers } from './network';
 import type { Amounts, CommissionGroup, CommissionStage, DistrictId, FieldKind, FieldOrder, FieldResult, FieldSite, GameState, MailboxMod, Modification, NeighborhoodState, Resident } from './types';
 
 export const COMMISSION_GROUPS: CommissionGroup[] = ['CM01', 'CM02', 'CM03', 'CM04', 'CM05', 'CM06'];
-export const OPEN_GROUPS = COMMISSION_GROUPS.slice(0, 3);
+export const OPEN_GROUPS = [...COMMISSION_GROUPS];
 export const COMMISSION_IDS = OPEN_GROUPS.flatMap(id => [1, 2, 3].map(n => `${id}-${n}` as CommissionStage));
-export const FIELD_IDS: FieldSite[] = ['F01', 'F02', 'F03', 'F04'];
+export const FIELD_IDS: FieldSite[] = ['F01', 'F02', 'F03', 'F04', 'F05', 'F06'];
 export const MAIL_MOD_IDS: MailboxMod[] = ['voiceBox', 'dispatchBox'];
 export const MAIL_MODS = {
   voiceBox: { name: '留声匣', text: '记录产出×1.20，基础零件消耗×1.50，基础用电不变。' },
@@ -25,13 +25,24 @@ export const COMMISSIONS: Record<string, CommissionDefinition> = {
   'CM02-3': { name: '一张不再画长的地图', contact: '巷口老人', text: '地址簿已经编好。老人把晾衣绳画在封底：“路到这里就够了，明天还要晒衣服。”', payment: amounts(), reward: amounts() },
   'CM03-1': { name: '给信箱搭一条廊', contact: '邮递员', text: '雨还没来，邮递员先带来屋檐图样。让两扇窗都能找到投递的地方，记作一份街区协作。', payment: cost(0, 4, 4, 2), reward: amounts(), blueprint: 'dispatchBox' },
   'CM03-2': { name: '窗后有人代收', contact: '邮递员', text: '窗口的有限线索核实以后，把这份已确认的信送进去。投递不替窗后的人决定怎么回信。', payment: amounts(), reward: cost(0, 0, 4) },
-  'CM03-3': { name: '窗口的回执', contact: '邮递员', text: '听完地址簿后的回访，再收好这张回执。两扇窗留下的字迹不一样。', payment: amounts(), reward: amounts() }
+  'CM03-3': { name: '窗口的回执', contact: '邮递员', text: '听完地址簿后的回访，再收好这张回执。两扇窗留下的字迹不一样。', payment: amounts(), reward: amounts() },
+  'CM04-1': { name: '候车的人想坐一会儿', contact: '候车乘客', text: '先把等候的地方留好。乘客画了一张兼作车辆强化货架的长椅图，半层住户知道怎样让声音停下来。', payment: cost(6, 4, 0, 2), reward: amounts(), blueprint: 'freightRack' },
+  'CM04-2': { name: '长椅朝向到站的一边', contact: '候车乘客', text: '带回半层回信、确认班次后，调整长椅朝向。坐着的人也能先看见将到的列车。', payment: cost(2), reward: cost(0, 0, 4) },
+  'CM04-3': { name: '下一班还有座位', contact: '候车乘客', text: '时刻表已经写好，站务员也回了信。乘客把图纸留在椅背：“下一班来的人，照着修就好。”', payment: amounts(), reward: amounts() },
+  'CM05-1': { name: '留一间可以听雨的屋', contact: '雨城听雨人', text: '胶片已经真的到货。用它和构件封好屋里的回声，留声匣图样及档案复原方法一同留下。', payment: cost(0, 0, 4, 2, 2), reward: amounts(), blueprint: 'voiceBox' },
+  'CM05-2': { name: '雨声留在屋里', contact: '雨城听雨人', text: '核实站棚的有限线索，再留一格胶片作屋里的雨声。棚外仍能走人，屋里可以坐着听。', payment: cost(0, 0, 2, 0, 1), reward: amounts() },
+  'CM05-3': { name: '雨停以后的回信', contact: '雨城听雨人', text: '雨声来源已经复原。听雨人送来一张空白注释页：“下一段声音，由来的人自己写。”', payment: amounts(), reward: amounts() },
+  'CM06-1': { name: '长站的修车棚', contact: '长站站务员', text: '轨芯已经真的运回。站务员请你为工具留一处屋檐，附上护轨挂架图样和第0节线索。', payment: cost(0, 8, 0, 2, 0, 2), reward: amounts(), blueprint: 'railGuard' },
+  'CM06-2': { name: '给交班的人留一套工具', contact: '长站站务员', text: '读完第0节交班记录、实际制作车辆方案后，把一份轨芯和工具留给下一位维修的人。', payment: cost(0, 4, 0, 0, 0, 1), reward: amounts() },
+  'CM06-3': { name: '第0节仍然有人交班', contact: '长站站务员', text: '末班车已经可以按约定抵达。站务员把这次真正交接的回信收在修车棚里。', payment: amounts(), reward: amounts() }
 };
 export const FIELD_SITES = {
   F01: { name: '站台储物柜', text: '柜门的借还日期停在昨天，里面的工具却每天换一个位置。', payment: cost(4, 4), seconds: 90, branches: ['整理旧工具', '对准旧调频'], rewards: [cost(8, 0, 0, 1), amounts()], blueprints: [null, 'quickJig'], supply: cost(8, 0, 0, 1), clue: cost(0, 0, 2), clueText: '工具借还记录：每个借用的人都给灯留了一点新用途。' },
   F02: { name: '停在半层的楼梯', text: '上半层与下半层都找不到的门，恰好能收到邮差的信。', payment: cost(4, 6), seconds: 120, branches: ['画下电路', '确认住户'], rewards: [cost(0, 20), cost(0, 0, 6)], blueprints: [null, null], supply: cost(0, 0, 14), clue: amounts(), clueText: '半层回信：不用把声音放大，只要让它有地方停留。附留声匣图样。' },
   F03: { name: '晾衣绳另一端', text: '绳子穿过巷口。你从下面走过去，老人便知道今天有人来过。', payment: cost(6, 6), seconds: 180, branches: ['收好旧架', '留下通行的路'], rewards: [cost(12, 0, 0, 1), amounts()], blueprints: [null, 'thriftBench'], supply: cost(14, 0, 0, 2), clue: cost(0, 0, 4), clueText: '巷口通行记录：没有搬走的晾衣绳，也可以是路标。' },
-  F04: { name: '无法投递的窗口', text: '同一块门牌，两扇亮着的窗。信封上没有写该敲哪一边。', payment: cost(4, 4, 2), seconds: 180, branches: ['整理投递规则', '听完窗后的话'], rewards: [amounts(), amounts()], blueprints: ['dispatchBox', 'voiceBox'], supply: cost(0, 0, 20), clue: cost(0, 0, 2), clueText: '窗口回执线索：有人愿意代收，也愿意等另一家写完自己的名字。' }
+  F04: { name: '无法投递的窗口', text: '同一块门牌，两扇亮着的窗。信封上没有写该敲哪一边。', payment: cost(4, 4, 2), seconds: 180, branches: ['整理投递规则', '听完窗后的话'], rewards: [amounts(), amounts()], blueprints: ['dispatchBox', 'voiceBox'], supply: cost(0, 0, 20), clue: cost(0, 0, 2), clueText: '窗口回执线索：有人愿意代收，也愿意等另一家写完自己的名字。' },
+  F05: { name: '雨城没有雨的站棚', text: '棚外的雨落得很慢，棚里有一段还没找到寄件人的雨声。', payment: cost(0, 6, 0, 0, 1), seconds: 240, branches: ['封存雨声', '修好站棚'], rewards: [amounts(), amounts()], blueprints: ['voiceBox', null], supply: cost(0, 0, 6, 0, 1), clue: cost(0, 0, 4), clueText: '雨声补注：接缝里的声音与屋里的胶片出自同一场雨。' },
+  F06: { name: '长站第0节', text: '运单从第1行开始，第0行却每天有人签字。旧接头还在等下一次交班。', payment: cost(0, 8, 0, 0, 0, 1), seconds: 300, branches: ['更换旧接头', '扩写运单'], rewards: [amounts(), amounts()], blueprints: ['railGuard', 'freightRack'], supply: cost(8, 0, 0, 0, 0, 1), clue: cost(0, 0, 4), clueText: '交班记录：第0行不是漏写的车厢，是给下一位站务员留的位置。' }
 } as const;
 export function createNeighborhood(): NeighborhoodState {
   return {
@@ -50,24 +61,36 @@ export function commissionReason(s: GameState, id: CommissionStage): string | nu
   if (group === 'CM01' && s.events.E01?.status !== 'claimed') return '先归档第一盏灯';
   if (group === 'CM02' && !s.completed.includes('P04')) return '先测绘旧巷';
   if (group === 'CM03' && !s.completed.includes('P05')) return '先登记信笺里';
+  const later = laterCommissionReason(s, group); if (later) return later;
   if (stage > 1 && !commissionDone(s, `${group}-${stage - 1}` as CommissionStage)) return '先回应上一个阶段';
-  if (stage === 2 && !s.neighborhood.field.sites[group === 'CM01' ? 'F01' : group === 'CM02' ? 'F03' : 'F04'].clue) return '先调查并领取对应的有限线索';
+  if (stage === 2 && !s.neighborhood.field.sites[({ CM01: 'F01', CM02: 'F03', CM03: 'F04', CM04: 'F02', CM05: 'F05', CM06: 'F06' } as const)[group as CommissionGroup]].clue) return '先调查并领取对应的有限线索';
   if (id === 'CM01-3' && !s.experience.story['L01-3']) return '先读完收音机第三封回信';
   if (id === 'CM02-3' && !s.completed.includes('P06')) return '先编成夜城地址簿';
   if (id === 'CM03-3' && !s.experience.story['L02-4']) return '先读完邮递员最后一封回访';
+  if (id === 'CM04-2' && !s.experience.story['L03-2']) return '先读完班次笔迹回访';
+  if (id === 'CM04-3' && (!s.completed.includes('P10') || !s.experience.story['L03-3'])) return '先编成时刻表并读完第0节回访';
+  if (id === 'CM05-3' && !s.experience.archives.includes('A01')) return '先复原没有寄件人的雨声';
+  if (id === 'CM06-2' && !s.network.vehicle.built.length) return '先实际制作任一车辆方案';
+  if (id === 'CM06-3' && !s.experience.story['L03-4']) return '先读完站务员最后一封回信';
   return null;
+}
+function laterCommissionReason(s: GameState, group: string): string | null {
+  return group === 'CM04' && !s.completed.includes('P08') ? '先修复末班车厢' : group === 'CM05' && !s.ledger.imports.rainFilm ? '先实际运回雨声胶片' : group === 'CM06' && !s.ledger.imports.railCore ? '先实际运回轨芯' : null;
 }
 // A future stage can be browsed only after its predecessor, even while it waits
 // for a field clue. Tracking does not reserve or spend its payment.
 export function commissionVisible(s: GameState, id: CommissionStage) {
   if (!COMMISSION_IDS.includes(id) || commissionDone(s, id) || !s.experience.story['L01-1']) return false;
   const [group, stage] = id.split('-');
-  return (group === 'CM01' ? s.events.E01?.status === 'claimed' : s.completed.includes(group === 'CM02' ? 'P04' : 'P05')) && (stage === '1' || commissionDone(s, `${group}-${Number(stage) - 1}` as CommissionStage));
+  return (group === 'CM01' ? s.events.E01?.status === 'claimed' : group === 'CM02' ? s.completed.includes('P04') : group === 'CM03' ? s.completed.includes('P05') : !laterCommissionReason(s, group)) && (stage === '1' || commissionDone(s, `${group}-${Number(stage) - 1}` as CommissionStage));
 }
 export function recommendedCommissions(s: GameState) {
   return COMMISSION_IDS.filter(id => commissionVisible(s, id)).sort((a, b) => Number(a.at(-1)) - Number(b.at(-1)) || COMMISSIONS[a].contact.localeCompare(COMMISSIONS[b].contact, 'zh-CN') || (s.neighborhood.commissions.shown[a] ?? 0) - (s.neighborhood.commissions.shown[b] ?? 0) || a.localeCompare(b)).slice(0, 3);
 }
 export function commissionOutcome(s: GameState, id: CommissionStage): string {
+  if (id.startsWith('CM04')) return id.endsWith('1') ? '强化货架蓝图已记录，半层回信可以调查。' : `长椅朝向${s.events.E12?.choice === 'express' ? '快班将来的方向' : '按稳班抵达的一边'}，候车的人可以坐下来。${id.endsWith('3') ? '椅背留下下一班的图纸。' : ''}`;
+  if (id.startsWith('CM05')) return id.endsWith('1') ? '留声匣图样、档案复原方法与站棚有限线索已经留下。' : `你在站棚${s.neighborhood.field.sites.F05.first === 'b' ? '修好的屋檐' : '封存过的雨声'}有了回应，听雨间已经开放。${id.endsWith('3') ? '雨声来源与注释已收藏。' : ''}`;
+  if (id.startsWith('CM06')) return id.endsWith('1') ? '护轨挂架蓝图与第0节有限线索已记录。' : `修车棚按${s.neighborhood.field.sites.F06.first === 'a' ? '换过的旧接头' : '补写的运单'}留下交班工具。${id.endsWith('3') ? '站务回信已经收藏。' : ''}`;
   if (id.startsWith('CM01')) return id === 'CM01-1' ? '快速夹具蓝图已记录，储物柜的借还线索可以复访。' : `${s.neighborhood.field.sites.F01.first === 'a' ? '找回的旧工具' : '调准的旧声音'}固定了灯罩，帽檐把光留在路面。${id.endsWith('3') ? '住客回信与灯罩草图已收藏。' : ''}`;
   if (id.startsWith('CM02')) return id === 'CM02-1' ? '节料台面蓝图和晾衣绳线索已记录，街区协作有了一份证明。' : `${s.neighborhood.field.sites.F03.first === 'b' ? '你特意留下的通行线' : '收好旧架后腾出的通道'}仍通向晾衣绳，老人不用每天重画地图。${id.endsWith('3') ? '地图已收在地址簿封底。' : ''}`;
   return id === 'CM03-1' ? '投递匣蓝图和窗口线索已记录，屋檐成为另一份街区协作证明。' : id === 'CM03-2' ? `你按${s.neighborhood.field.sites.F04.first === 'b' ? '窗后说好的时间' : '核实的投递规则'}送到了信。窗口已投递，待回信。` : '两扇窗各自留下回执。邮递员把这次真正完成的投递记入收藏。';
@@ -88,6 +111,8 @@ export function blueprintSources(s: GameState, mod: Modification): string[] {
 export function fieldOpenReason(s: GameState, id: FieldSite): string | null {
   if (!FIELD_IDS.includes(id)) return '未知调查地点';
   if (!s.completed.includes('P02')) return '先给站牌写上“0”';
+  if (id === 'F05' && (!s.completed.includes('P08') || !s.ledger.imports.rainFilm)) return '先通车并实际运回胶片';
+  if (id === 'F06' && (!s.completed.includes('P09') || !s.ledger.imports.railCore)) return '先开放长站并实际运回轨芯';
   if (id === 'F02' && !activeDistricts(s).some(d => districtState(s, d)!.facilities.dorm > 0)) return '先建设一间宿舍';
   if (id === 'F03' && !s.completed.includes('P04')) return '先测绘旧巷';
   if (id === 'F04' && (!s.completed.includes('P05') || s.events.E07?.status !== 'claimed')) return '先登记信笺里并选择门牌';
@@ -95,8 +120,8 @@ export function fieldOpenReason(s: GameState, id: FieldSite): string | null {
 }
 export function fieldClueKnown(s: GameState, id: FieldSite): boolean {
   return id === 'F01' ? commissionDone(s, 'CM01-1') || Boolean(s.experience.story['L01-3'] && s.experience.story['L01-2']?.choice === 'dismantle')
-    : id === 'F02' ? Boolean(s.experience.story['L02-1'] || s.experience.story['L01-3'] && s.experience.story['L01-2']?.choice === 'restore')
-    : commissionDone(s, id === 'F03' ? 'CM02-1' : 'CM03-1');
+    : id === 'F02' ? Boolean(commissionDone(s, 'CM04-1') || s.experience.story['L02-1'] || s.experience.story['L01-3'] && s.experience.story['L01-2']?.choice === 'restore')
+    : id === 'F05' ? commissionDone(s, 'CM05-1') : id === 'F06' ? commissionDone(s, 'CM06-1') || Boolean(s.experience.story['L03-3']) : commissionDone(s, id === 'F03' ? 'CM02-1' : 'CM03-1');
 }
 export const fieldWorkers = (s: GameState, id: DistrictId, resident: Resident) => Number(s.neighborhood.field.active?.district === id && s.neighborhood.field.active.resident === resident);
 export const idleResidents = (s: GameState, id: DistrictId, resident: Resident) => { const d = districtState(s, id); return d ? localFree(d, resident) - awayWorkers(s, id, resident) - fieldWorkers(s, id, resident) : 0; };
@@ -136,7 +161,7 @@ export function fieldReward(result: FieldResult, branch?: 'a' | 'b'): { payment:
   if (result.kind === 'supply') return { payment: amounts(), reward: { ...config.supply }, blueprint: null };
   if (result.kind === 'clue') return { payment: amounts(), reward: { ...config.clue }, blueprint: result.site === 'F02' ? 'voiceBox' : null };
   const index = branch === 'b' ? 1 : 0;
-  return { payment: result.site === 'F03' && branch === 'b' ? cost(0, 0, 0, 1) : amounts(), reward: { ...config.rewards[index] }, blueprint: config.blueprints[index] };
+  return { payment: result.site === 'F03' && branch === 'b' ? cost(0, 0, 0, 1) : result.site === 'F05' && branch === 'b' ? cost(0, 0, 0, 2) : result.site === 'F06' ? branch === 'a' ? cost(0, 0, 0, 0, 0, 1) : cost(0, 0, 4) : amounts(), reward: { ...config.rewards[index] }, blueprint: config.blueprints[index] };
 }
 export function fieldClaimReason(s: GameState, uid: string, capacity: Amounts, branch?: 'a' | 'b') {
   const result = s.neighborhood.field.pending.find(p => p.uid === uid);

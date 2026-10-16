@@ -1,3 +1,4 @@
+import { completeJourneyContent } from './journey-route';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -5,6 +6,8 @@ import { BACKUP_KEY, SAVE_KEY } from '../../src/app/storage';
 import { advance, summarize } from '../../src/game/engine';
 import { decodeSave } from '../../src/game/saves';
 import type { GameState } from '../../src/game/types';
+
+test.use({ actionTimeout: 10000 });
 
 const START = new Date('2026-10-15T08:00:00Z');
 async function saved(page: Page): Promise<GameState> { return page.evaluate(key => JSON.parse(localStorage.getItem(key)!).state, SAVE_KEY); }
@@ -44,7 +47,7 @@ async function legacy(page: Page) {
   await page.clock.install({ time: START }); await page.clock.pauseAt(START); await page.goto('/');
   await expect(page.getByTestId('save-status')).toHaveText('已保存');
   await expect(page.getByRole('alert')).toContainText('V0.2存档已迁移'); await click(page, '知道了');
-  expect((await saved(page)).resources).toEqual({ ...raw.state.resources, component: 0 });
+  expect((await saved(page)).resources).toEqual({ ...raw.state.resources, component: 0, rainFilm: 0, railCore: 0 });
   expect(JSON.parse(await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY)).schemaVersion).toBe(2);
 }
 
@@ -55,6 +58,7 @@ async function networkChapter(page: Page) {
   await page.clock.install({ time: START }); await page.clock.pauseAt(START); await page.goto('/');
   await expect(page.getByTestId('save-status')).toHaveText('已保存');
   await click(page, '夜网');
+  for (const id of ['rain', 'station']) await page.getByTestId(`route-${id}`).locator('details').filter({ hasText: '货单、优先装载与本城保留量' }).locator('summary').click();
 }
 
 test('N05: three-decimal reserves save exactly on both routes and survive reload', async ({ page }) => {
@@ -68,7 +72,7 @@ test('N05: three-decimal reserves save exactly on both routes and survive reload
       for (const [i, resource] of ['电量', '零件', '记忆'].entries()) await page.getByLabel(`${city}保留${resource}`).fill(values[i]);
       await expect(page.getByRole('button', { name: `保存${city}合同配置`, exact: true })).toBeEnabled();
       await click(page, `保存${city}合同配置`);
-      await expect.poll(async () => (await saved(page)).network.routes[id].contract).toEqual({ ...before.contract, reserve: { ...expected, component: 0 } });
+      await expect.poll(async () => (await saved(page)).network.routes[id].contract).toEqual({ ...before.contract, reserve: { ...expected, component: 0, rainFilm: 0, railCore: 0 } });
     }
   }
   await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存'); await click(page, '夜网');
@@ -98,7 +102,7 @@ test('N05: invalid reserve drafts block saving and enabling but allow pausing', 
   await page.getByLabel('雨城保留电量').fill('1.001');
   await expect(page.getByRole('button', { name: '启用雨城供货合同', exact: true })).toBeEnabled();
   await click(page, '启用雨城供货合同');
-  await expect.poll(async () => (await saved(page)).network.routes.rain.contract).toEqual({ enabled: true, loads: 2, reserve: { ...before.contract.reserve, energy: 1001 } });
+  await expect.poll(async () => (await saved(page)).network.routes.rain.contract).toEqual({ ...before.contract, enabled: true, loads: 2, manifest: { normal: 2, specialty: 0 }, reserve: { ...before.contract.reserve, energy: 1001 } });
 });
 
 test('N05: pausing preserves saved configuration and cargo while valid drafts remain unsaved', async ({ page }) => {
@@ -118,7 +122,8 @@ test('N05: pausing preserves saved configuration and cargo while valid drafts re
 });
 
 for (const [name, width, height, choice] of [['desktop', 1440, 1000, 'reliable'], ['mobile', 390, 844, 'express']] as const) {
-  test(`N08: genuine V0.2 migration through the complete third chapter on ${name}`, async ({ page }, info) => {
+  test(`N08/UX14-17: genuine V0.2 migration through the third chapter and complete V0.3.3 on ${name}`, async ({ page }, info) => {
+    test.setTimeout(180000);
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.setViewportSize({ width, height }); await legacy(page);
     const start = (await saved(page)).clock.seconds, milestones: Record<string, number> = {};
@@ -134,16 +139,15 @@ for (const [name, width, height, choice] of [['desktop', 1440, 1000, 'reliable']
     await click(page, '确认导入并替换'); await expect(page.getByRole('alert')).toContainText('已导入存档'); await click(page, '知道了');
     expect(await saved(page)).toEqual(inTransit);
     await click(page, '夜网'); await wait(page, 120); await click(page, '发车取回雨城');
-    // Fill the destination while the cargo travels, then recover through a real
-    // warehouse upgrade. The cargo must remain on the train across a reload.
-    await recorders(page, '增加'); await wait(page, 120);
-    expect((await saved(page)).network.routes.rain.trip?.remaining).toBe(0);
-    expect((await saved(page)).network.routes.rain.imports).toBe(0);
-    await expect(page.getByTestId('shipment-rain')).toContainText('整车等待卸货'); await noOverflow(page);
-    await page.screenshot({ path: info.outputPath(`${name}-waiting-cargo.png`), fullPage: true, animations: 'disabled' });
+    // New shipments reserve the entire destination before producers refill it.
+    await recorders(page, '增加'); await wait(page, 110);
+    expect((await saved(page)).network.routes.rain.trip?.spaceReserved).toBe(true);
+    expect((await saved(page)).resources.memory + 12000).toBeLessThanOrEqual(80000);
+    await noOverflow(page); await page.screenshot({ path: info.outputPath(`${name}-protected-cargo.png`), fullPage: true, animations: 'disabled' });
+    await wait(page, 10); expect((await saved(page)).network.routes.rain.trip).toBeNull();
+    expect((await saved(page)).network.routes.rain.imports).toBe(1);
     await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
-    expect((await saved(page)).network.routes.rain.trip?.remaining).toBe(0);
-    await click(page, '安排后场仓库升级'); await until(page, s => s.network.routes.rain.imports === 1, 'first rain import'); await mark('firstRainReturn');
+    await click(page, '安排后场仓库升级'); await until(page, s => s.facilities.warehouse === 2, 'warehouse upgrade'); await mark('firstRainReturn');
     await click(page, choice === 'reliable' ? '采用稳班' : '采用快班');
     expect((await saved(page)).events.E12?.choice).toBe(choice);
     await click(page, '收好报告');
@@ -158,7 +162,8 @@ for (const [name, width, height, choice] of [['desktop', 1440, 1000, 'reliable']
     await click(page, '安排编定联运时刻表'); await wait(page, 10); await recorders(page, '减少');
     // Configure the upgraded station batch and change shared-fleet priority via UI.
     await page.getByTestId('route-station').getByRole('button', { name: '2份', exact: true }).click();
-    for (const city of ['雨城', '长站']) {
+    for (const [id, city] of [['rain', '雨城'], ['station', '长站']] as const) {
+      await page.getByTestId(`route-${id}`).locator('summary').filter({ hasText: '货单、优先装载与本城保留量' }).click();
       await page.getByLabel(`${city}保留电量`).fill('50'); await page.getByLabel(`${city}保留零件`).fill('30'); await page.getByLabel(`${city}保留记忆`).fill('10');
       await click(page, `保存${city}合同配置`); await click(page, `启用${city}供货合同`); await click(page, `开启${city}自动维护`);
     }
@@ -180,6 +185,7 @@ for (const [name, width, height, choice] of [['desktop', 1440, 1000, 'reliable']
     await writeFile(info.outputPath(`${name}-v0.3-save.json`), text);
     await page.screenshot({ path: info.outputPath(`${name}-v0.3-network.png`), fullPage: true, animations: 'disabled' });
     await page.getByTestId('route-rain').screenshot({ path: info.outputPath(`${name}-rain-controls.png`), animations: 'disabled' });
+    await completeJourneyContent(page, info, name);
     expect(errors).toEqual([]);
   });
 }

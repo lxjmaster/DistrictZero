@@ -68,6 +68,25 @@ docs/EXPERIENCE_EXPANSION_PLAN.md. This continuation does not authorize publishi
 V0.3.3. Preserve the pre-existing 127.0.0.1:5173 development server; the task-owned
 4173 preview server was stopped.
 
+V0.3.3 is now implemented and verified locally on 2026-10-16 against
+docs/V0.3.3_SPEC.md: after three P2 review fixes, 182 engine/storage tests, all 44
+browser tests, type checking and production build passed. The initial delivery
+also passed an isolated /DistrictZero/ preview. Desktop/mobile
+routes completed all fixed third-batch content. See docs/VERIFICATION.md and
+docs/PLAYTEST.md for costs, migrations and unsampled human feedback. The user
+subsequently authorized committing and pushing V0.3.3 and all three review fixes
+to master, publishing through the existing Pages workflow, verifying the public
+site, and synchronizing release documentation. Continue this unchanged outcome
+without repeated approval. Publication is pending; the public version is still
+V0.3.2 until deployment succeeds. Saved zero contract targets remain zero;
+new route defaults are initialized at opening, and in-transit P11 proof must
+serve current demand. Existing supplies for one producible, returnable package
+can prove P11 without filling the configured buffer; demand, pickup, space,
+vehicle availability, future fee and reserves still apply.
+The review-fix run found no existing 5173 listener; its
+task-owned browser-test service stopped after verification. Ports 5173 and 4173
+are now stopped.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -83,6 +102,9 @@ precedence over older candidate rules in the expansion proposal. Verify
 UX01–UX08 and UX21 alongside the original FR/C/N regressions.
 For V0.3.2 changes, read docs/V0.3.2_SPEC.md. Verify UX09–UX13 and the
 shared UX19/UX20 boundaries, while retaining the original regressions.
+For V0.3.3 changes, read docs/V0.3.3_SPEC.md and section 19 of the expansion
+plan. Verify UX14–UX20, all five genuine migrations, old-rule offline settlement,
+whole-load reservations, vehicle snapshots and the complete two-device routes.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -148,6 +170,27 @@ Only one field resident may be away globally, in addition to route staff; both
 occupancies apply to assignment, relocation, templates, and save validation.
 Delegation executes at most one explicitly confirmed stage per second and never
 accepts a successor. Old queued chapter compatibility belongs only to that item.
+
+Local V0.3.3 uses schema 6 / balance 0.3.3; the public site remains V0.3.2.
+It adds rainFilm and railCore, four external recipes, whole-package mixed cargo,
+target contracts and buffers, and two vehicle modifications. Components remain
+home-only. Specialty resources have finite uses; do not add recurring upkeep or
+daily tasks. src/game/journey.ts defines vehicles, three archives and remaining
+uses. CM04-CM06, F05/F06 and L03 complete the fixed third batch.
+
+New shipments reserve their whole destination space and snapshot the selected
+recipe, manifest, cargo, fee, wear, duration and vehicle capacity. Derive reserved
+space from shipments; inventory plus reservations must stay within capacity.
+Production, rewards, refunds, deliveries and warehouse removal honor that space.
+Old unreserved cargo keeps its original waiting behavior. Vehicle construction
+does not activate it; changing the shared active slot requires no occupied train.
+
+Genuine schemas 1-5 validate against their original content boundary before
+migration. Finish the whole old offline interval under legacyPending rules at an
+explicit captured time, then activate target contracts and new reservations.
+Keep the engine independent of wall-clock access. Interrupted settlement retains
+the last fully valid state for retry; initial long settlement saves only once to
+preserve the pre-migration recovery copy. P11 compatibility is per old queue item.
 
 ## Required Behavior
 

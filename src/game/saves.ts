@@ -3,14 +3,15 @@ import { capacities, createGame, definitionFor, eventTriggers, jobCapacity, jobS
 import type { Amounts, EventId, GameState, Ledger, ReturnReport } from './types';
 import type { DistrictId, DistrictState, WorkTemplate, PublicFacility } from './types';
 import { activeDistricts, cityCount, cityPopulation, CITY_RULES, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, plotsUsed, PUBLIC_IDS, scopedKey } from './city';
-import { awayWorkers, cargoFor, createNetwork, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, vehicleCapacity } from './network';
-import type { NetworkState } from './types';
-import { ASSEMBLY, assemblyUnlocked, createExperience, MOD_IDS, prefabLimit, STORY_IDS, RADIO_STORY_IDS, LETTER_STORY_IDS } from './experience';
+import { awayWorkers, cargoFor, createNetwork, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, vehicleCapacity, reservedSpace, RECIPES, MODES, productResource, validContract, validManifest, departureEnergy } from './network';
+import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_MOD_IDS } from './journey';
+import type { CargoManifest, VehicleMod, NetworkState } from './types';
+import { ASSEMBLY, assemblyUnlocked, createExperience, MOD_IDS, prefabLimit, STORY_IDS, RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS } from './experience';
 import type { AssemblyMod, ExperienceState, StoryNode, NeighborhoodState, MailboxMod } from './types';
 
-import { blueprintSources, COMMISSION_IDS, COMMISSIONS, commissionDone, commissionReason, commissionVisible, createNeighborhood, FIELD_IDS, FIELD_SITES, fieldClueKnown, fieldOpenReason, fieldWorkers, heldFieldSupplies, MAIL_MOD_IDS, NEIGHBORHOOD_RULES } from './neighborhood';
+import { blueprintSources, COMMISSION_IDS, COMMISSIONS, commissionDone, commissionReason, commissionVisible, createNeighborhood, FIELD_IDS, FIELD_SITES, fieldClueKnown, fieldOpenReason, fieldWorkers, heldFieldSupplies, fieldReward, MAIL_MOD_IDS, NEIGHBORHOOD_RULES } from './neighborhood';
 
-export interface SaveEnvelope { format: 'districtzero'; schemaVersion: 5; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 }
+export interface SaveEnvelope { format: 'districtzero'; schemaVersion: 6; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 | 5 }
 export class SaveVersionError extends Error {
   constructor(reason: string) { super(`存档无效：${reason}`); this.name = 'SaveVersionError'; }
 }
@@ -30,9 +31,9 @@ function strings(v: unknown, label: string, max = 100): string[] {
 }
 function readAmounts(v: unknown, label: string): Amounts {
   const o = obj(v);
-  return { energy: integer(o.energy, label), parts: integer(o.parts, label), memory: integer(o.memory, label), component: integer(o.component, label) };
+  return Object.fromEntries(RESOURCES.map(r => [r, integer(o[r], label)])) as Amounts;
 }
-function readLedger(v: unknown, schema = 5): Ledger {
+function readLedger(v: unknown, schema = 6): Ledger {
   const o = obj(v);
   return Object.fromEntries(FLOWS.map(f => {
     if (schema < 3 && (f === 'imports' || f === 'exports')) {
@@ -44,7 +45,7 @@ function readLedger(v: unknown, schema = 5): Ledger {
     return [f, readAmounts(o[f], f)];
   })) as Ledger;
 }
-function readReport(v: unknown, schema = 5): ReturnReport | null {
+function readReport(v: unknown, schema = 6): ReturnReport | null {
   if (v === null) return null;
   const o = obj(v), arrivals = obj(o.arrivals);
   const ids = EVENT_IDS.slice(0, schema === 1 ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
@@ -53,7 +54,7 @@ function readReport(v: unknown, schema = 5): ReturnReport | null {
   const completed = strings(o.completed, '报告完工记录');
   for (const key of completed) {
     const parsed = parseCompletionKey(key);
-    if (!parsed || (schema < 5 && /^mailmod:/.test(parsed.local)) || (schema < 4 && /^(mod|blueprint):/.test(parsed.local)) || (schema < 3 && !parsed.local.startsWith('build:') && !(schema === 1 ? LEGACY_PROJECT_IDS : [...V2_PROJECT_IDS, 'public:relay', 'public:registry']).includes(parsed.local)) || (schema === 1 && parsed.district !== 'district-0')) bad('报告完工记录包含未知或不兼容的标识');
+    if (!parsed || (schema < 6 && /^vehiclemod:/.test(parsed.local)) || (schema < 5 && /^mailmod:/.test(parsed.local)) || (schema < 4 && /^(mod|blueprint):/.test(parsed.local)) || (schema < 3 && !parsed.local.startsWith('build:') && !(schema === 1 ? LEGACY_PROJECT_IDS : [...V2_PROJECT_IDS, 'public:relay', 'public:registry']).includes(parsed.local)) || (schema === 1 && parsed.district !== 'district-0')) bad('报告完工记录包含未知或不兼容的标识');
   }
   if (typeof o.goal !== 'string' || o.goal.length > 1000) bad('报告目标格式错误');
   const report: ReturnReport = {
@@ -63,7 +64,7 @@ function readReport(v: unknown, schema = 5): ReturnReport | null {
     events, pending, reasons: strings(o.reasons, '停工原因'), goal: o.goal as string, maintenance: schema === 1 ? 0 : integer(o.maintenance, '巡检次数'),
     transport: schema < 3 ? { departures: 0, deliveries: 0, maintenance: 0 } : (() => { const t = obj(o.transport); return { departures: integer(t.departures, '发车次数'), deliveries: integer(t.deliveries, '到货次数'), maintenance: integer(t.maintenance, '线路维护次数') }; })(),
     highlights: schema < 4 ? [] : strings(o.highlights, '成果摘要', 3),
-    stories: schema < 4 ? [] : strings(o.stories, '住客事项', schema < 5 ? 4 : 8).map(id => choice(id, schema < 5 ? RADIO_STORY_IDS : STORY_IDS, '住客事项'))
+    stories: schema < 4 ? [] : strings(o.stories, '住客事项', schema < 5 ? 4 : schema < 6 ? 8 : 12).map(id => choice(id, schema < 5 ? RADIO_STORY_IDS : schema < 6 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS] : STORY_IDS, '住客事项'))
     , neighborhood: schema < 5 ? { deliveries: 0, fieldReturns: 0, pending: 0, held: amounts() } : (() => { const n = obj(o.neighborhood); return { deliveries: integer(n.deliveries, '代办交付'), fieldReturns: integer(n.fieldReturns, '外勤返程'), pending: integer(n.pending, '待领结果', 0, 3), held: readAmounts(n.held, '持有补给') }; })()
   };
   for (const r of RESOURCES) {
@@ -109,42 +110,52 @@ function readTemplates(v: unknown): WorkTemplate[] {
       assignments: readAssignments(t.assignments), lighting: choice(t.lighting, ['steady', 'bright', 'dim'] as const, '模板照明'), priority: readPriority(t.priority) };
   });
 }
-function readNetwork(v: unknown): NetworkState {
-  const o = obj(v), routes = obj(o.routes);
+function readNetwork(v: unknown, schema = 6): NetworkState {
+  const o = obj(v), routes = obj(o.routes), old = schema < 6;
   if (Object.keys(routes).length !== ROUTE_IDS.length) bad('夜网线路不完整');
-  const state: NetworkState = { priority: strings(o.priority, '线路优先级', 2).map(id => choice(id, ROUTE_IDS, '线路优先级')), nextTrip: integer(o.nextTrip, '运单序列', 1), maintenance: integer(o.maintenance, '线路维护次数'), routes: {} as NetworkState['routes'] };
+  const vehicle = old ? null : obj(o.vehicle);
+  const built = vehicle ? strings(vehicle.built, '车辆方案', 2).map(id => choice(id, VEHICLE_MOD_IDS, '车辆方案')) : [];
+  if (new Set(built).size !== built.length || !old && typeof o.legacyPending !== 'boolean') bad('车辆或旧规则标记错误');
+  const manifest = (value: unknown): CargoManifest => { const m = obj(value); return { normal: integer(m.normal, '普通整包', 0, 32), specialty: integer(m.specialty, '特产整包', 0, 32) }; };
+  const state: NetworkState = { ...createNetwork(), legacyPending: old || o.legacyPending === true,
+    rulesSince: old || o.rulesSince === null ? null : integer(o.rulesSince, '新规则时点'),
+    vehicle: { built, active: !vehicle || vehicle.active === null ? null : choice(vehicle.active, VEHICLE_MOD_IDS, '车辆启用') },
+    priority: strings(o.priority, '线路优先级', 2).map(id => choice(id, ROUTE_IDS, '线路优先级')), nextTrip: integer(o.nextTrip, '运单序列', 1), maintenance: integer(o.maintenance, '线路维护次数') };
   for (const id of ROUTE_IDS) {
     const route = obj(routes[id]), node = obj(route.node), contract = obj(route.contract);
     if (typeof route.autoRepair !== 'boolean' || typeof contract.enabled !== 'boolean') bad('线路开关格式错误');
     const staff = route.staff === null ? null : obj(route.staff), trip = route.trip === null ? null : obj(route.trip);
-    if (contract.loads !== 1 && contract.loads !== 2) bad('合同货物份数错误');
-    if (trip && ((trip.loads !== 1 && trip.loads !== 2) || typeof trip.uid !== 'string')) bad('运单份数或标识错误');
+    if (contract.loads !== 1 && contract.loads !== 2) bad('合同兼容份数错误');
+    if (trip && (typeof trip.uid !== 'string' || !old && typeof trip.spaceReserved !== 'boolean')) bad('运单标识或预留标记错误');
+    const produced = readAmounts(node.produced, '城市生产');
+    const normalResource = productResource(id, 'normal');
     state.routes[id] = {
-      node: { resources: readAmounts(node.resources, '城市库存'), received: readAmounts(node.received, '城市收到'), produced: readAmounts(node.produced, '城市生产'), used: readAmounts(node.used, '城市消耗'), shipped: readAmounts(node.shipped, '城市发出'), cycle: integer(node.cycle, '城市生产计时', 0, NETWORK_RULES.cycle) },
+      node: { resources: readAmounts(node.resources, '城市库存'), received: readAmounts(node.received, '城市收到'), produced, used: readAmounts(node.used, '城市消耗'), shipped: readAmounts(node.shipped, '城市发出'), cycle: integer(node.cycle, '城市生产计时', 0, NETWORK_RULES.cycle), mode: old ? 'normal' : choice(node.mode, MODES, '生产模式'), batches: old ? { normal: integer(produced[normalResource] / ROUTES[id].product[normalResource], '旧配方周期'), specialty: 0 } : (() => { const b = obj(node.batches); return { normal: integer(b.normal, '常规周期'), specialty: integer(b.specialty, '特产周期') }; })() },
       condition: integer(route.condition, '线路状态', 0, NETWORK_RULES.condition), autoRepair: route.autoRepair as boolean,
-      contract: { enabled: contract.enabled as boolean, loads: contract.loads as 1 | 2, reserve: readAmounts(contract.reserve, '合同保留库存') },
+      contract: { enabled: contract.enabled as boolean, loads: contract.loads as 1 | 2, reserve: readAmounts(contract.reserve, '合同保留库存'), targets: old ? amounts() : readAmounts(contract.targets, '产物目标'), buffer: old ? 2 : integer(contract.buffer, '补给缓冲', 1, 8), manifest: old ? { normal: contract.loads as number, specialty: 0 } : manifest(contract.manifest), order: old ? ['normal', 'specialty'] : strings(contract.order, '货单顺序', 2).map(mode => choice(mode, MODES, '货单顺序')) },
       staff: staff ? { district: choice(staff.district, DISTRICT_IDS, '外派住处'), resident: choice(staff.resident, RESIDENTS, '外派居民') } : null,
-      trip: trip ? { uid: trip.uid as string, direction: choice(trip.direction, ['outbound', 'inbound'] as const, '运输方向'), loads: trip.loads as 1 | 2, cargo: readAmounts(trip.cargo, '在途货物'), duration: integer(trip.duration, '运输总时长', 1), remaining: integer(trip.remaining, '运输余时') } : null,
+      trip: trip ? { uid: trip.uid as string, direction: choice(trip.direction, ['outbound', 'inbound'] as const, '运输方向'), loads: integer(trip.loads, '运单整包', 1, old ? 2 : 64), manifest: old ? { normal: trip.loads as number, specialty: 0 } : manifest(trip.manifest), mode: old ? 'normal' : choice(trip.mode, MODES, '出发配方'), spaceReserved: !old && trip.spaceReserved === true, fee: old || trip.fee === null ? null : integer(trip.fee, '发车电量'), wear: old || trip.wear === null ? null : integer(trip.wear, '发车磨损', 1), capacity: old || trip.capacity === null ? null : integer(trip.capacity, '出发运量', 1), cargo: readAmounts(trip.cargo, '在途货物'), duration: integer(trip.duration, '运输总时长', 1), remaining: integer(trip.remaining, '运输余时') } : null,
       departures: integer(route.departures, '发车次数'), exports: integer(route.exports, '补给到货次数'), imports: integer(route.imports, '回程到货次数')
     };
   }
   return state;
 }
-function readExperience(v: unknown, schema = 5): ExperienceState {
+function readExperience(v: unknown, schema = 6): ExperienceState {
   const o = obj(v), story = obj(o.story), benches = obj(o.benches), plan = obj(o.assembly);
-  if (Object.keys(story).some(id => !(schema < 5 ? RADIO_STORY_IDS : STORY_IDS).includes(id as StoryNode)) || Object.keys(benches).length !== DISTRICT_IDS.length || typeof plan.enabled !== 'boolean') bad('旧物与装配状态错误');
+  if (Object.keys(story).some(id => !(schema < 5 ? RADIO_STORY_IDS : schema < 6 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS] : STORY_IDS).includes(id as StoryNode)) || Object.keys(benches).length !== DISTRICT_IDS.length || typeof plan.enabled !== 'boolean') bad('旧物与装配状态错误');
   const mods = <T extends string>(v: unknown, label: string, ids: T[]) => {
     const list = strings(v, label, ids.length).map(id => choice(id, ids, label));
     if (new Set(list).size !== list.length) bad(`${label}重复`);
     return list;
   };
   return {
+    archives: schema < 6 ? [] : strings(o.archives, '复原档案', 3).map(id => choice(id, ARCHIVE_IDS, '复原档案')),
     story: Object.fromEntries(Object.entries(story).map(([id, value]) => {
       const node = obj(value);
       if (Object.keys(node).some(key => key !== 'choice') || (id === 'L01-2' ? node.choice === undefined : node.choice !== undefined)) bad('住客节点选择错误');
       return [id, node.choice === undefined ? {} : { choice: choice(node.choice, ['dismantle', 'restore'] as const, '旧物命运') }];
     })),
-    blueprints: mods(o.blueprints, '工具蓝图', schema < 5 ? MOD_IDS : [...MOD_IDS, ...MAIL_MOD_IDS]),
+    blueprints: mods(o.blueprints, '工具蓝图', schema < 5 ? MOD_IDS : schema < 6 ? [...MOD_IDS, ...MAIL_MOD_IDS] : [...MOD_IDS, ...MAIL_MOD_IDS, ...VEHICLE_MOD_IDS]),
     benches: Object.fromEntries(DISTRICT_IDS.map(id => {
       const bench = obj(benches[id]);
       return [id, { built: mods(bench.built, '已制作工具', MOD_IDS), active: bench.active === null ? null : choice(bench.active, MOD_IDS, '启用工具') }];
@@ -152,31 +163,32 @@ function readExperience(v: unknown, schema = 5): ExperienceState {
     assembly: { enabled: plan.enabled as boolean, target: integer(plan.target, '构件目标', 0, ASSEMBLY.maxSetting), reserve: readAmounts(plan.reserve, '装配保留量') }
   };
 }
-function readNeighborhood(v: unknown): NeighborhoodState {
+function readNeighborhood(v: unknown, schema = 6): NeighborhoodState {
+  const stagesAllowed = schema < 6 ? COMMISSION_IDS.slice(0, 9) : COMMISSION_IDS, fieldsAllowed = schema < 6 ? FIELD_IDS.slice(0, 4) : FIELD_IDS;
   const o = obj(v), c = obj(o.commissions), f = obj(o.field), sites = obj(f.sites), boxes = obj(o.mailboxes), plan = obj(o.delegation);
   const stages = (v: unknown, label: string, max: number) => {
-    const list = strings(v, label, max).map(id => choice(id, COMMISSION_IDS, label));
+    const list = strings(v, label, max).map(id => choice(id, stagesAllowed, label));
     if (new Set(list).size !== list.length) bad(`${label}重复`);
     return list;
   };
-  const order = (v: unknown) => { const o = obj(v); return { site: choice(o.site, FIELD_IDS, '外勤地点'), district: choice(o.district, DISTRICT_IDS, '外勤住处'), resident: choice(o.resident, RESIDENTS, '外勤居民') }; };
-  if (!Array.isArray(f.queue) || f.queue.length > 3 || !Array.isArray(f.pending) || f.pending.length > 3 || typeof plan.enabled !== 'boolean' || Object.keys(sites).length !== 4 || Object.keys(boxes).length !== 3) bad('街巷状态结构错误');
-  const shown = Object.fromEntries(Object.entries(obj(c.shown)).map(([id, sequence]) => [choice(id, COMMISSION_IDS, '展示委托'), integer(sequence, '展示序列', 1)]));
+  const order = (v: unknown) => { const o = obj(v); return { site: choice(o.site, fieldsAllowed, '外勤地点'), district: choice(o.district, DISTRICT_IDS, '外勤住处'), resident: choice(o.resident, RESIDENTS, '外勤居民') }; };
+  if (!Array.isArray(f.queue) || f.queue.length > 3 || !Array.isArray(f.pending) || f.pending.length > 3 || typeof plan.enabled !== 'boolean' || Object.keys(sites).length !== fieldsAllowed.length || Object.keys(boxes).length !== 3) bad('街巷状态结构错误');
+  const shown = Object.fromEntries(Object.entries(obj(c.shown)).map(([id, sequence]) => [choice(id, stagesAllowed, '展示委托'), integer(sequence, '展示序列', 1)]));
   const active = f.active === null ? null : obj(f.active);
   return {
-    commissions: { completed: stages(c.completed, '完成委托', 9), tracked: stages(c.tracked, '追踪委托', 3), shown, nextShown: integer(c.nextShown, '委托展示序列', 1) },
+    commissions: { completed: stages(c.completed, '完成委托', schema < 6 ? 9 : 18), tracked: stages(c.tracked, '追踪委托', 3), shown, nextShown: integer(c.nextShown, '委托展示序列', 1) },
     field: {
       active: active ? { ...order(active), uid: choiceUid(active.uid), kind: choice(active.kind, ['first', 'clue', 'supply'] as const, '调查类型'), duration: integer(active.duration, '外勤总时长', 1), remaining: integer(active.remaining, '外勤余时', 1), reserved: readAmounts(active.reserved, '持有补给') } : null,
       queue: (f.queue as unknown[]).map(order), pending: (f.pending as unknown[]).map(v => {
         const p = obj(v), kind = choice(p.kind, ['first', 'clue', 'supply', 'refund'] as const, '待领结果');
-        const base = { uid: choiceUid(p.uid), site: choice(p.site, FIELD_IDS, '结果地点') };
+        const base = { uid: choiceUid(p.uid), site: choice(p.site, fieldsAllowed, '结果地点') };
         return kind === 'refund' ? { ...base, kind, refund: readAmounts(p.refund, '待退补给') } : { ...base, kind };
       }),
-      sites: Object.fromEntries(FIELD_IDS.map(id => { const site = obj(sites[id]); if (typeof site.clue !== 'boolean') bad('线索状态错误'); return [id, { first: site.first === null ? null : choice(site.first, ['a', 'b'] as const, '首访分支'), clue: site.clue as boolean, supplies: integer(site.supplies, '普通复访次数') }]; })) as NeighborhoodState['field']['sites'],
+      sites: Object.fromEntries(FIELD_IDS.map(id => { const site = obj(sites[id] ?? (schema < 6 && !fieldsAllowed.includes(id) ? { first: null, clue: false, supplies: 0 } : undefined)); if (typeof site.clue !== 'boolean') bad('线索状态错误'); return [id, { first: site.first === null ? null : choice(site.first, ['a', 'b'] as const, '首访分支'), clue: site.clue as boolean, supplies: integer(site.supplies, '普通复访次数') }]; })) as NeighborhoodState['field']['sites'],
       nextTrip: integer(f.nextTrip, '外勤序列', 1), returns: integer(f.returns, '外勤返程次数'), recalls: integer(f.recalls, '外勤召回次数'), consumed: readAmounts(f.consumed, '已用补给'), refunded: readAmounts(f.refunded, '已退补给'), rewarded: readAmounts(f.rewarded, '调查已领物资')
     },
     mailboxes: Object.fromEntries(DISTRICT_IDS.map(id => { const box = obj(boxes[id]); const built = strings(box.built, '信箱制作', 2).map(mod => choice(mod, MAIL_MOD_IDS, '信箱制作')); if (new Set(built).size !== built.length) bad('信箱改装重复'); return [id, { built, active: box.active === null ? null : choice(box.active, MAIL_MOD_IDS, '启用信箱改装') }]; })) as NeighborhoodState['mailboxes'],
-    delegation: { enabled: plan.enabled as boolean, district: choice(plan.district, DISTRICT_IDS, '代办街区'), stages: stages(plan.stages, '代办清单', 3), reserve: readAmounts(plan.reserve, '代办保留量'), deliveries: integer(plan.deliveries, '代办交付次数', 0, 9) }
+    delegation: { enabled: plan.enabled as boolean, district: choice(plan.district, DISTRICT_IDS, '代办街区'), stages: stages(plan.stages, '代办清单', 3), reserve: readAmounts(plan.reserve, '代办保留量'), deliveries: integer(plan.deliveries, '代办交付次数', 0, schema < 6 ? 9 : 18) }
   };
 }
 function choiceUid(v: unknown): string { return typeof v === 'string' && /^f-([1-9]\d*)$/.test(v) ? v : bad('外勤结果序列错误'); }
@@ -219,7 +231,8 @@ function assertNeighborhood(s: GameState) {
       claims += 1; const i = site.first === 'a' ? 0 : 1;
       for (const r of RESOURCES) fieldRewards[r] += config.rewards[i][r];
       if (config.blueprints[i] && !s.experience.blueprints.includes(config.blueprints[i]!)) bad('调查缺少蓝图成果');
-      if (id === 'F03' && site.first === 'b') paid.component += 1000;
+      const payment = fieldReward({ uid: 'f-1', site: id, kind: 'first' }, site.first).payment;
+      for (const r of RESOURCES) paid[r] += payment[r];
     }
     if (site.clue) { claims += 1; for (const r of RESOURCES) fieldRewards[r] += config.clue[r]; if (id === 'F02' && !s.experience.blueprints.includes('voiceBox')) bad('半层回信缺少蓝图'); }
     claims += site.supplies; for (const r of RESOURCES) fieldRewards[r] += config.supply[r] * site.supplies;
@@ -239,7 +252,11 @@ function assertNeighborhood(s: GameState) {
 }
 function assertExperience(s: GameState) {
   const e = readExperience(s.experience), story = e.story;
-  for (const ids of [RADIO_STORY_IDS, LETTER_STORY_IDS]) for (let i = 1; i < ids.length; i++) if (story[ids[i]] && !story[ids[i - 1]]) bad('住客支线顺序错误');
+  for (const ids of [RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS]) for (let i = 1; i < ids.length; i++) if (story[ids[i]] && !story[ids[i - 1]]) bad('住客支线顺序错误');
+  if (story['L03-1'] && !s.completed.includes('P08') || story['L03-2'] && s.events.E12?.status !== 'claimed' || story['L03-3'] && !s.completed.includes('P09') || story['L03-4'] && !s.completed.includes('P11')) bad('站务回访缺少实际成果');
+  if (new Set(e.archives).size !== e.archives.length || e.archives.length && !archivesUnlocked(s)) bad('档案重复或尚未开放');
+  const payments = amounts(); for (const id of e.archives) for (const r of RESOURCES) payments[r] += ARCHIVES[id].cost[r];
+  if (RESOURCES.some(r => payments[r] > s.ledger.fulfillment[r])) bad('档案缺少实际支付');
   if (story['L02-1'] && !s.completed.includes('P04') || story['L02-2'] && s.events.E07?.status !== 'claimed' || story['L02-3'] && !commissionDone(s, 'CM03-1') || story['L02-4'] && !s.completed.includes('P06')) bad('邮递员回访缺少实际成果');
   if (story['L02-3'] && !e.blueprints.includes('dispatchBox')) bad('邮递员回访缺少投递匣蓝图');
   if (story['L01-1'] && s.events.E01?.status !== 'claimed') bad('装配纸条缺少第一盏灯');
@@ -257,11 +274,22 @@ function assertExperience(s: GameState) {
     for (const mod of bench.built) if (!e.blueprints.includes(mod) || !s.completed.includes(scopedKey(`mod:${mod}`, id))) bad('工具缺少蓝图或制作记录');
   }
   for (const r of RESOURCES) integer(e.assembly.reserve[r], '装配保留量', 0, ASSEMBLY.maxSetting);
-  if (e.assembly.reserve.memory || e.assembly.reserve.component) bad('装配不能保留非原料资源');
+  if (e.assembly.reserve.memory || e.assembly.reserve.component || e.assembly.reserve.rainFilm || e.assembly.reserve.railCore) bad('装配不能保留非原料资源');
   if (!assemblyUnlocked(s) && (e.assembly.enabled || DISTRICT_IDS.some(id => e.benches[id].built.length))) bad('装配尚未开放');
 }
 // Old versions are validated against their original content boundary. Only
 // zero-valued new dimensions are then supplied to the unchanged economy rules.
+function normalizeFreight(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizeFreight);
+  if (value === null || typeof value !== 'object') return value;
+  const o = obj(value);
+  if (['rainFilm', 'railCore', 'mode', 'batches', 'manifest', 'spaceReserved', 'fee', 'wear', 'capacity', 'vehicle', 'targets', 'buffer', 'order', 'legacyPending', 'rulesSince', 'archives'].some(key => Object.hasOwn(o, key))) bad('旧版存档包含列车新内容');
+  if (typeof o.definition === 'string' && o.definition.startsWith('vehiclemod:')) bad('旧版不支持车辆工程');
+  if (Array.isArray(o.completed) && o.completed.some(key => typeof key === 'string' && key.startsWith('vehiclemod:'))) bad('旧版不支持车辆成果');
+  const next = Object.fromEntries(Object.entries(o).map(([key, data]) => [key, normalizeFreight(data)]));
+  if (['energy', 'parts', 'memory'].every(key => Object.hasOwn(o, key))) { next.rainFilm = 0; next.railCore = 0; }
+  return next;
+}
 function normalizeLegacy(v: unknown): unknown {
   function expand(value: unknown): unknown {
     if (Array.isArray(value)) return value.map(expand);
@@ -299,48 +327,60 @@ function assertNetwork(s: GameState) {
   const network = readNetwork(s.network), seen = new Set<string>();
   if (network.priority.length !== 2 || new Set(network.priority).size !== 2) bad('线路优先级不完整');
   if (occupiedVehicles(s) > fleetSize(s)) bad('列车超出共享运力');
+  const vehicle = network.vehicle;
+  if (vehicle.active && !vehicle.built.includes(vehicle.active)) bad('启用了未制作的车辆方案');
+  for (const mod of vehicle.built) if (!s.completed.includes(`vehiclemod:${mod}`) || !s.experience.blueprints.includes(mod) || !fleetSize(s)) bad('车辆缺少制作或蓝图');
+  if (network.legacyPending && (vehicle.built.length || network.rulesSince !== null)) bad('旧规则桥接状态冲突');
   let totalDepartures = 0;
   const exports = amounts(), imports = amounts();
   for (const id of ROUTE_IDS) {
     const route = network.routes[id], config = ROUTES[id], node = route.node, trip = route.trip;
+    if (!validContract(id, route.contract)) bad('目标合同配置错误');
     if (!routeOpen(s, id)) {
       const initial = createNetwork().routes[id];
-      if (route.condition || route.staff || trip || route.autoRepair || route.contract.enabled || route.contract.loads !== 1 || route.departures || route.exports || route.imports || node.cycle || RESOURCES.some(r => route.contract.reserve[r] !== initial.contract.reserve[r] || node.resources[r] || node.received[r] || node.produced[r] || node.used[r] || node.shipped[r])) bad('未开放线路存在城市或运输进度');
+      if (route.condition || route.staff || trip || route.autoRepair || route.contract.enabled || route.contract.loads !== 1 || route.departures || route.exports || route.imports || node.cycle || node.mode !== 'normal' || node.batches.normal || node.batches.specialty || RESOURCES.some(r => route.contract.reserve[r] !== initial.contract.reserve[r] || route.contract.targets[r] || node.resources[r] || node.received[r] || node.produced[r] || node.used[r] || node.shipped[r])) bad('未开放线路存在城市或运输进度');
     }
     if (route.contract.enabled && !s.completed.includes('R05')) bad('自动合同尚未解锁');
     if (route.autoRepair && !s.completed.includes('R04')) bad('线路自动维护尚未解锁');
     if (route.staff && !districtState(s, route.staff.district)) bad('外派人员来自未知街区');
-    if (route.departures !== route.exports + route.imports + (trip ? 1 : 0)) bad('运单次数不守恒');
+    if (route.departures !== route.exports + route.imports + Number(Boolean(trip))) bad('运单次数不守恒');
     totalDepartures += route.departures;
-    const wholeBundles = (value: Amounts, bundle: Amounts, trips?: number) => {
-      const unit = RESOURCES.find(r => bundle[r] > 0)!;
-      const batches = value[unit] / bundle[unit];
-      if (!Number.isSafeInteger(batches) || RESOURCES.some(r => value[r] !== bundle[r] * batches) || (trips !== undefined && (batches < trips || batches > 2 * trips))) bad('城市物资与配方或运单不一致');
-      return batches;
-    };
-    wholeBundles(node.received, config.supply, route.exports);
-    const cycles = wholeBundles(node.produced, config.product);
-    if (RESOURCES.some(r => node.used[r] !== config.supply[r] * cycles)) bad('城市配方投入与产出不一致');
-    wholeBundles(node.shipped, config.product, route.imports + (trip?.direction === 'inbound' ? 1 : 0));
+    const totalSupply = node.received.energy / RECIPES[id].normal.supply.energy;
+    const normal = id === 'rain' ? (node.received.parts - 12000 * totalSupply) / 8000 : (node.received.memory - 6000 * totalSupply) / 2000;
+    const specialty = totalSupply - normal;
+    integer(normal, '普通补给包'); integer(specialty, '特产补给包');
+    if (totalSupply < route.exports || totalSupply > (network.legacyPending ? 2 : 32) * route.exports || network.legacyPending && specialty !== 0) bad('补给包数与到货记录不一致');
+    const normalShipped = node.shipped[productResource(id, 'normal')] / RECIPES[id].normal.product[productResource(id, 'normal')];
+    const specialtyShipped = node.shipped[productResource(id, 'specialty')] / 2000;
+    integer(normalShipped, '普通取货包'); integer(specialtyShipped, '特产取货包');
+    const inbound = route.imports + Number(trip?.direction === 'inbound');
+    if (normalShipped + specialtyShipped < inbound || normalShipped + specialtyShipped > (network.legacyPending ? 2 : 64) * inbound || network.legacyPending && (specialtyShipped || node.batches.specialty || node.mode !== 'normal')) bad('取货包数或旧规则特产记录错误');
+    const held = reservedSpace(s, id);
     for (const r of RESOURCES) {
-      integer(node.resources[r], '城市库存', 0, config.capacity[r]);
+      if (node.received[r] !== normal * RECIPES[id].normal.supply[r] + specialty * RECIPES[id].specialty.supply[r]) bad('补给货包内容错误');
+      if (node.produced[r] !== node.batches.normal * RECIPES[id].normal.product[r] + node.batches.specialty * RECIPES[id].specialty.product[r] || node.used[r] !== node.batches.normal * RECIPES[id].normal.supply[r] + node.batches.specialty * RECIPES[id].specialty.supply[r]) bad('城市配方投入与产出不一致');
+      if (node.shipped[r] !== normalShipped * RECIPES[id].normal.product[r] + specialtyShipped * RECIPES[id].specialty.product[r]) bad('回程货包内容错误');
+      integer(node.resources[r], '城市库存', 0, config.capacity[r] - held[r]);
       if (node.resources[r] !== node.received[r] + node.produced[r] - node.used[r] - node.shipped[r]) bad('城市库存收支不守恒');
       exports[r] += node.received[r] + (trip?.direction === 'outbound' ? trip.cargo[r] : 0);
       imports[r] += node.shipped[r] - (trip?.direction === 'inbound' ? trip.cargo[r] : 0);
     }
     if (trip) {
-      const uid = /^t-([1-9]\d*)$/.exec(trip.uid), expected = cargoFor(id, trip.direction, trip.loads);
-      if (!route.staff || !uid || Number(uid[1]) >= network.nextTrip || seen.has(trip.uid)) bad('运单人员或序列错误');
-      seen.add(trip.uid);
-      if (RESOURCES.some(r => trip.cargo[r] !== expected[r]) || RESOURCES.reduce((n, r) => n + trip.cargo[r], 0) > vehicleCapacity(s)) bad('货物或单车运量错误');
-      if (trip.remaining > trip.duration || (trip.duration !== config.seconds && !(s.events.E12?.choice === 'express' && trip.duration === Math.ceil(config.seconds * NETWORK_RULES.expressTime)))) bad('运输时长错误');
+      const uid = /^t-([1-9]\d*)$/.exec(trip.uid), expected = cargoFor(id, trip.direction, trip.manifest, trip.mode);
+      if (!route.staff || !uid || Number(uid[1]) >= network.nextTrip || seen.has(trip.uid)) bad('运单人员或序列错误'); seen.add(trip.uid);
+      const size = RESOURCES.reduce((n, r) => n + trip.cargo[r], 0);
+      if (!validManifest(trip.manifest) || trip.direction === 'outbound' && trip.manifest.specialty || trip.loads !== trip.manifest.normal + trip.manifest.specialty || RESOURCES.some(r => trip.cargo[r] !== expected[r])) bad('货物或整包货单错误');
+      const rack = vehicle.active === 'freightRack' ? 20000 : 0, guard = vehicle.active === 'railGuard' ? 0.75 : 1;
+      const validWear = [Math.ceil((s.events.E12?.choice === 'reliable' ? 80 : s.events.E12?.choice === 'express' ? 150 : 100) * guard), ...(!vehicle.active ? [100] : [])];
+      if (trip.spaceReserved ? ![40000 + rack, 80000 + rack].includes(trip.capacity!) || trip.capacity! > vehicleCapacity(s) || size > trip.capacity! || trip.fee !== departureEnergy(s, id) || !validWear.includes(trip.wear!) : trip.mode !== 'normal' || trip.manifest.specialty || trip.loads > 2 || trip.fee !== null || trip.wear !== null || trip.capacity !== null || size > (s.completed.includes('R06') ? 80000 : 40000)) bad('运单快照或旧车兼容标记错误');
+      if (trip.remaining > trip.duration || trip.duration !== config.seconds && !(s.events.E12?.choice === 'express' && trip.duration === Math.ceil(config.seconds * NETWORK_RULES.expressTime))) bad('运输时长错误');
     }
   }
   if (network.nextTrip !== totalDepartures + 1) bad('运单序列与发车记录不一致');
   if (RESOURCES.some(r => exports[r] !== s.ledger.exports[r] || imports[r] !== s.ledger.imports[r])) bad('在途货物与两端运输账本不守恒');
 }
 export function assertInvariants(s: GameState, legacy = false) {
-  const cap = capacities(s), initial = createGame();
+  const physical = capacities(s), held = reservedSpace(s, 'home'), cap = Object.fromEntries(RESOURCES.map(r => [r, physical[r] - held[r]])) as Amounts, initial = createGame();
   for (const r of RESOURCES) {
     integer(s.resources[r], r, 0, cap[r]); integer(s.earned[r], '累计取得');
     for (const f of FLOWS) integer(s.ledger[f][r], f);
@@ -384,6 +424,7 @@ export function assertInvariants(s: GameState, legacy = false) {
     const [district, local] = key.includes('/') ? key.split('/') : ['district-0', key];
     const d = districtState(s, district as DistrictId);
     if (!d) bad('完工成果属于未知街区');
+    if (district === 'district-0' && local.startsWith('vehiclemod:') && VEHICLE_MOD_IDS.includes(local.slice(11) as VehicleMod) && s.network.vehicle.built.includes(local.slice(11) as VehicleMod)) continue;
     if (local.startsWith('mailmod:') && MAIL_MOD_IDS.includes(local.slice(8) as MailboxMod) && s.neighborhood.mailboxes[district as DistrictId].built.includes(local.slice(8) as MailboxMod)) continue;
     if (local.startsWith('mod:') && MOD_IDS.includes(local.slice(4) as AssemblyMod) && s.experience.benches[district as DistrictId].built.includes(local.slice(4) as AssemblyMod)) continue;
     if (district === 'district-0' && local.startsWith('blueprint:') && MOD_IDS.includes(local.slice(10) as AssemblyMod) && s.experience.blueprints.includes(local.slice(10) as AssemblyMod)) continue;
@@ -403,6 +444,9 @@ export function assertInvariants(s: GameState, legacy = false) {
       if (!s.address || !PUBLIC_IDS.includes(f) || p.targetLevel !== 1 || d!.publicWorks[f].built !== p.definition.startsWith('maintain:')) bad('公共设施工程状态错误');
     } else if (p.definition.startsWith('route:')) {
       if (!ROUTE_IDS.includes(p.definition.slice(6) as keyof NetworkState['routes']) || !routeOpen(s, p.definition.slice(6) as keyof NetworkState['routes']) || p.targetLevel !== 1 || p.district !== 'district-0') bad('线路维护工程错误');
+    } else if (p.definition.startsWith('vehiclemod:')) {
+      const mod = p.definition.slice(11) as VehicleMod;
+      if (!VEHICLE_MOD_IDS.includes(mod) || !s.experience.blueprints.includes(mod) || !fleetSize(s) || p.targetLevel !== 1 || p.district !== 'district-0') bad('车辆制作前置错误');
     } else if (p.definition.startsWith('mailmod:')) {
       const mod = p.definition.slice(8) as MailboxMod;
       if (!MAIL_MOD_IDS.includes(mod) || !s.experience.blueprints.includes(mod) || !d!.facilities.mailbox || p.targetLevel !== 1) bad('信箱改装前置错误');
@@ -410,7 +454,7 @@ export function assertInvariants(s: GameState, legacy = false) {
       const mod = p.definition.split(':')[1] as AssemblyMod;
       if (!MOD_IDS.includes(mod) || p.targetLevel !== 1 || !assemblyUnlocked(s) || (p.definition.startsWith('mod:') ? !s.experience.blueprints.includes(mod) || !d!.facilities.workbench : p.district !== 'district-0' || !s.completed.includes('P03'))) bad('工具工程前置错误');
     } else if (!Object.hasOwn(PROJECTS, p.definition) || p.targetLevel !== 1 || p.district !== 'district-0') bad('工程定义错误');
-    if (typeof p.legacyChapter !== 'boolean' || p.legacyChapter && (p.district !== 'district-0' || !['P06', 'P07'].includes(p.definition))) bad('旧工程兼容标记错误');
+    if (typeof p.legacyChapter !== 'boolean' || p.legacyChapter && (p.district !== 'district-0' || !['P06', 'P07', 'P11'].includes(p.definition))) bad('旧工程兼容标记错误');
     integer(p.prefab, '预制份数', 0, prefabLimit(definitionFor(s, p.definition, p.targetLevel, p.district)));
     if (p.prefab && !assemblyUnlocked(s)) bad('预制施工尚未开放');
     const def = definitionFor(s, p.definition, p.targetLevel, p.district, p.prefab);
@@ -433,7 +477,7 @@ export function assertInvariants(s: GameState, legacy = false) {
   if (s.completed.includes('P08') && s.events.E10?.status !== 'claimed') bad('车厢修复缺少来信');
   if ((s.completed.includes('P09') || s.completed.includes('R05')) && (s.events.E12?.status !== 'claimed' || !s.network.routes.rain.imports)) bad('夜网发展缺少雨城回程与班次选择');
   if (s.completed.includes('P10') && (!s.completed.includes('R05') || !s.completed.includes('R06') || ROUTE_IDS.some(id => s.network.routes[id].imports < 1))) bad('时刻表缺少联运成果');
-  if (s.completed.includes('P11') && ROUTE_IDS.some(id => s.network.routes[id].imports < 2)) bad('第三章缺少持续回程');
+  if (s.completed.includes('P11') && ROUTE_IDS.some(id => s.network.routes[id].imports < (s.network.legacyPending ? 2 : 1))) bad('第三章缺少实际回程');
   const triggers = eventTriggers(s);
   for (const id of legacy ? EVENT_IDS.slice(0, 5) : EVENT_IDS) if (Boolean(s.events[id]) !== triggers[id]) bad('事件与触发条件不一致');
   if (s.events.E08 && !s.address) bad('专业街区缺少首章成果');
@@ -458,7 +502,7 @@ export function assertInvariants(s: GameState, legacy = false) {
   readReport(s.report);
   assertNetwork(s);
 }
-function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5): GameState {
+function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6): GameState {
   const legacy = schema === 1;
   const o = obj(v), clock = obj(o.clock), events = obj(o.events), ids = EVENT_IDS.slice(0, legacy ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
   if (o.district !== 'district-0' || typeof o.lightingChosen !== 'boolean' || typeof o.memoryProduced !== 'boolean') bad('街区或状态标志错误');
@@ -494,14 +538,18 @@ function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5): GameState {
     clock: { seconds: integer(clock.seconds, '模拟时间'), remainderMs: integer(clock.remainderMs, '毫秒余量', 0, 999), lastAt: integer(clock.lastAt, '最近结算时间') },
     nextProject: integer(o.nextProject, '项目序列', 1), theme: choice(o.theme, ['dark', 'light'] as const, '主题'), report: readReport(o.report, schema),
     city: { districts: Object.fromEntries(Object.entries(districts).map(([id, d]) => [id, readDistrict(d)])), templates: city ? readTemplates(city.templates) : [], maintenance: city ? integer(city.maintenance, '巡检次数') : 0 },
-    network: schema < 3 ? createNetwork() : readNetwork(o.network),
-    experience: readExperience(o.experience, schema), neighborhood: schema < 5 ? createNeighborhood() : readNeighborhood(o.neighborhood),
+    network: schema < 3 ? createNetwork() : readNetwork(o.network, schema),
+    experience: readExperience(o.experience, schema), neighborhood: schema < 5 ? createNeighborhood() : readNeighborhood(o.neighborhood, schema),
     history: (o.history as unknown[]).map(v => {
       const h = obj(v);
       if (typeof h.text !== 'string' || h.text.length > 1000) bad('近期文字格式错误');
       return { second: integer(h.second, '记录时间'), text: h.text as string };
     })
   };
+  if (schema < 6) {
+    s.network.legacyPending = true;
+    for (const p of s.queue) if (p.definition === 'P11' && (p.status !== 'waiting' || legacyChapterReady(s, 'P11'))) p.legacyChapter = true;
+  }
   if (schema < 5) for (const p of s.queue) if ((p.definition === 'P06' || p.definition === 'P07') && (p.status !== 'waiting' || legacyChapterReady(s, p.definition))) p.legacyChapter = true;
   // Validate the old state before enabling any V0.2 discoveries. E08 may become
   // immediately eligible in a developed V0.1 save, but cannot alter old counters.
@@ -515,7 +563,7 @@ function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5): GameState {
 }
 export function encodeSave(state: GameState, savedAt: number): string {
   assertInvariants(state);
-  return JSON.stringify({ format: 'districtzero', schemaVersion: 5, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
+  return JSON.stringify({ format: 'districtzero', schemaVersion: 6, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
 }
 export function decodeSave(text: string): SaveEnvelope {
   if (text.length > 2_000_000) bad('文件超过 2 MB');
@@ -524,11 +572,11 @@ export function decodeSave(text: string): SaveEnvelope {
   const o = obj(parsed);
   if (o.format !== 'districtzero') bad('这不是第0街区存档');
   const schema = o.schemaVersion;
-  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5) throw new SaveVersionError('结构版本不兼容，当前支持版本1/2/3/4迁移与版本5');
-  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
+  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5 && schema !== 6) throw new SaveVersionError('结构版本不兼容，当前支持版本1/2/3/4/5迁移与版本6');
+  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : schema === 5 ? '0.3.2' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
   if (schema === 4) {
     const old = obj(o.state);
     if (old.neighborhood !== undefined || obj(old.ledger).fieldReserved !== undefined || old.report !== null && (obj(old.report).neighborhood !== undefined || obj(obj(old.report).flows).fieldReserved !== undefined) || Array.isArray(old.queue) && old.queue.some(p => obj(p).legacyChapter !== undefined)) bad('旧版存档包含街巷新内容');
   }
-  return { format: 'districtzero', schemaVersion: 5, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(o.state) : o.state, schema), ...(schema < 5 ? { migratedFrom: schema as 1 | 2 | 3 | 4 } : {}) };
+  return { format: 'districtzero', schemaVersion: 6, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(normalizeFreight(o.state)) : schema < 6 ? normalizeFreight(o.state) : o.state, schema), ...(schema < 6 ? { migratedFrom: schema as 1 | 2 | 3 | 4 | 5 } : {}) };
 }

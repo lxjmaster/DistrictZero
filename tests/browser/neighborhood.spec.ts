@@ -30,7 +30,7 @@ async function legacy(page: Page, version = '0.3.1') {
   raw.savedAt = START.getTime(); raw.state.clock.lastAt = START.getTime(); await load(page, JSON.stringify(raw));
   await click(page, '知道了'); if (raw.state.report) await click(page, '收好报告');
 }
-async function track(page: Page, id: CommissionStage) { await page.getByTestId(`commission-${id}`).getByRole('button', { name: '追踪这一阶段' }).click(); }
+async function track(page: Page, id: CommissionStage) { if (!await page.getByTestId(`commission-${id}`).isVisible()) await click(page, '查看全部已开放委托'); await page.getByTestId(`commission-${id}`).getByRole('button', { name: '追踪这一阶段' }).click(); }
 async function deliver(page: Page, id: CommissionStage) { await track(page, id); await page.getByTestId(`commission-${id}`).getByRole('button', { name: '交付这一阶段' }).click(); }
 async function result(page: Page, site: FieldSite, branch?: string) {
   const box = page.getByTestId(`field-result-${site}`);
@@ -99,7 +99,7 @@ for (const [device, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 
     await page.getByLabel('代办电量保留', { exact: true }).fill('10.001'); await click(page, '保存清单并启用代办');
     await wait(page, 10); state = await saved(page); expect(state.neighborhood.delegation.deliveries).toBe(3); expect(state.neighborhood.delegation.stages).toEqual([]); expect(state.neighborhood.commissions.tracked).toEqual([]);
     for (const id of ['CM01-3', 'CM02-3', 'CM03-3'] as CommissionStage[]) await deliver(page, id);
-    state = await saved(page); expect(state.neighborhood.commissions.completed).toHaveLength(9); expect(Object.values(state.neighborhood.field.sites).every(s => s.clue)).toBe(true); milestones.lifeComplete = state;
+    state = await saved(page); expect(state.neighborhood.commissions.completed).toHaveLength(9); expect(Object.entries(state.neighborhood.field.sites).filter(([id]) => id !== 'F05' && id !== 'F06').every(([, s]) => s.clue)).toBe(true); milestones.lifeComplete = state;
     await click(page, '经营旧巷'); await click(page, '经营'); await expect(page.getByTestId('street-life')).toContainText('晾衣绳下');
     await click(page, '经营信笺里'); await expect(page.getByTestId('street-life')).toContainText('两张回执');
     await expect(page.getByTestId('street-life')).toContainText(device === 'mobile' ? '各留姓名' : '今晚的灯');
@@ -221,4 +221,4 @@ for (const removal of ['untracked', 'manually delivered', 'automatically deliver
     for (const [name, value] of Object.entries(reserves)) await expect(page.getByLabel(`代办${name}保留`, { exact: true })).toHaveValue(value);
   });
 }
-function amountsForPlan() { return { energy: 0, parts: 0, memory: 0, component: 0 }; }
+function amountsForPlan() { return { energy: 0, parts: 0, memory: 0, component: 0, rainFilm: 0, railCore: 0 }; }

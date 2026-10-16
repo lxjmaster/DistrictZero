@@ -1,4 +1,4 @@
-export type Resource = 'energy' | 'parts' | 'memory' | 'component';
+export type Resource = 'energy' | 'parts' | 'memory' | 'component' | 'rainFilm' | 'railCore';
 export type Amounts = Record<Resource, number>;
 export type Resident = 'shadow' | 'echo';
 export type Job = 'power' | 'salvage' | 'repair' | 'record' | 'assemble';
@@ -14,10 +14,15 @@ export type RouteId = 'rain' | 'station';
 export type Direction = 'outbound' | 'inbound';
 export type AssemblyMod = 'quickJig' | 'thriftBench';
 export type MailboxMod = 'voiceBox' | 'dispatchBox';
-export type Modification = AssemblyMod | MailboxMod;
-export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4' | 'L02-1' | 'L02-2' | 'L02-3' | 'L02-4';
+export type VehicleMod = 'freightRack' | 'railGuard';
+export type Modification = AssemblyMod | MailboxMod | VehicleMod;
+export type ArchiveId = 'A01' | 'A02' | 'A03';
+export type ProductionMode = 'normal' | 'specialty';
+export interface CargoManifest { normal: number; specialty: number }
+export interface NetworkContract { enabled: boolean; loads: 1 | 2; reserve: Amounts; targets: Amounts; buffer: number; manifest: CargoManifest; order: ProductionMode[] }
+export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4' | 'L02-1' | 'L02-2' | 'L02-3' | 'L02-4' | 'L03-1' | 'L03-2' | 'L03-3' | 'L03-4';
 export type RadioChoice = 'dismantle' | 'restore';
-export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}` | `mailmod:${MailboxMod}`;
+export type DefinitionId = MainProject | Research | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}` | `mailmod:${MailboxMod}` | `vehiclemod:${VehicleMod}`;
 export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10' | 'E11' | 'E12' | 'E13' | 'E14' | 'E15';
 export type EventChoice = Lighting | 'common' | 'individual' | 'reliable' | 'express';
 export type Flow = 'production' | 'rewards' | 'operating' | 'reserved' | 'refunds' | 'exports' | 'imports' | 'fulfillment' | 'fieldReserved';
@@ -59,11 +64,19 @@ export interface NetworkNode {
   used: Amounts;
   shipped: Amounts;
   cycle: number;
+  mode: ProductionMode;
+  batches: CargoManifest;
 }
 export interface Shipment {
   uid: string;
   direction: Direction;
-  loads: 1 | 2;
+  loads: number;
+  manifest: CargoManifest;
+  mode: ProductionMode;
+  spaceReserved: boolean;
+  fee: number | null;
+  wear: number | null;
+  capacity: number | null;
   cargo: Amounts;
   duration: number;
   remaining: number;
@@ -73,13 +86,16 @@ export interface NetworkRoute {
   condition: number;
   staff: { district: DistrictId; resident: Resident } | null;
   trip: Shipment | null;
-  contract: { enabled: boolean; loads: 1 | 2; reserve: Amounts };
+  contract: NetworkContract;
   autoRepair: boolean;
   departures: number;
   exports: number;
   imports: number;
 }
 export interface NetworkState {
+  legacyPending: boolean;
+  rulesSince: number | null;
+  vehicle: { built: VehicleMod[]; active: VehicleMod | null };
   routes: Record<RouteId, NetworkRoute>;
   priority: RouteId[];
   nextTrip: number;
@@ -101,6 +117,7 @@ export interface WorkTemplate {
   priority: WorkJob[];
 }
 export interface ExperienceState {
+  archives: ArchiveId[];
   story: Partial<Record<StoryNode, { choice?: RadioChoice }>>;
   blueprints: Modification[];
   benches: Record<DistrictId, { built: AssemblyMod[]; active: AssemblyMod | null }>;
@@ -108,7 +125,7 @@ export interface ExperienceState {
 }
 export type CommissionGroup = 'CM01' | 'CM02' | 'CM03' | 'CM04' | 'CM05' | 'CM06';
 export type CommissionStage = `${CommissionGroup}-${1 | 2 | 3}`;
-export type FieldSite = 'F01' | 'F02' | 'F03' | 'F04';
+export type FieldSite = 'F01' | 'F02' | 'F03' | 'F04' | 'F05' | 'F06';
 export type FieldKind = 'first' | 'clue' | 'supply';
 export interface FieldOrder { site: FieldSite; district: DistrictId; resident: Resident }
 export interface FieldTrip extends FieldOrder {
@@ -178,9 +195,13 @@ export type Action =
   | { type: 'template-save'; district: DistrictId; name: string }
   | { type: 'template-apply' | 'template-delete'; name: string }
   | { type: 'dismantle'; district: BranchId; facility: Facility | PublicFacility }
-  | { type: 'dispatch'; route: RouteId; direction: Direction; loads: 1 | 2 }
+  | { type: 'dispatch'; route: RouteId; direction: Direction; loads: number | CargoManifest }
+  | { type: 'production-mode'; route: RouteId; mode: ProductionMode }
+  | { type: 'vehicle-mod'; mod: VehicleMod | null }
+  | { type: 'archive'; id: ArchiveId }
   | { type: 'network-staff'; route: RouteId; district: DistrictId; resident: Resident; delta: -1 | 1 }
-  | { type: 'contract'; route: RouteId; enabled: boolean; loads: 1 | 2; reserve: Amounts }
+  | { type: 'contract'; route: RouteId; enabled: boolean; loads: 1 | 2; reserve: Amounts; targets?: Amounts; buffer?: number; manifest?: CargoManifest; order?: ProductionMode[] }
+  | { type: 'contract-pause'; route: RouteId }
   | { type: 'network-priority'; order: RouteId[] }
   | { type: 'route-auto'; route: RouteId; enabled: boolean }
   | { type: 'theme'; theme: 'dark' | 'light' }

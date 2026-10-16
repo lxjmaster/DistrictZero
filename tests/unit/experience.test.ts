@@ -293,8 +293,8 @@ describe('V0.3.1 prefabricated construction and save boundaries', () => {
   });
   it.each([1, 2, 3])('UX05: genuine schema %i retains its original numbers, arrangements, reports and offline rules', version => {
     const text = fixture(version), raw = JSON.parse(text), migrated = decodeSave(text);
-    expect(migrated.migratedFrom).toBe(version); expect(migrated.schemaVersion).toBe(5);
-    expect(migrated.state.resources).toEqual({ ...raw.state.resources, component: 0 });
+    expect(migrated.migratedFrom).toBe(version); expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.state.resources).toEqual({ ...raw.state.resources, component: 0, rainFilm: 0, railCore: 0 });
     expect(migrated.state.priority).toEqual([...raw.state.priority, 'assemble']);
     expect(migrated.state.experience.story).toEqual({}); expect(migrated.state.experience.assembly.enabled).toBe(false);
     expect(preExpansion(migrated.state.queue)).toEqual(version === 1 ? raw.state.queue.map((p: object) => ({ ...p, district: 'district-0' })) : raw.state.queue);

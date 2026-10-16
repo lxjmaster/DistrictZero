@@ -116,7 +116,7 @@ test('UX08/20: offline report leads with actual assembly outcome and keeps story
   for (const action of [
     { type: 'story', node: 'L01-1' }, { type: 'assign', resident: 'echo', job: 'record', delta: -1 },
     { type: 'assign', resident: 'echo', job: 'assemble', delta: 1 },
-    { type: 'assembly-plan', enabled: true, target: 5000, reserve: { energy: 10000, parts: 20000, memory: 0, component: 0 } }
+    { type: 'assembly-plan', enabled: true, target: 5000, reserve: { energy: 10000, parts: 20000, memory: 0, component: 0, rainFilm: 0, railCore: 0 } }
   ] as const) { const result = applyAction(s, action); expect(result.error).toBeNull(); s = result.state; }
   s.clock.lastAt = START.getTime() - 900000; s.report = null;
   const expected = advance(s, 900000); await load(page, encodeSave(s, s.clock.lastAt));
@@ -140,7 +140,7 @@ test('UX02/06: decimal plans save precisely and pausing preserves the last valid
   await page.getByLabel('零件保留', { exact: true }).fill('8.001');
   await page.getByLabel('电量保留', { exact: true }).fill('0.001');
   await click(page, '保存并启用装配');
-  const expected = { enabled: true, target: 1001, reserve: { energy: 1, parts: 8001, memory: 0, component: 0 } };
+  const expected = { enabled: true, target: 1001, reserve: { energy: 1, parts: 8001, memory: 0, component: 0, rainFilm: 0, railCore: 0 } };
   expect((await saved(page)).experience.assembly).toEqual(expected);
   await page.getByLabel('构件目标', { exact: true }).fill('');
   await expect(page.getByRole('button', { name: '保存并启用装配', exact: true })).toBeDisabled();

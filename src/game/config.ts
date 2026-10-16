@@ -1,22 +1,22 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.3.2';
+export const BALANCE_VERSION = '0.3.3';
 export const BASE_RESOURCES = ['energy', 'parts', 'memory'] as const;
-export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component'];
+export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component', 'rainFilm', 'railCore'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record', 'assemble'];
 export const WORK_JOBS = ['salvage', 'repair', 'record', 'assemble'] as const;
 export const RESIDENTS: Resident[] = ['shadow', 'echo'];
 export const FACILITY_IDS: Facility[] = ['generator', 'recycler', 'workbench', 'dorm', 'warehouse', 'mailbox'];
 export const EVENT_IDS: EventId[] = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'E09', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15'];
 export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds', 'exports', 'imports', 'fulfillment', 'fieldReserved'];
-export const resourceNames = { energy: '电量', parts: '零件', memory: '记忆', component: '标准构件' };
+export const resourceNames = { energy: '电量', parts: '零件', memory: '记忆', component: '标准构件', rainFilm: '雨声胶片', railCore: '轨芯' };
 export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '实际返还', exports: '发出货物', imports: '运回物资', fulfillment: '支线与委托支出', fieldReserved: '外勤补给预留' };
 export const residentNames = { shadow: '影子居民', echo: '回声居民' };
 export const jobNames = { power: '发电工', salvage: '回收工', repair: '维修工', record: '记录员', assemble: '装配工' };
 export const jobFacility: Record<Job, Facility> = { power: 'generator', salvage: 'recycler', repair: 'workbench', record: 'mailbox', assemble: 'workbench' };
-export const amounts = (energy = 0, parts = 0, memory = 0, component = 0): Amounts => ({ energy, parts, memory, component });
-export const cost = (parts = 0, energy = 0, memory = 0, component = 0) => amounts(energy * UNIT, parts * UNIT, memory * UNIT, component * UNIT);
+export const amounts = (energy = 0, parts = 0, memory = 0, component = 0, rainFilm = 0, railCore = 0): Amounts => ({ energy, parts, memory, component, rainFilm, railCore });
+export const cost = (parts = 0, energy = 0, memory = 0, component = 0, rainFilm = 0, railCore = 0) => amounts(energy * UNIT, parts * UNIT, memory * UNIT, component * UNIT, rainFilm * UNIT, railCore * UNIT);
 export const INITIAL = { resources: amounts(30000, 10000, 0), capacities: amounts(200000, 100000, 60000), population: 2 };
 export const RULES = { maxLevel: 3, maxQueue: 3, arrivalSeconds: 120, switchParts: 5000, costGrowth: 1.18, workGrowth: 1.15, efficiencyGrowth: 0.15, bedsPerDormLevel: 2, firstEchoArrivals: 2, warehouseUnlockParts: 50000, platformUnlockMemory: 30000, researchUnlockMemory: 20000 };
 export const WAREHOUSE_CAPACITY = amounts(100000, 150000, 20000);
@@ -52,7 +52,7 @@ export const PROJECTS = {
   P08: { id: 'P08', name: '修复末班车厢', description: '雨城已经接起电话，还需要一辆真的会抵达的车。修复车厢，开放雨城供需、外派夜工与第一辆共享列车。', cost: cost(120, 80, 30), work: 420000 },
   P09: { id: 'P09', name: '恢复长站货台', description: '雨城送回第一只箱子后，长站也寄来运单。把站务记忆与电量送过去，旧轨材就能回到街区。', cost: cost(160, 100, 40), work: 540000 },
   P10: { id: 'P10', name: '编定联运时刻表', description: '雨城和长站都完成过回程，运单规范与联运调度已经研究。让两条线开始共用一张可靠的时刻表。', cost: cost(200, 100, 50), work: 720000 },
-  P11: { id: 'P11', name: '让末班车每天抵达', description: '两地各完成至少两次回程，启用两个供货合同，安排两位外派夜工并维护线路。让抵达成为可以信任的日常，完成第三章。', cost: cost(240, 140, 60), work: 900000 },
+  P11: { id: 'P11', name: '让末班车每天抵达', description: '两地各完成一次回程，让至少一条有目标的合同保持启用、值守和有效线路，能够响应需求或目标已满足。让抵达成为可以信任的日常，完成第三章。', cost: cost(240, 140, 60), work: 900000 },
   R05: { id: 'R05', name: '运单规范', description: '记录货物份数与本城保留库存。处理雨城的第一份回程来信后，可按优先级自动补给和取货。', cost: cost(80, 40, 25), work: 360000 },
   R06: { id: 'R06', name: '联运调度', description: '长站恢复后，把空闲车厢也编进班次。共享列车增至2辆，单车运量从40增至80，可安排整车2份货物。', cost: cost(100, 60, 30), work: 420000 }
 } satisfies Record<string, ProjectDefinition>;

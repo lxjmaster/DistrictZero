@@ -1,3 +1,4 @@
+import { preFreight } from '../legacy-shape';
 import { readFileSync } from 'node:fs';
 import { setImmediate } from 'node:timers/promises';
 import { describe, expect, it } from 'vitest';
@@ -40,7 +41,7 @@ function delegateReady() {
 
 describe('V0.3.2 commissions, people and finite field results', () => {
   it('UX09/13: completes all nine different stages and four L02 nodes without auto-accepting or repeating rewards', () => {
-    expect(COMMISSION_GROUPS).toHaveLength(6); expect(COMMISSION_IDS).toHaveLength(9);
+    expect(COMMISSION_GROUPS).toHaveLength(6); expect(COMMISSION_IDS).toHaveLength(18);
     let s = base(); const before = structuredClone(s);
     s = act(s, { type: 'story', node: 'L01-2', choice: 'dismantle' }); s = act(s, { type: 'story', node: 'L01-3' });
     for (const id of ['CM01-1', 'CM02-1', 'CM03-1'] as CommissionStage[]) s = deliver(s, id);
@@ -67,7 +68,7 @@ describe('V0.3.2 commissions, people and finite field results', () => {
     expect(done.resources.memory).toBe(capacities(s).memory); expect(done.neighborhood.commissions.tracked).toEqual([]);
     expect(applyAction(done, { type: 'commission-track', stage: 'CM04-1' }).state).toEqual(done);
   });
-  it.each(FIELD_IDS.flatMap(site => (['a', 'b'] as const).map(choice => [site, choice] as const)))('UX10: %s first branch %s is explicit, atomic and retains its choice', (site, choice) => {
+  it.each(FIELD_IDS.slice(0, 4).flatMap(site => (['a', 'b'] as const).map(choice => [site, choice] as const)))('UX10: %s first branch %s is explicit, atomic and retains its choice', (site, choice) => {
     let s = base(), initial = s.resources.component;
     s = act(s, { type: 'field-start', site, kind: 'first', district: 'district-0', resident: 'shadow' });
     expect(freeResidents(s, 'shadow')).toBe(s.population.shadow - 2);
@@ -94,7 +95,7 @@ describe('V0.3.2 commissions, people and finite field results', () => {
   it('UX10: four finite clues have reachable sources and cannot be farmed', () => {
     let s = base(); s = act(s, { type: 'story', node: 'L02-1' });
     for (const id of ['CM01-1', 'CM02-1', 'CM03-1'] as CommissionStage[]) s = deliver(s, id);
-    for (const id of FIELD_IDS) {
+    for (const id of FIELD_IDS.slice(0, 4)) {
       expect(fieldClueKnown(s, id)).toBe(true); s = visit(visit(s, id, 'first', 'b'), id, 'clue');
       expect(applyAction(s, { type: 'field-start', site: id, kind: 'clue', district: 'district-0', resident: 'shadow' }).state).toEqual(s);
     }
@@ -220,11 +221,11 @@ describe('V0.3.2 mailbox, delegation and second-chapter compatibility', () => {
 describe('V0.3.2 source-version validation, report and elapsed-time equivalence', () => {
   it.each(['0.1', '0.2', '0.3', '0.3.1'])('UX05/19: genuine %s migration preserves old simulation state and starts new work disabled', version => {
     const raw = JSON.parse(fixture(version)), loaded = decodeSave(fixture(version));
-    expect(loaded.schemaVersion).toBe(5); expect(loaded.balanceVersion).toBe('0.3.2');
+    expect(loaded.schemaVersion).toBe(6); expect(loaded.balanceVersion).toBe('0.3.3');
     expect(loaded.migratedFrom).toBe(version === '0.3.1' ? 4 : Number(version.split('.')[1]));
-    expect(loaded.state.resources).toEqual({ ...raw.state.resources, component: raw.state.resources.component ?? 0 });
+    expect(loaded.state.resources).toEqual({ ...raw.state.resources, component: raw.state.resources.component ?? 0, rainFilm: 0, railCore: 0 });
     expect(loaded.state.neighborhood).toEqual(createNeighborhood());
-    if (version === '0.3.1') expect(loaded.state.experience).toEqual(raw.state.experience);
+    if (version === '0.3.1') expect(preFreight(loaded.state.experience)).toEqual(raw.state.experience);
     expect(decodeSave(encodeSave(loaded.state, 0)).state).toEqual(loaded.state);
   });
   it('UX05/19: rejects hidden new content, forged field packages, double-used residents and false discoveries', () => {
