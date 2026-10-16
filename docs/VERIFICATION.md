@@ -14,7 +14,9 @@
 | 桌面新档 | 隔离1440×1000 Chromium实际加载公开站点，新档为结构6/0.3.3，两特产为0，重开状态一致，设置页版本正确，无脚本错误或横向溢出 |
 | 手机布局与旧档 | 隔离390×844上下文加载真实V0.3.2样本，迁移至结构6，原库存保留、两特产补0，旧结构5恢复副本保留；实际读取恢复、重开均一致。再经确认导入最新完整第三批路线存档，全部状态与重开一致；档案可打开，320px合同保留量/保存控件命中检查通过，无横向溢出或脚本错误 |
 
-发布中间运行[`38839042427`](https://github.com/lxjmaster/DistrictZero/actions/runs/38839042427)因两个七天模拟超时失败（20秒/60秒上限），没有断言失败；前一运行同套182项通过。CI现用`npm run test -- --no-file-parallelism`逐文件执行，减少长模拟争用CPU。成功运行的两个用例耗时约6.7秒与24.7秒，完整182项用时61.74秒；没有删除测试、放宽时间上限或修改游戏规则。
+发布中间运行[`38839042427`](https://github.com/lxjmaster/DistrictZero/actions/runs/38839042427)因两个七天模拟超时失败（20秒/60秒上限），没有断言失败；前一运行同套182项通过。改为`npm run test -- --no-file-parallelism`逐文件执行后，发布运行的两个用例耗时约6.7秒与24.7秒，完整182项用时61.74秒。后续文档运行[`38839923639`](https://github.com/lxjmaster/DistrictZero/actions/runs/38839923639)在同样串行配置下，事项七天模拟仍用68.96秒超过60秒，其余181项通过，说明串行不能消除运行器速度波动。现在仅该七天用例在CI中采用180秒运行预算，本地仍为60秒；其他用例上限、全部断言、七天模拟时长和游戏规则保留。
+
+运行预算调整后，本地使用`CI=true npm run test -- --no-file-parallelism`实际覆盖CI分支，182项全部通过（53.65秒），类型检查通过。日志为`test-results/v033-public-release/ci-budget-unit.log`与`final-typecheck.log`，最终远端运行结果见Actions历史。
 
 发布证据、逐文件摘要、两设备截图及可复核脚本保存在`test-results/v033-public-release/`，其中`public/verification.json`和`public/assets.json`记录公开站点结果。文档后续推送仍会触发相同部署流程，最新状态见[Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。发布补验使用的4173预览已停止；未访问日常浏览器存档，保留dist与验证产物供复核。独立真人反馈仍未采样，自动化结果不代表体验目标已通过。
 

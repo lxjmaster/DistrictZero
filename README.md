@@ -42,7 +42,7 @@ npm run preview    # 在 http://127.0.0.1:4173/DistrictZero/ 查看构建产物
 
 V0.3.3游戏及审查修复提交为 [`c9efc0f`](https://github.com/lxjmaster/DistrictZero/commit/c9efc0f2c9eaca973aa3d155f44dbced960aa965)，版本显示修正为 [`db4e452`](https://github.com/lxjmaster/DistrictZero/commit/db4e4522405310f7b2dec434b137d9861c5624fb)，CI串行模拟修正为 [`0d6caf7`](https://github.com/lxjmaster/DistrictZero/commit/0d6caf7a162b3fdbca6c9dd2aff59fdea7ada2e9)。[发布流程](https://github.com/lxjmaster/DistrictZero/actions/runs/38839431982)已成功，公开资源与本地构建一致。新档、真实V0.3.2旧档迁移、恢复及重开结果见[验证记录](docs/VERIFICATION.md#v033-公开发布)。后续部署结果与日志见[GitHub Actions](https://github.com/lxjmaster/DistrictZero/actions/workflows/deploy-pages.yml)。
 
-`.github/workflows/deploy-pages.yml` 在推送到 `master` 或手动运行时，使用 Node.js 22 安装锁定依赖，逐文件串行执行完整引擎与存档测试，再进行类型检查和构建，将 `dist/` 发布到 GitHub Pages。串行安排避免长模拟争用运行器CPU，不减少用例或放宽超时。仓库 `Settings → Pages → Source` 使用 `GitHub Actions`。正式构建与本地预览都使用 `/DistrictZero/` 子路径。
+`.github/workflows/deploy-pages.yml` 在推送到 `master` 或手动运行时，使用 Node.js 22 安装锁定依赖，逐文件串行执行完整引擎与存档测试，再进行类型检查和构建，将 `dist/` 发布到 GitHub Pages。串行安排减少长模拟争用CPU；事项七天模拟在CI中的运行预算为180秒，本地仍为60秒，全部用例、断言与模拟时长保留。仓库 `Settings → Pages → Source` 使用 `GitHub Actions`。正式构建与本地预览都使用 `/DistrictZero/` 子路径。
 
 试玩者无需安装依赖，各自在自己的浏览器保存进度。在线、本地与不同设备的存档不会自动同步；需要转移时使用游戏设置中的导出、导入功能。
 

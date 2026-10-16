@@ -83,7 +83,10 @@ display fix `db4e452`, CI scheduling fix `0d6caf7`, successful Pages run
 Isolated desktop/mobile checks verified schema 6 / balance 0.3.3 new saves,
 genuine schema 5 migration and recovery, completed-content import and reopening.
 The CI job runs all 182 engine/storage tests serially by file to avoid competing
-full-week simulations; all 44 browser tests remain verified locally. See the
+full-week simulations. The full-week neighborhood equivalence case has a 180s
+CI timeout after a serial runner took 69s; its local timeout remains 60s, with
+all assertions and simulated durations preserved. All 44 browser tests remain
+verified locally. See the
 V0.3.3 publication record in docs/VERIFICATION.md. This completed publishing task
 does not authorize V0.4 development. Saved zero contract targets remain zero;
 new route defaults are initialized at opening, and in-transit P11 proof must

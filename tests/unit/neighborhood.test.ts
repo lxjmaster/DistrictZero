@@ -242,7 +242,8 @@ describe('V0.3.2 source-version validation, report and elapsed-time equivalence'
     ];
     for (const mutate of mutations) { const bad = JSON.parse(valid); mutate(bad.state); expect(() => decodeSave(JSON.stringify(bad))).toThrow(); }
   });
-  it.each([900, 86400, 604800])('UX08/11/18/20: %i seconds match irregular segments, preserve pending choices and reconcile held supplies', async seconds => {
+  // Hosted runners took 69s for this same finite week after files were serialized.
+  for (const seconds of [900, 86400, 604800]) it(`UX08/11/18/20: ${seconds} seconds match irregular segments, preserve pending choices and reconcile held supplies`, async () => {
     // Let Vitest receive worker messages between CPU-bound simulations on CI.
     await setImmediate();
     let s = delegateReady(); s = act(s, { type: 'commission-track', stage: 'CM01-1' }); s = act(s, { type: 'delegate-plan', district: 'district-0', stages: ['CM01-1'], reserve: amounts() });
@@ -256,5 +257,5 @@ describe('V0.3.2 source-version validation, report and elapsed-time equivalence'
     const report = summarize(s, one, seconds * 1000); expect(report.neighborhood).toMatchObject({ fieldReturns: 1, deliveries: 1, pending: 1 });
     for (const r of RESOURCES) expect(report.end[r]).toBe(report.start[r] + report.flows.production[r] + report.flows.rewards[r] + report.flows.refunds[r] + report.flows.imports[r] - report.flows.exports[r] - report.flows.operating[r] - report.flows.reserved[r] - report.flows.fulfillment[r] - report.flows.fieldReserved[r]);
     one.report = report; expect(decodeSave(encodeSave(one, 0)).state).toEqual(one);
-  }, 60000);
+  }, process.env.CI === 'true' && seconds === 604800 ? 180000 : 60000);
 });

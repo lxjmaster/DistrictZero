@@ -71,3 +71,9 @@ text and 320px controls. See docs/VERIFICATION.md for the release record.
 This follow-up does not reopen the completed local workline or authorize V0.4.
 The owned preview service was stopped; release evidence and the reproducible
 public verification harness remain in test-results/v033-public-release/.
+
+A subsequent documentation run took 68.96s for the same full-week neighborhood
+case even with serial files. Only that case now has a 180s CI timeout; its local
+60s limit, every assertion, all other timeouts and simulated durations remain.
+Final workflow status is available in the repository Actions history; this
+test-runner budget change does not change production assets or balance.
