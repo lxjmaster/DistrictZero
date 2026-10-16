@@ -77,8 +77,15 @@ docs/PLAYTEST.md for costs, migrations and unsampled human feedback. The user
 subsequently authorized committing and pushing V0.3.3 and all three review fixes
 to master, publishing through the existing Pages workflow, verifying the public
 site, and synchronizing release documentation. Continue this unchanged outcome
-without repeated approval. Publication is pending; the public version is still
-V0.3.2 until deployment succeeds. Saved zero contract targets remain zero;
+without repeated approval. V0.3.3 is now published: game commit `c9efc0f`, version
+display fix `db4e452`, CI scheduling fix `0d6caf7`, successful Pages run
+38839431982. Public HTML/JS/CSS/favicon match the local production build.
+Isolated desktop/mobile checks verified schema 6 / balance 0.3.3 new saves,
+genuine schema 5 migration and recovery, completed-content import and reopening.
+The CI job runs all 182 engine/storage tests serially by file to avoid competing
+full-week simulations; all 44 browser tests remain verified locally. See the
+V0.3.3 publication record in docs/VERIFICATION.md. This completed publishing task
+does not authorize V0.4 development. Saved zero contract targets remain zero;
 new route defaults are initialized at opening, and in-transit P11 proof must
 serve current demand. Existing supplies for one producible, returnable package
 can prove P11 without filling the configured buffer; demand, pickup, space,
@@ -171,7 +178,7 @@ occupancies apply to assignment, relocation, templates, and save validation.
 Delegation executes at most one explicitly confirmed stage per second and never
 accepts a successor. Old queued chapter compatibility belongs only to that item.
 
-Local V0.3.3 uses schema 6 / balance 0.3.3; the public site remains V0.3.2.
+Published V0.3.3 uses schema 6 / balance 0.3.3, with genuine schemas 1-5 migration.
 It adds rainFilm and railCore, four external recipes, whole-package mixed cargo,
 target contracts and buffers, and two vehicle modifications. Components remain
 home-only. Specialty resources have finite uses; do not add recurring upkeep or
