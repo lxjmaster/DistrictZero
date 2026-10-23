@@ -137,6 +137,20 @@ release documentation. Continue this unchanged outcome without repeated approval
 Do not claim publication before the matching deployment and public checks pass.
 V0.6 and human-playtester contact remain outside this publishing task.
 
+V0.5, including the complete V0.4 outposts and both versions' review fixes, is
+now published at https://lxjmaster.github.io/DistrictZero/ on 2026-10-23.
+Game commit `3c094d7` passed Pages run 39943605835: all 296 unit/storage tests
+in one serial run, type checking, production build and deployment succeeded.
+Public HTML/JS/CSS/favicon match the reviewed local build byte-for-byte.
+Four isolated browser scenarios verified desktop/mobile schema 8 / balance 0.5.0
+new saves, genuine schemas 6/7 migration and old recovery copies, complete and
+prepared schema 8 imports/reopening, 320px controls and separate shipment/calendar
+reservation labels. Public migrations used zero offline elapsed time; long
+offline and schemas 1-7 coverage remain in the recorded engine/local acceptance.
+See docs/VERIFICATION.md and docs/PLAYTEST.md for evidence and limits. Human
+feedback remains unsampled; V0.6 is not authorized. No local service was started
+for publication, and the isolated verification browser is closed.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -250,7 +264,7 @@ Keep the engine independent of wall-clock access. Interrupted settlement retains
 the last fully valid state for retry; initial long settlement saves only once to
 preserve the pre-migration recovery copy. P11 compatibility is per old queue item.
 
-Local V0.4 uses independent outposts, not city.districts. At most one map is
+The V0.4 outpost system uses independent outposts, not city.districts. At most one map is
 active; sealed maps keep their inventory and results without simulation. All
 outpost crew retain their original beds and count against home availability.
 The global queue has at most three projects and fixes one head per second;
@@ -270,7 +284,7 @@ Genuine schemas 1-6 must reject new outpost fields before migration. Empty
 outposts preserve the released V0.3.3 offline economy; schemas 1-5 retain the
 existing legacyPending settlement boundary.
 
-Local V0.5 keeps calendar state independent of inventory resources. P13 records
+Published V0.5 keeps calendar state independent of inventory resources. P13 records
 its unique simulation-time origin; L05 decisions remain manual. Storage and
 scheduling start disabled. Each second can capture one paid second, prepare
 one complete local batch, and execute at most the fixed calendar head.
