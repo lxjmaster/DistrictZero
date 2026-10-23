@@ -6,7 +6,9 @@ export const MOD_IDS: AssemblyMod[] = ['quickJig', 'thriftBench'];
 export const RADIO_STORY_IDS: StoryNode[] = ['L01-1', 'L01-2', 'L01-3', 'L01-4'];
 export const LETTER_STORY_IDS: StoryNode[] = ['L02-1', 'L02-2', 'L02-3', 'L02-4'];
 export const TRAIN_STORY_IDS: StoryNode[] = ['L03-1', 'L03-2', 'L03-3', 'L03-4'];
-export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS];
+export const OUTPOST_STORY_IDS: StoryNode[] = ['L04-1', 'L04-2', 'L04-3', 'L04-4'];
+export const CALENDAR_STORY_IDS: StoryNode[] = ['L05-1', 'L05-2', 'L05-3', 'L05-4'];
+export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS, ...CALENDAR_STORY_IDS];
 export const ASSEMBLY = {
   capacity: 30 * UNIT, warehouseCapacity: 10 * UNIT,
   recipes: {
@@ -21,6 +23,8 @@ export const ASSEMBLY = {
   maxSetting: 1_000_000 * UNIT
 } as const;
 export const STORY_NAMES: Record<StoryNode, string> = {
+  'L05-1': '日期为0的维修单', 'L05-2': '把还没用上的一刻收好', 'L05-3': '三处钟面，一份交班', 'L05-4': '今天有了共同的名字',
+  'L04-1': '另一面也有人等开门', 'L04-2': '带走的是办法', 'L04-3': '第一处异地交班', 'L04-4': '两份地址都能收到信',
   'L01-1': '没有插头的收音机', 'L01-2': '留下外壳，还是留下声音',
   'L01-3': '多出来的那一下', 'L01-4': '第一站的广播',
   'L02-1': '总投进同一扇窗', 'L02-2': '门牌背面的字', 'L02-3': '可以代收吗', 'L02-4': '每个人都收到了',
@@ -37,6 +41,16 @@ export const assemblyUnlocked = (s: GameState) => Boolean(s.experience.story['L0
 export const radioChoice = (s: GameState) => s.experience.story['L01-2']?.choice;
 export function storyAvailable(s: GameState, id: StoryNode): boolean {
   if (!STORY_IDS.includes(id) || s.experience.story[id] || id.startsWith('L03') && s.network.legacyPending) return false;
+  if (id.startsWith('L04') && s.network.legacyPending) return false;
+  if (id.startsWith('L05') && s.network.legacyPending) return false;
+  if (id === 'L05-1') return !!s.experience.story['L04-4'];
+  if (id === 'L05-2') return !!s.experience.story['L05-1'] && s.completed.includes('P13');
+  if (id === 'L05-3') return !!s.experience.story['L05-2'] && s.completed.includes('P15');
+  if (id === 'L05-4') return !!s.experience.story['L05-3'] && s.completed.includes('P16');
+  if (id === 'L04-1') return s.completed.includes('P11') && s.events.E15?.status === 'claimed' && Boolean(s.experience.story['L03-4']);
+  if (id === 'L04-2') return Boolean(s.experience.story['L04-1']) && s.completed.includes('P12');
+  if (id === 'L04-3') return Boolean(s.experience.story['L04-2']) && (s.outposts.sites.O01?.completed.includes('O01-3') === true || s.outposts.sites.O02?.completed.includes('O02-3') === true);
+  if (id === 'L04-4') return Boolean(s.experience.story['L04-3']) && s.outposts.sites.O01?.handoff === true && s.outposts.sites.O02?.handoff === true;
   if (id === 'L03-1') return s.completed.includes('P08');
   if (id === 'L03-2') return Boolean(s.experience.story['L03-1']) && s.events.E12?.status === 'claimed';
   if (id === 'L03-3') return Boolean(s.experience.story['L03-2']) && s.completed.includes('P09');
@@ -52,6 +66,17 @@ export function storyAvailable(s: GameState, id: StoryNode): boolean {
 }
 export const pendingStories = (s: GameState) => STORY_IDS.filter(id => storyAvailable(s, id));
 export function storyText(s: GameState, id: StoryNode): string {
+  if (id === 'L05-1') return '两处分所的回信在同一天寄出，却写着不同的日期。旧站台抽屉里的维修单终于有了收件人：“日期：0。请让今天能够交班。”先修复旧城校时台；三地仍各自工作，新的日期不会替你决定生产什么。';
+  if (id === 'L05-2') return '校时员拿出一只空盒：“还没用上的一刻，也可以收好。”每储一秒花0.20电量和0.02记忆；一次加工要60秒储备、一次校准，再花4电量和1记忆。原料须坐真实列车到达，整批备好后等待两地窗口；原来的列车、工务和住客不会跟着快进。装置与排程都还关着，启用的时机由你决定。';
+  if (id === 'L05-3') return `雨城已经完成${s.calendar.boosts.rain.normal + s.calendar.boosts.rain.specialty}次历法加工，长站完成${s.calendar.boosts.station.normal + s.calendar.boosts.station.specialty}次。校时员把三处钟面画在同一张纸上：“对齐不是同时做同一件事，是知道什么时候交到下一双手里。”${s.calendar.crossRound ? `其中${s.calendar.crossRound}项真正等到了下一轮，货物仍以实际回程为准。` : '目前还没有跨轮完成的排程；写进清单不等于已经加工。'}三项清单只做你明确写下的工作，空下的位置不会自行填满。`;
+  if (id === 'L05-4') return `名录第一次容得下三地的今天。${s.calendar.crossRound}项跨轮加工留下了交班记录，时间盒里还有${s.calendar.stored}秒，剩余${s.calendar.allowance}次校准。今天不再是空白，也不要求每一刻都被用完。下一页只写着一个问题：“这些共同承认的约定，能不能成为城市公约？”那是下一段故事，尚未开放。`;
+  if (id === 'L04-1') return '城市图翻到背面，还有一盏临时灯。门后的人问：“旧城的办法，能在这里用一次吗？”旧城会继续按现有安排工作，不会被重置。登记台需要真实材料；派去的人也仍占着原来的床位。你可以先读信，再决定什么时候开门。';
+  if (id === 'L04-2') return `登记员把两张地图摆在桌上：无库巷没有仓库，借光庭留不住一半本地产出的光。带走的是${s.experience.blueprints.length}份已知蓝图与${s.experience.archives.length}份已读档案，不是复制一套库存或工具。每处先派两名空闲居民，旧城另转入20电量、20零件和8记忆；其后的补给每图一共四次，不会每天刷新。`;
+  if (id === 'L04-3') {
+    const first = s.completed.find(k => k === 'O01@O01-3' || k === 'O02@O02-3');
+    return first === 'O01@O01-3' ? `无库巷第一次交班。屋檐${s.outposts.sites.O01?.roofPrefab ? `用了${s.outposts.sites.O01.roofPrefab}份预制构件` : '由工人逐段现场接好'}，现在信件可以写上0-101。地图交接还等你亲自确认，清单知识不会自动替你发下一包。` : `借光庭第一次交班。庭院记下了${s.outposts.sites.O02?.proof === 'relay' ? '旧城实际收到的追加电量与接力' : '本地发电者值守过的时间'}，现在信件可以写上0-102。回照灯架的图样等你确认交接；图样不是已经造好的设备。`;
+  }
+  if (id === 'L04-4') return `0-101和0-102都能收到信了。无库巷的屋檐${s.outposts.sites.O01?.roofPrefab ? `留下${s.outposts.sites.O01.roofPrefab}份预制的接缝` : '由现场施工连接'}，借光庭以${s.outposts.sites.O02?.proof === 'relay' ? '旧城接力' : '本地值守'}留下了证明。两份知识已经交接，封存不是遗忘，重入也不会重新领取物资。信纸角落写着一个尚未发生的日期——${s.experience.story['L05-1'] ? '日期为0的维修单已经收好，校时台留下了新的交接工作。' : '日期为0的维修单正等你阅读，三地的今天还需要一次修复。'}`;
   if (id === 'L03-1') return '车厢修好后，座位下面有一只空箱。箱盖写着长站站务员的称呼：“如果到站时还有空位，替候车的人留一把椅子。”它不是已经送到的货物，只留下一条回信地址。';
   if (id === 'L03-2') return s.events.E12?.choice === 'express' ? '站务员把运单压在箱底：“快班来得早，接头要更勤检查。”箱子没有额外奖励；等待的人知道该在哪一边抬头看车。' : '站务员在运单上画了一条平直的线：“稳班慢一点，接头就能多用几趟。”候车的人把椅子转向灯还亮着的一边。';
   if (id === 'L03-3') return '长站第0节不在车厢号码表上，却有人在那里交班。F06有限线索已经记下，实际运回轨芯后可去首访。强化货架增加20运量、每车多用2电；护轨挂架减四分之一磨损，保留原运量。图样还需委托或调查发现，方案由你选择。';
@@ -76,6 +101,7 @@ export function assemblyRecipe(s: GameState, district: DistrictId) {
   return ASSEMBLY.recipes[mod ?? 'ordinary'];
 }
 export function prefabLimit(definition: ProjectDefinition): number {
+  if (definition.id === 'lightFrame' || definition.id === 'calendar:service') return 0;
   if (definition.id.startsWith('mod:') || definition.id.startsWith('blueprint:') || definition.id.startsWith('mailmod:') || definition.id.startsWith('vehiclemod:')) return 0;
   return Math.min(ASSEMBLY.maxPrefab, Math.floor(definition.cost.parts / ASSEMBLY.prefabParts), Math.floor(definition.work / (2 * ASSEMBLY.prefabWork)));
 }

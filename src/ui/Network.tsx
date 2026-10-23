@@ -6,6 +6,7 @@ import { capacities, duration, enqueueReason, format, freeResidents, missingCost
 import { awayWorkers, cargoFor, contractPlan, departureEnergy, departureReason, fleetSize, MODES, NETWORK_RULES, occupiedVehicles, productResource, RECIPES, reservedSpace, ROUTE_IDS, ROUTES, routeOpen, routeWear, travelSeconds, vehicleCapacity } from '../game/network';
 import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, remainingSpecialtyUses, VEHICLE_MOD_IDS, VEHICLE_MODS } from '../game/journey';
 import { STORY_NAMES, storyText, TRAIN_STORY_IDS } from '../game/experience';
+import { calendarHeld } from '../game/calendar-config';
 import type { Action, Amounts, CargoManifest, DefinitionId, DistrictId, GameState, ProductionMode, RouteId, ArchiveId } from '../game/types';
 import { MaterialCost, parseUnits, ProjectPayment } from './Experience';
 
@@ -32,12 +33,21 @@ function RouteCard({ state, district, disabled, send, id }: Props & { id: RouteI
   const template = (mode: ProductionMode) => { setTargets({ normal: mode === 'normal' ? String(cap[productResource(id, mode)] / UNIT) : '0', specialty: mode === 'specialty' ? '6' : '0' }); setPackages({ normal: mode === 'normal' ? String(loads) : '0', specialty: mode === 'specialty' ? '3' : '0' }); setBuffer('2'); setFirst(mode); };
   const manualManifest = { normal: count(manual.normal), specialty: count(manual.specialty) }, outboundCount = count(outbound, 1);
   const currentRecipe = RECIPES[id][route.node.mode], nodeHeld = reservedSpace(state, id), homeHeld = reservedSpace(state, 'home');
+  const calendarInputs = calendarHeld(state, id, 'supply'), calendarOutputs = calendarHeld(state, id, 'product');
   const plan = contractPlan(state, id, cap), stop = trip ? trip.remaining ? '已保存合同等待本次运输抵达' : '旧列车等待整车卸货' : 'reason' in plan ? plan.reason : departureReason(state, id, plan.direction, plan.manifest, cap, saved.reserve) ?? '下一秒按已保存合同发车';
   const completedUses = !remainingSpecialtyUses(state).length;
   return <section className="panel network-route" aria-label={`${config.name}线路`} data-testid={`route-${id}`}>
     <div className="panel-title"><div><span className="eyebrow">第0街区 ⇄ {config.name}</span><h2>{config.name}的运单</h2></div><span className={`tag ${saved.enabled ? 'working' : ''}`}>{saved.enabled ? '合同运行中' : '手动发车'}</span></div>
     <p className="muted small">{config.description}</p>
-    <div className="node-stocks" aria-label={`${config.name}仓库`}>{RESOURCES.filter(r => config.capacity[r] > 0).map(r => <div key={r}><span className="caption">{resourceNames[r]}</span><strong data-testid={`node-${id}-${r}`}>{format(route.node.resources[r])} / {format(config.capacity[r], 0)}</strong><span className="meter"><span style={{ width: `${route.node.resources[r] / config.capacity[r] * 100}%` }} /></span>{nodeHeld[r] > 0 && <small>另留 {format(nodeHeld[r])} 给在途货物</small>}</div>)}</div>
+    <div className="node-stocks" aria-label={`${config.name}仓库`}>{RESOURCES.filter(r => config.capacity[r] > 0).map(r => {
+      const transportSpace = nodeHeld[r] - calendarOutputs[r];
+      return <div key={r}><span className="caption">{resourceNames[r]}</span><strong data-testid={`node-${id}-${r}`}>{format(route.node.resources[r])} / {format(config.capacity[r], 0)}</strong><span className="meter"><span style={{ width: `${route.node.resources[r] / config.capacity[r] * 100}%` }} /></span>
+        {transportSpace > 0 && <small>另留 {format(transportSpace)} 给在途货物</small>}
+        {calendarOutputs[r] > 0 && <small>历法产物预留空位 {format(calendarOutputs[r])}</small>}
+        {calendarInputs[r] > 0 && <small>历法已占原料 {format(calendarInputs[r])} · 可用 {format(route.node.resources[r] - calendarInputs[r])}</small>}
+      </div>;
+    })}</div>
+    {RESOURCES.some(r => calendarInputs[r] || calendarOutputs[r]) && <p className="small muted">历法已占原料仍在当地库存中，产物预留是空位，不是在途货物。加工完成或取消时释放；暂停仍保留。</p>}
     <div className="route-section"><h3>外城生产 · {currentRecipe.name}</h3><p className="small">每60秒使用 <Cargo value={currentRecipe.supply} />，生产 <Cargo value={currentRecipe.product} />。本周期 {route.node.cycle} / 60 秒；缺料或整包空间不足会等待。</p>
       <details className="production-modes" open={completedUses ? undefined : true}><summary>{completedUses ? '有限用途已完成 · 展开生产模式' : '选择常规物资或城市特产'}</summary><p className="small muted">胶片与轨芯用于本章调查、委托、车辆和收藏，用完这些用途后可以正常停产。</p><div className="button-row">{MODES.map(mode => <button key={mode} disabled={disabled || route.node.mode === mode} aria-pressed={route.node.mode === mode} onClick={() => setSwitchTo(mode)}>{route.node.mode === mode ? `正在${RECIPES[id][mode].name}` : `切换为${RECIPES[id][mode].name}`}</button>)}</div>
       </details>

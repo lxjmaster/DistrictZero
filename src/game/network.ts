@@ -1,4 +1,5 @@
 import { amounts, cost, RESOURCES, UNIT } from './config';
+import { calendarHeld } from './calendar-config';
 import type { Amounts, CargoManifest, Direction, DistrictId, GameState, NetworkContract, NetworkRoute, NetworkState, ProductionMode, Resident, Resource, RouteId } from './types';
 
 export const ROUTE_IDS: RouteId[] = ['rain', 'station'];
@@ -40,7 +41,7 @@ export function cargoFor(id: RouteId, direction: Direction, value: number | Carg
   return cargo;
 }
 export function reservedSpace(s: GameState, destination: 'home' | RouteId, excluding?: string): Amounts {
-  const held = amounts();
+  const held = destination === 'home' ? amounts() : calendarHeld(s, destination, 'product', excluding);
   for (const id of ROUTE_IDS) {
     const trip = s.network.routes[id].trip;
     if (!trip?.spaceReserved || trip.uid === excluding || (trip.direction === 'inbound' ? destination !== 'home' : destination !== id)) continue;
@@ -69,7 +70,8 @@ export function departureReason(s: GameState, id: RouteId, direction: Direction,
   if (size(cargo) > vehicleCapacity(s)) return '货物超过单车运量，请减少份数或研究联运调度';
   if (route.condition <= 0) return '线路状态耗尽，等待维护';
   const source = direction === 'outbound' ? s.resources : route.node.resources;
-  if (RESOURCES.some(r => source[r] < cargo[r])) return direction === 'outbound' ? '本城补给不足' : '目的城市货物尚未备齐';
+  const inputHeld = direction === 'outbound' ? amounts() : calendarHeld(s, id, 'supply');
+  if (RESOURCES.some(r => source[r] - inputHeld[r] < cargo[r])) return direction === 'outbound' ? '本城补给不足' : '目的城市货物尚未备齐或已由历法排程占用';
   if (s.resources.energy < fee + (direction === 'outbound' ? cargo.energy : 0)) return '发车运行电量不足';
   if (!fits(s, id, direction, cargo, capacity)) return s.network.legacyPending ? direction === 'outbound' ? '目的城市仓储不足' : '本城仓储不足' : direction === 'outbound' ? '目的城市仓储或在途预留空间不足' : '本城仓储或在途预留空间不足';
   if (reserve && RESOURCES.some(r => s.resources[r] - (direction === 'outbound' ? cargo[r] : 0) - (r === 'energy' ? fee : 0) < reserve[r])) return '自动合同等待本城保留库存';
@@ -94,10 +96,10 @@ export function validContract(id: RouteId, c: NetworkContract): boolean {
 export function contractPlan(s: GameState, id: RouteId, capacity: Amounts): { direction: Direction; manifest: CargoManifest } | { reason: string } {
   const route = s.network.routes[id], c = route.contract, manifest = { normal: 0, specialty: 0 };
   let room = vehicleCapacity(s);
-  const held = reservedSpace(s, 'home');
+  const held = reservedSpace(s, 'home'), inputHeld = calendarHeld(s, id, 'supply');
   for (const mode of c.order) {
     const r = productResource(id, mode), unit = RECIPES[id][mode].product[r], gap = c.targets[r] - s.resources[r] - held[r];
-    const count = Math.max(0, Math.min(c.manifest[mode], Math.ceil(gap / unit), Math.floor(route.node.resources[r] / unit), Math.floor((capacity[r] - s.resources[r] - held[r]) / unit), Math.floor(room / unit)));
+    const count = Math.max(0, Math.min(c.manifest[mode], Math.ceil(gap / unit), Math.floor((route.node.resources[r] - inputHeld[r]) / unit), Math.floor((capacity[r] - s.resources[r] - held[r]) / unit), Math.floor(room / unit)));
     manifest[mode] = count; room -= count * unit;
   }
   if (manifest.normal + manifest.specialty > 0) return { direction: 'inbound', manifest };
@@ -113,7 +115,17 @@ export function contractPlan(s: GameState, id: RouteId, capacity: Amounts): { di
   if (count < 1) return { reason: '等待补给、保留库存或目的城市预留空间' };
   return { direction: 'outbound', manifest: { normal: count, specialty: 0 } };
 }
-export function tickNetwork(s: GameState, capacity: Amounts, log: (text: string) => void) {
+export function tickNodeProduction(s: GameState, id: RouteId): boolean {
+  const node = s.network.routes[id].node;
+  const mode = s.network.legacyPending ? 'normal' : node.mode, recipe = RECIPES[id][mode];
+  node.cycle = Math.min(NETWORK_RULES.cycle, node.cycle + 1);
+  const held = reservedSpace(s, id), inputHeld = calendarHeld(s, id, 'supply');
+  if (node.cycle !== NETWORK_RULES.cycle || !RESOURCES.every(r => node.resources[r] - inputHeld[r] >= recipe.supply[r] && node.resources[r] + held[r] + recipe.product[r] - recipe.supply[r] <= ROUTES[id].capacity[r])) return false;
+  for (const r of RESOURCES) { node.resources[r] += recipe.product[r] - recipe.supply[r]; node.produced[r] += recipe.product[r]; node.used[r] += recipe.supply[r]; }
+  node.batches[mode] += 1; node.cycle = 0;
+  return true;
+}
+export function tickNetwork(s: GameState, capacity: Amounts, log: (text: string) => void, prepare?: () => void) {
   for (const id of ROUTE_IDS) {
     if (!routeOpen(s, id)) continue;
     const route = s.network.routes[id], node = route.node, trip = route.trip;
@@ -126,14 +138,9 @@ export function tickNetwork(s: GameState, capacity: Amounts, log: (text: string)
         log(`${ROUTES[id].name}${trip.direction === 'outbound' ? '收到补给' : '物资回到第0街区'}，已完整卸货。`); route.trip = null;
       }
     }
-    const mode = s.network.legacyPending ? 'normal' : node.mode, recipe = RECIPES[id][mode];
-    node.cycle = Math.min(NETWORK_RULES.cycle, node.cycle + 1);
-    const held = reservedSpace(s, id);
-    if (node.cycle === NETWORK_RULES.cycle && RESOURCES.every(r => node.resources[r] >= recipe.supply[r] && node.resources[r] + held[r] + recipe.product[r] - recipe.supply[r] <= ROUTES[id].capacity[r])) {
-      for (const r of RESOURCES) { node.resources[r] += recipe.product[r] - recipe.supply[r]; node.produced[r] += recipe.product[r]; node.used[r] += recipe.supply[r]; }
-      node.batches[mode] += 1; node.cycle = 0;
-    }
   }
+  prepare?.();
+  for (const id of ROUTE_IDS) if (routeOpen(s, id)) tickNodeProduction(s, id);
   for (const id of s.network.priority) {
     const route = s.network.routes[id];
     if (!route.contract.enabled || !routeOpen(s, id)) continue;

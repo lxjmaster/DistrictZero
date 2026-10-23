@@ -97,6 +97,46 @@ The review-fix run found no existing 5173 listener; its
 task-owned browser-test service stopped after verification. Ports 5173 and 4173
 are now stopped.
 
+On 2026-10-23 the user authorized complete local V0.4 implementation and
+verification by continuing the roadmap work. Follow docs/V0.4_SPEC.md, including
+P12, both outposts, all six projects, both proofs and knowledge rewards, L04,
+genuine schemas 1-6 migration and B01-B12. The local build uses schema 7 /
+balance 0.4.0. The public site remains V0.3.3. This work does not authorize a
+commit, push, public deployment, or V0.5/V0.6 development. Human feedback remains
+unsampled; do not represent automated routes as human experience acceptance.
+The complete local B01-B12 delivery is now verified: 238 distinct unit/storage
+tests (233 full-run baseline plus five added scoped cases), 46 distinct browser
+tests, type checking, production build and isolated /DistrictZero/ preview.
+See docs/VERIFICATION.md and docs/PLAYTEST.md for evidence, costs and limits.
+Task-owned services on ports 5173 and 4173 are stopped; fixtures, build output
+and reproducible verification artifacts are retained.
+
+After the V0.4 local delivery and its two UI review fixes, the user requested
+the next roadmap stage on 2026-10-23. This authorizes complete local V0.5
+implementation and verification against docs/V0.5_SPEC.md and K01-K12.
+Use schema 8 / balance 0.5.0, preserving genuine schemas 1-7, the V0.4 old
+offline interval, and all existing content. This task does not authorize a
+commit, push, public deployment, V0.6, or contacting human playtesters.
+The public site remains V0.3.3; human feedback remains unsampled.
+
+The complete local V0.5 delivery is verified against K01-K12: 296 distinct
+unit/storage tests (261 baseline/save cases plus 35 focused calendar cases,
+with scoped reruns recorded separately), all 48 browser tests, type checking,
+production build and isolated /DistrictZero/ preview passed. Genuine schemas
+1-7 and the original V0.4 offline reference are retained. See
+docs/VERIFICATION.md and docs/PLAYTEST.md for acceptance, measured costs and
+unsampled human feedback. Task-owned services on 5173/4173 are stopped.
+This completed local task does not authorize publishing V0.4/V0.5 or starting
+V0.6; source, fixtures, build and verification evidence remain in the workspace.
+
+On 2026-10-23, after the V0.5 review fix for reservation-source labels, the user
+explicitly requested publication. This authorizes committing and pushing the
+complete V0.4/V0.5 implementation and review fixes to master, publishing through
+the existing GitHub Pages workflow, verifying the public site, and synchronizing
+release documentation. Continue this unchanged outcome without repeated approval.
+Do not claim publication before the matching deployment and public checks pass.
+V0.6 and human-playtester contact remain outside this publishing task.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -115,6 +155,14 @@ shared UX19/UX20 boundaries, while retaining the original regressions.
 For V0.3.3 changes, read docs/V0.3.3_SPEC.md and section 19 of the expansion
 plan. Verify UX14–UX20, all five genuine migrations, old-rule offline settlement,
 whole-load reservations, vehicle snapshots and the complete two-device routes.
+For V0.4 changes, read docs/V0.4_SPEC.md and verify B01-B12 alongside the original
+regressions. Preserve its fixed costs, scoped queue timing, support limits and
+two-device routes; do not change values to make a test pass.
+For V0.5 changes, read docs/V0.5_SPEC.md and verify K01-K12 alongside all prior
+regressions. Preserve fixed costs, 600-second rounds, stored-time conservation,
+finite orders and calibration, whole-batch input/output holds, and genuine
+schemas 1-7 migration. Calendar acceleration advances only the selected
+external node through the shared production function, never the world clock.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 
@@ -201,6 +249,39 @@ explicit captured time, then activate target contracts and new reservations.
 Keep the engine independent of wall-clock access. Interrupted settlement retains
 the last fully valid state for retry; initial long settlement saves only once to
 preserve the pre-migration recovery copy. P11 compatibility is per old queue item.
+
+Local V0.4 uses independent outposts, not city.districts. At most one map is
+active; sealed maps keep their inventory and results without simulation. All
+outpost crew retain their original beds and count against home availability.
+The global queue has at most three projects and fixes one head per second;
+only its scope can supply repair labor or costs. Outpost refunds remain local.
+Outpost components are produced locally, never transferred from home.
+
+src/game/outposts.ts holds explicit local rules; outpost-save.ts validates their
+provenance, scope and conservation. Initial transfers and finite supply packages
+use supportSent/supportReceived, not the night-network import/export ledger.
+One package can be in transit, its whole destination space is reserved, and
+each map can send at most four additional packages over its lifetime. Arrival
+happens after local production, so cargo is usable on the next second. Sealing
+requires no local queued project or in-transit package and explicit clearing of
+any future supply list. Reopening never refreshes supplies, allowances or rewards.
+Knowledge requires manual one-time handoff; it never enables an arrangement.
+Genuine schemas 1-6 must reject new outpost fields before migration. Empty
+outposts preserve the released V0.3.3 offline economy; schemas 1-5 retain the
+existing legacyPending settlement boundary.
+
+Local V0.5 keeps calendar state independent of inventory resources. P13 records
+its unique simulation-time origin; L05 decisions remain manual. Storage and
+scheduling start disabled. Each second can capture one paid second, prepare
+one complete local batch, and execute at most the fixed calendar head.
+Arrivals occur before calendar preparation; ordinary node production then
+honors held inputs and output space. Capturing time and spending it happen
+after existing network, field and outpost support work. A boost spends 60
+stored seconds and one allowance, runs 60 shared node-production steps and
+does not advance any other system. Cancellation releases logical holds without
+moving inventory. Calendar service uses the existing global home work queue
+and increments a separate repeatable counter. Never auto-fill orders, change
+node modes/contracts, or refresh allowances on reopening.
 
 ## Required Behavior
 

@@ -1,0 +1,61 @@
+.outposts-page{min-width:0;overflow-wrap:anywhere}
+.outposts-page h3{margin:12px 0 8px}
+.outposts-page .panel-title h3{margin:0}
+.outposts-page p+p{margin-top:9px}
+.outposts-page button,.outposts-page input,.outposts-page select{min-height:44px;max-width:100%}
+.outposts-page button{white-space:normal}
+.outposts-page select,.outposts-page input{background:var(--panel-alt);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:8px;font:inherit;min-width:0;width:100%}
+.outposts-page input[type=checkbox],.outposts-page input[type=radio]{width:20px;height:20px;min-height:20px;flex:0 0 20px;accent-color:var(--amber)}
+.outposts-page fieldset{min-width:0;margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:6px}
+.outposts-page legend{padding:0 6px;font-size:12px}
+.outposts-page details{margin-top:12px}
+.outposts-page details summary{padding:10px 0;min-height:44px}
+.outposts-page ul,.outposts-page ol{padding-left:22px;margin:12px 0}
+.outpost-map-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.outpost-map-card{display:flex;flex-direction:column;gap:9px;text-align:left;padding:17px!important;border:1px solid var(--line)!important;background:var(--panel)!important;border-radius:8px!important}
+.outpost-map-card[aria-pressed=true]{border-color:var(--amber)!important;background:var(--panel-alt)!important}
+.outpost-map-card strong{font-size:19px;color:var(--text)}
+.outpost-map-card span:not(.eyebrow),.outpost-map-card small{font-size:12px;line-height:1.7;color:var(--muted)}
+.outpost-registration,.outpost-deployment,.outpost-lightframe{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.outpost-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.outpost-fields label,.outpost-source{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px}
+.outpost-preview{font-size:12px;color:var(--muted);line-height:1.9}
+.outpost-stocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.outpost-stock{padding:10px;border:1px solid var(--line);border-radius:6px;margin-top:0!important;min-width:0}
+.outpost-stock summary{display:flex;flex-direction:column;gap:5px}
+.outpost-stock strong{font-weight:500;font-variant-numeric:tabular-nums}
+.outpost-stock small{font-size:11px;color:var(--muted)}
+.outposts-page .stepper button{width:44px;min-width:44px;padding:0;min-height:44px}
+.outposts-page .stepper{gap:4px}
+.outposts-page .assignment-row{gap:10px;flex-wrap:wrap}
+.outpost-crew li{margin-bottom:12px}
+.outpost-crew li span{display:block;margin-bottom:7px;font-size:12px}
+.outpost-source{margin:12px 0}
+.outpost-project{padding:14px;border:1px solid var(--line);border-radius:6px}
+.outpost-proof label,.outpost-checkbox{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:12px}
+.outpost-facilities{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.outpost-facilities .facility-card{min-width:0}
+.outpost-policies{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.outpost-policies button{display:flex;flex-direction:column;gap:5px;align-items:flex-start;text-align:left;padding:10px}
+.outpost-policies span,.outpost-policies small{font-size:11px}
+.outpost-priority li{padding:8px 0}
+.outpost-priority li>span{display:block;margin-bottom:5px}
+.outpost-support-draft li{padding:8px 0}
+.outpost-support-draft li>span{display:block;margin-bottom:6px}
+.outpost-budget{padding:10px;background:var(--panel-alt);border-left:2px solid var(--amber);font-size:12px}
+.outpost-handoff{padding:12px 0;border-top:1px solid var(--line);margin-top:12px}
+.outpost-handoff p{font-size:12px;margin-bottom:10px}
+.outpost-scene{margin-top:15px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.outpost-scene svg{display:block;width:100%;height:auto}
+.outpost-scene .street-life{padding:8px 12px}
+.outpost-report-site{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.outpost-report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.outpost-report-grid article{border:1px solid var(--line);padding:10px;border-radius:5px}
+.outpost-report-grid h4{font-size:13px;margin:0 0 8px}
+.outpost-report-grid dl{font-size:11px;margin:0}
+.outpost-report-grid dl div{margin:7px 0}
+.outpost-report-grid dt{color:var(--muted)}
+.outpost-report-grid dd{margin:2px 0;font-variant-numeric:tabular-nums}
+@media(max-width:720px){.outpost-map-grid,.outpost-facilities,.outpost-fields{grid-template-columns:minmax(0,1fr)}.outpost-policies{grid-template-columns:minmax(0,1fr)}.outpost-policies button{flex-direction:row;align-items:center;flex-wrap:wrap}.outposts-page .panel-title{align-items:flex-start}.outposts-page .button-row{flex-wrap:wrap}}
+@media(max-width:400px){.outpost-stocks,.outpost-report-grid{grid-template-columns:minmax(0,1fr)}.outposts-page .assignment-row{flex-direction:column}.outposts-page .panel{padding:14px}.outposts-page .project-facts{gap:8px}.outposts-page .prefab-choice{flex-direction:column;align-items:stretch}}
+@media(prefers-reduced-motion:reduce){.outposts-page *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

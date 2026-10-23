@@ -1,4 +1,4 @@
-import { preExpansion } from '../legacy-shape';
+import { preExpansion, preOutposts } from '../legacy-shape';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { RESOURCES } from '../../src/game/config';
@@ -78,7 +78,7 @@ describe('V0.2 migration and address network', () => {
   });
   it('C01: migrates a genuine V0.1 browser save without changing original progress', () => {
     const raw = JSON.parse(oldText), migrated = decodeSave(oldText);
-    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.migratedFrom).toBe(1); expect(migrated.schemaVersion).toBe(8);
     for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'clock', 'history', 'address'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
     expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: { energy: 0, parts: 0, memory: 0 }, imports: { energy: 0, parts: 0, memory: 0 } }));
     expect(migrated.state.city).toEqual({ districts: {}, templates: [], maintenance: 0 });
@@ -94,7 +94,7 @@ describe('V0.2 migration and address network', () => {
     delete raw.state.network; delete raw.state.city; delete raw.state.publicWorks; delete raw.state.autoRepair; delete raw.state.report.maintenance;
     raw.state.queue.forEach((p: Record<string, unknown>) => { delete p.district; });
     const migrated = decodeSave(JSON.stringify(raw)).state;
-    expect(migrated.queue).toEqual(s.queue); expect(migrated.clock).toEqual(s.clock); expect(migrated.ledger).toEqual(s.ledger); expect(preExpansion(migrated.report)).toEqual(preExpansion(s.report));
+    expect(preOutposts(migrated.queue)).toEqual(preOutposts(s.queue)); expect(migrated.queue.every(p => !p.outpost && !p.proof)).toBe(true); expect(migrated.clock).toEqual(s.clock); expect(migrated.ledger).toEqual(s.ledger); expect(preExpansion(migrated.report)).toEqual(preExpansion(s.report));
     const resumed = act(migrated, { type: 'resume', uid: migrated.queue[0].uid });
     expect(advance(resumed, 100000).facilities.generator).toBe(2);
     const broken = structuredClone(raw); broken.state.queue[0].reserved.parts++;

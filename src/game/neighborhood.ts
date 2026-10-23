@@ -124,7 +124,7 @@ export function fieldClueKnown(s: GameState, id: FieldSite): boolean {
     : id === 'F05' ? commissionDone(s, 'CM05-1') : id === 'F06' ? commissionDone(s, 'CM06-1') || Boolean(s.experience.story['L03-3']) : commissionDone(s, id === 'F03' ? 'CM02-1' : 'CM03-1');
 }
 export const fieldWorkers = (s: GameState, id: DistrictId, resident: Resident) => Number(s.neighborhood.field.active?.district === id && s.neighborhood.field.active.resident === resident);
-export const idleResidents = (s: GameState, id: DistrictId, resident: Resident) => { const d = districtState(s, id); return d ? localFree(d, resident) - awayWorkers(s, id, resident) - fieldWorkers(s, id, resident) : 0; };
+export const idleResidents = (s: GameState, id: DistrictId, resident: Resident) => { const d = districtState(s, id); return d ? localFree(d, resident) - awayWorkers(s, id, resident) - fieldWorkers(s, id, resident) - s.outposts.crew.filter(p => p.district === id && p.resident === resident).length : 0; };
 export function fieldStartReason(s: GameState, order: FieldOrder, kind: FieldKind): string | null {
   const open = fieldOpenReason(s, order.site);
   if (open) return open;

@@ -1,0 +1,50 @@
+/* Calendar controls reflect the saved simulation; drafts have no economic effect. */
+.calendar-page, .calendar-page section, .calendar-page article { min-width: 0; }
+.calendar-page p, .calendar-report p { overflow-wrap: anywhere; }
+.calendar-page .panel-title { flex-wrap: wrap; gap: 10px; }
+.calendar-page .caption { white-space: normal; }
+.calendar-intro h2 { font: 25px/1.5 "Songti SC", "STSong", serif; margin: 10px 0; }
+.calendar-clocks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.calendar-clocks article { border: 1px solid var(--line); border-radius: 6px; padding: 12px; background: var(--panel-alt); }
+.calendar-clocks h3 { color: var(--amber); }
+.calendar-clocks p { margin-top: 9px; font-size: 12px; }
+.calendar-clocks .tag { display: inline-block; margin-top: 12px; }
+.calendar-total { color: var(--amber); font-variant-numeric: tabular-nums; margin: 14px 0; }
+.calendar-total strong { font-size: 27px; }
+.calendar-storage > p { margin-top: 12px; }
+.calendar-target { display: block; max-width: 240px; margin-top: 18px; }
+.calendar-reserves, .calendar-order-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 15px 0; }
+.calendar-page label { min-width: 0; color: var(--muted); font-size: 12px; }
+.calendar-page input, .calendar-page select { display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 44px; padding: 8px; margin-top: 6px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; }
+.calendar-page button { min-height: 44px; max-width: 100%; white-space: normal; }
+.calendar-draft { border: 1px dashed var(--line); background: var(--panel-alt); border-radius: 6px; padding: 14px; margin: 18px 0; }
+.calendar-draft > p, .calendar-order > p, .calendar-supply > p { margin-top: 10px; }
+.calendar-draft > button { margin-top: 14px; }
+.calendar-order-heading { margin-top: 22px; }
+.calendar-order, .calendar-supply { border-top: 1px solid var(--line); padding-top: 17px; margin-top: 18px; }
+.calendar-order h4 { color: var(--amber); font-size: 14px; }
+.calendar-stock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 15px 0; }
+.calendar-stock-grid > div { border-left: 2px solid var(--line); padding-left: 10px; min-width: 0; }
+.calendar-stock-grid h4 { font-weight: 500; color: var(--amber); font-size: 12px; }
+.calendar-stock-grid p { margin-top: 5px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.calendar-history { padding-left: 20px; margin: 14px 0; }
+.calendar-history li { padding: 12px 0; border-top: 1px solid var(--line); }
+.calendar-history strong { font-size: 12px; }
+.calendar-history p { margin-top: 6px; }
+.calendar-report { padding-top: 15px; margin-top: 16px; border-top: 1px solid var(--line); }
+.calendar-report > p { margin-top: 9px; }
+.calendar-page details > summary { min-height: 44px; }
+.calendar-page [data-testid="calendar-service"] > .quiet { margin-top: 10px; }
+/* Nine progressively revealed pages must remain reachable on narrow screens. */
+.tabs:has([aria-label="历法"]) { flex-wrap: wrap; }
+@media (max-width: 760px) {
+  .calendar-clocks { grid-template-columns: minmax(0, 1fr); }
+  .calendar-reserves, .calendar-order-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calendar-page input, .calendar-page select { font-size: 16px; }
+  .calendar-intro h2 { font-size: 22px; }
+}
+@media (max-width: 360px) {
+  .calendar-reserves, .calendar-order-fields, .calendar-stock-grid { grid-template-columns: minmax(0, 1fr); }
+  .calendar-page .button-row { gap: 8px; }
+  .calendar-page .button-row button { flex: 1 1 auto; }
+}

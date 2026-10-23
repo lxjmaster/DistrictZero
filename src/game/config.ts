@@ -1,7 +1,7 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.3.3';
+export const BALANCE_VERSION = '0.5.0';
 export const BASE_RESOURCES = ['energy', 'parts', 'memory'] as const;
 export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component', 'rainFilm', 'railCore'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record', 'assemble'];
@@ -9,9 +9,9 @@ export const WORK_JOBS = ['salvage', 'repair', 'record', 'assemble'] as const;
 export const RESIDENTS: Resident[] = ['shadow', 'echo'];
 export const FACILITY_IDS: Facility[] = ['generator', 'recycler', 'workbench', 'dorm', 'warehouse', 'mailbox'];
 export const EVENT_IDS: EventId[] = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'E09', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15'];
-export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds', 'exports', 'imports', 'fulfillment', 'fieldReserved'];
+export const FLOWS: Flow[] = ['production', 'rewards', 'operating', 'reserved', 'refunds', 'exports', 'imports', 'fulfillment', 'fieldReserved', 'supportSent', 'supportReceived'];
 export const resourceNames = { energy: '电量', parts: '零件', memory: '记忆', component: '标准构件', rainFilm: '雨声胶片', railCore: '轨芯' };
-export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '实际返还', exports: '发出货物', imports: '运回物资', fulfillment: '支线与委托支出', fieldReserved: '外勤补给预留' };
+export const flowNames = { production: '实际生产', rewards: '领取奖励', operating: '运行消耗', reserved: '工程预留', refunds: '实际返还', exports: '发出货物', imports: '运回物资', fulfillment: '支线与委托支出', fieldReserved: '外勤补给预留', supportSent: '分所支援发出', supportReceived: '分所支援收到' };
 export const residentNames = { shadow: '影子居民', echo: '回声居民' };
 export const jobNames = { power: '发电工', salvage: '回收工', repair: '维修工', record: '记录员', assemble: '装配工' };
 export const jobFacility: Record<Job, Facility> = { power: 'generator', salvage: 'recycler', repair: 'workbench', record: 'mailbox', assemble: 'workbench' };
@@ -38,6 +38,11 @@ export const FACILITIES: Record<Facility, { name: string; cost: Amounts; work: n
   mailbox: { name: '回声信箱', cost: cost(45, 20, 4), work: 150000, description: '邮件偶尔先于寄件人到达。开放记录员，提高记忆效率与岗位容量。', mark: '06' }
 };
 export const PROJECTS = {
+  P13: { id: 'P13', name: '修复街区校时台', description: '为三地历法建立共同原点。开放300秒储时容量与6次校准余量；储时和排程仍等你手动启用。', cost: cost(120, 100, 40, 4), work: 480000 },
+  P14: { id: 'P14', name: '给雨城标出同一天', description: '雨城实际完成一次历法加工后，扩充储时容量至600秒。既有目标不会自动提高。', cost: cost(90, 80, 35, 3), work: 360000 },
+  P15: { id: 'P15', name: '接上长站的日期', description: '长站实际完成一次历法加工后，明确排程上限由1项增至3项，不自动续填。', cost: cost(100, 90, 40, 4), work: 420000 },
+  P16: { id: 'P16', name: '把日期写进共同名录', description: '经历真实跨轮加工之后，把三地的今天写进同一份名录，完成历法维修。', cost: cost(150, 120, 60, 6), work: 600000 },
+  P12: { id: 'P12', name: '设立分所登记台', description: '带上旧城积累的办法与真实人手，在城市图的另一面开所。旧城继续工作，不会重置进度。', cost: cost(120, 80, 30, 2), work: 420000 },
   P01: { id: 'P01', name: '让临时路灯亮起', description: '先让经过的人看见这里。完成后开放宿舍与居民到达；事件奖励 6 记忆。', cost: cost(15, 10), work: 60000 },
   P02: { id: 'P02', name: '给站牌写上“0”', description: '空着的那一行，也是一条线路。完成后开放回声信箱；事件奖励 8 记忆。', cost: cost(20, 15), work: 120000 },
   P03: { id: 'P03', name: '修复旧站台', description: '让这里有地方可去。完成首章，登记第一个有效地址 0-001。', cost: cost(180, 100, 25), work: 900000 },

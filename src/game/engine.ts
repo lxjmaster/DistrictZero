@@ -8,6 +8,10 @@ import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_COST, VEHICLE_MOD_IDS,
 import { ASSEMBLY, assemblyRecipe, assemblyUnlocked, createExperience, MOD_IDS, pendingStories, prefabLimit, prefabricated, STORY_NAMES, storyAvailable } from './experience';
 import type { AssemblyMod, MailboxMod } from './types';
 import { COMMISSION_IDS, commissionDone, commissionVisible, createNeighborhood, deliverCommission, delegationReason, fieldOpenReason, fieldStartReason, heldFieldSupplies, idleResidents, MAIL_MOD_IDS, MAIL_MODS, NEIGHBORHOOD_RULES, recallField, claimField, startField, tickNeighborhood } from './neighborhood';
+import { completeOutpostProject, createOutposts, OUTPOST_IDS, OUTPOSTS, OUTPOST_PROJECTS, outpostAction, outpostDefinition, outpostLimits, outpostProjectReasons, outpostView, stationedWorkers, supportReason, tickOutpost, tickSupport } from './outposts';
+import type { OutpostId } from './types';
+import { createCalendar, CALENDAR_RULES } from './calendar-config';
+import { calendarAction, calendarReasons, prepareCalendar, summarizeCalendar, tickCalendar } from './calendar';
 
 export function emptyLedger(): Ledger {
   return Object.fromEntries(FLOWS.map(f => [f, amounts()])) as Ledger;
@@ -23,7 +27,7 @@ export function createGame(now = 0): GameState {
     nextProject: 1, theme: 'dark', report: null,
     history: [{ second: 0, text: '收到工务交接单：请让这里有地方可去。' }],
     publicWorks: emptyDistrict().publicWorks, autoRepair: false,
-    city: { districts: {}, templates: [], maintenance: 0 }, network: createNetwork(), experience: createExperience(), neighborhood: createNeighborhood()
+    city: { districts: {}, templates: [], maintenance: 0 }, network: createNetwork(), experience: createExperience(), neighborhood: createNeighborhood(), outposts: createOutposts(), calendar: createCalendar()
   };
 }
 export const populationCapacity = (s: GameState, id: DistrictId = 'district-0') => localBeds(districtState(s, id)!, id);
@@ -49,8 +53,13 @@ export function activateNetworkRules(state: GameState, at: number): GameState {
   s.network.legacyPending = false; s.network.rulesSince = Math.max(s.clock.lastAt, Math.floor(at));
   return s;
 }
-export const projectKey = (p: Pick<Project, 'definition' | 'targetLevel'> & { district?: DistrictId }) => scopedKey(p.definition.startsWith('build:') ? `${p.definition}:${p.targetLevel}` : p.definition, p.district);
+export const projectKey = (p: Pick<Project, 'definition' | 'targetLevel'> & { district?: DistrictId; outpost?: OutpostId | null }) => p.outpost ? `${p.outpost}@${p.definition.startsWith('build:') ? `${p.definition}:${p.targetLevel}` : p.definition}` : scopedKey(p.definition.startsWith('build:') ? `${p.definition}:${p.targetLevel}` : p.definition, p.district);
+export function projectDefinition(s: GameState, p: Project): ProjectDefinition {
+  return p.outpost ? outpostDefinition(s, p.outpost, p.definition, p.targetLevel, p.prefab) : definitionFor(s, p.definition, p.targetLevel, p.district, p.prefab);
+}
+export const projectLocation = (p: Project) => p.outpost ? `分所 · ${OUTPOSTS[p.outpost].name}` : `旧城 · ${DISTRICTS[p.district].name}`;
 function baseDefinitionFor(s: GameState, id: DefinitionId, targetLevel?: number, district: DistrictId = 'district-0'): ProjectDefinition {
+  if (id === 'calendar:service') return { id, name: '校准走失的刻度', description: '共用旧城工务和维修工；完成补3次校准余量，最多6次。不会填充时间或启用排程。', cost: CALENDAR_RULES.serviceCost, work: CALENDAR_RULES.serviceWork };
   if (id.startsWith('vehiclemod:')) {
     const mod = id.slice(11) as VehicleMod;
     return { id, name: `制作${VEHICLE_MODS[mod].name}`, description: VEHICLE_MODS[mod].text, cost: VEHICLE_COST, work: VEHICLE_WORK };
@@ -83,6 +92,10 @@ export function definitionFor(s: GameState, id: DefinitionId, targetLevel?: numb
 export function unlockReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0', legacyChapter = false): string | null {
   const local = districtState(s, district);
   if (!local) return '先测绘这个街区';
+  if (id === 'calendar:service') {
+    if (district !== 'district-0' || !s.completed.includes('P13')) return '先修复校时台，在第0街区安排校准';
+    return s.calendar.allowance > 3 ? '校准余量不超过3次时才需要校准' : null;
+  }
   if (id.startsWith('vehiclemod:')) {
     const mod = id.slice(11) as VehicleMod;
     if (!VEHICLE_MOD_IDS.includes(mod) || district !== 'district-0') return '请选择全网车辆方案，在第0街区制作';
@@ -135,6 +148,11 @@ export function unlockReason(s: GameState, id: DefinitionId, district: DistrictI
   if (!Object.hasOwn(PROJECTS, id)) return '未知工程';
   if (district !== 'district-0') return '主线与研究统一在第0街区安排';
   if (s.completed.includes(id)) return '已经完成';
+  if (id === 'P12' && !s.experience.story['L04-1']) return '先归档第三章与L03来信，再阅读另一面等开门的信';
+  if (id === 'P13' && !s.experience.story['L05-1']) return '先读完两份分所地址的来信与日期为0的维修单';
+  if (id === 'P14' && (!s.completed.includes('P13') || s.calendar.boosts.rain.normal + s.calendar.boosts.rain.specialty < 1)) return '先修复校时台，并在雨城实际完成一次历法加工';
+  if (id === 'P15' && (!s.completed.includes('P14') || s.calendar.boosts.station.normal + s.calendar.boosts.station.specialty < 1)) return '先给雨城标出同一天，并在长站实际完成一次历法加工';
+  if (id === 'P16' && (!s.completed.includes('P15') || s.calendar.crossRound < 1)) return '先接上长站的日期，并实际完成至少一项跨轮加工';
   if (id === 'P02' && !s.completed.includes('P01')) return '先让临时路灯亮起';
   if (id === 'P03') {
     if (!s.completed.includes('P02')) return '先给站牌写上“0”';
@@ -172,11 +190,11 @@ export function unlockReason(s: GameState, id: DefinitionId, district: DistrictI
   return null;
 }
 export function enqueueReason(s: GameState, id: DefinitionId, district: DistrictId = 'district-0'): string | null {
-  const base = unlockReason(s, id, district) ?? (s.queue.some(p => p.definition === id && p.district === district) ? '已在工务队列中' : s.queue.length >= RULES.maxQueue ? '工务队列已满（最多 3项）' : null);
+  const base = unlockReason(s, id, district) ?? (s.queue.some(p => !p.outpost && p.definition === id && p.district === district) ? '已在工务队列中' : s.queue.length >= RULES.maxQueue ? '工务队列已满（最多 3项）' : null);
   if (base) return base;
   const d = districtState(s, district)!;
   const newPlot = (id.startsWith('build:') && !d.facilities[id.slice(6) as Facility]) || id.startsWith('public:');
-  const planned = s.queue.filter(p => p.district === district && ((p.definition.startsWith('build:') && p.targetLevel === 1) || p.definition.startsWith('public:'))).length;
+  const planned = s.queue.filter(p => !p.outpost && p.district === district && ((p.definition.startsWith('build:') && p.targetLevel === 1) || p.definition.startsWith('public:'))).length;
   return newPlot && plotsUsed(d) + planned >= DISTRICTS[district].plots ? '地块已被待建工程预留' : null;
 }
 export function missingCost(s: GameState, c: Amounts): string[] {
@@ -184,6 +202,7 @@ export function missingCost(s: GameState, c: Amounts): string[] {
 }
 export function projectReasons(s: GameState, p = s.queue[0]): string[] {
   if (!p) return ['尚未安排工程'];
+  if (p.outpost) return outpostProjectReasons(s, p);
   if (p.status === 'paused') return ['项目已暂停，等待继续'];
   const reasons: string[] = [];
   if (!cityWorkers(s, 'repair')) reasons.push('未分配维修工');
@@ -300,7 +319,10 @@ function triggerEvents(s: GameState, services?: Services) {
 }
 function completeProject(s: GameState, p: Project) {
   const d = districtState(s, p.district)!;
-  if (p.definition.startsWith('route:')) {
+  if (p.definition === 'calendar:service') {
+    s.calendar.allowance += CALENDAR_RULES.serviceAllowance;
+    s.calendar.services += 1;
+  } else if (p.definition.startsWith('route:')) {
     s.network.routes[p.definition.slice(6) as RouteId].condition = NETWORK_RULES.condition;
     s.network.maintenance += 1;
   } else if (p.definition.startsWith('maintain:')) {
@@ -310,6 +332,7 @@ function completeProject(s: GameState, p: Project) {
     const key = projectKey(p);
     if (!s.completed.includes(key)) {
       s.completed.push(key);
+      if (p.definition === 'P13') { s.calendar.originSecond = s.clock.seconds; s.calendar.allowance = CALENDAR_RULES.initialAllowance; }
       if (p.definition.startsWith('build:')) d.facilities[p.definition.slice(6) as Facility] = p.targetLevel;
       if (p.definition.startsWith('public:')) d.publicWorks[p.definition.slice(7) as PublicFacility] = { built: true, enabled: true, condition: CITY_RULES.condition };
       if (p.definition.startsWith('vehiclemod:')) s.network.vehicle.built.push(p.definition.slice(11) as VehicleMod);
@@ -334,7 +357,7 @@ function completeProject(s: GameState, p: Project) {
 }
 function pushProject(s: GameState, definition: DefinitionId, district: DistrictId, prefab = 0) {
   const targetLevel = definition.startsWith('build:') ? districtState(s, district)!.facilities[definition.slice(6) as Facility] + 1 : 1;
-  s.queue.push({ uid: `q-${s.nextProject++}`, definition, district, targetLevel, prefab, legacyChapter: false, status: 'waiting', progress: 0, reserved: amounts() });
+  s.queue.push({ uid: `q-${s.nextProject++}`, definition, district, targetLevel, prefab, legacyChapter: false, outpost: null, proof: null, status: 'waiting', progress: 0, reserved: amounts() });
 }
 function scheduleMaintenance(s: GameState) {
   if (!s.completed.includes('R04')) return;
@@ -353,6 +376,8 @@ interface ProductionBudget { district: DistrictId; job: 'salvage' | 'record' | '
 function tick(s: GameState): TickResult {
   s.clock.seconds += 1;
   scheduleMaintenance(s);
+  // Freeze the single eligible project for this entire logical second.
+  const fixedHead = s.queue[0];
   const result: TickResult = { lightOn: false, services: {}, lightingCost: 0, publicCost: 0, output: { power: 0, salvage: 0, repair: 0, record: 0, assemble: 0 }, costs: { power: amounts(), salvage: amounts(), repair: amounts(), record: amounts(), assemble: amounts() }, reasons: [] };
   const capacity = stockLimits(s), districts = activeDistricts(s), powerWanted = powerBudget(s);
   result.output.power = perform(s, powerWanted, amounts(), capacity.energy - s.resources.energy, 'energy');
@@ -373,8 +398,8 @@ function tick(s: GameState): TickResult {
   for (const job of s.priority) {
     const priorCosts = { ...s.ledger.operating };
     if (job === 'repair') {
-      const p = s.queue[0], count = cityWorkers(s, 'repair');
-      if (!count || !p || p.status === 'paused') continue;
+      const p = fixedHead, count = cityWorkers(s, 'repair');
+      if (!count || !p || p.outpost || p.status === 'paused') continue;
       if (p.status === 'waiting') {
         if (projectReasons(s, p).length) continue;
         if (p.definition === 'P07' && !p.legacyChapter && !DISTRICT_IDS.every(id => budget.services[id]?.light)) continue;
@@ -455,9 +480,13 @@ function tick(s: GameState): TickResult {
       log(s, `${type === 'echo' ? '回声居民入住，带来一些旧声音。' : '影子居民入住，带来一袋无人认领的螺丝。'}${id === 'district-0' ? '' : `住处：${DISTRICTS[id].name}。`}`);
     }
   } else s.arrivalSeconds = 0;
+  const outpostCompleted = tickOutpost(s, fixedHead);
   if (completed) completeProject(s, completed);
-  tickNetwork(s, capacities(s), text => log(s, text));
+  else if (outpostCompleted) { completeOutpostProject(s, outpostCompleted); s.queue.shift(); }
+  tickNetwork(s, capacities(s), text => log(s, text), () => prepareCalendar(s));
   tickNeighborhood(s, stockLimits(s), id => budget.services[id]?.light ?? false, text => log(s, text));
+  tickSupport(s);
+  tickCalendar(s, text => log(s, text));
   triggerEvents(s, budget.services);
   return result;
 }
@@ -478,6 +507,15 @@ export function advanceTo(s: GameState, now: number): GameState {
   return advanced;
 }
 export function goal(s: GameState): string {
+  if (s.experience.story['L05-4']) return '今天有了共同的名字。怎样保存与续建，留给下一份城市公约。';
+  if (s.completed.includes('P16')) return '读完共同名录的来信，留下三地历法维修的结果';
+  if (s.completed.includes('P15')) return '明确安排一次跨轮加工，把日期写进共同名录';
+  if (s.completed.includes('P14')) return '给长站提前备料，在重叠窗口实际完成历法加工';
+  if (s.completed.includes('P13')) return s.experience.story['L05-2'] ? '保存时间、提前给雨城备料，在重叠窗口完成第一次历法加工' : '阅读储时来信，决定何时保存时间与安排加工';
+  if (s.experience.story['L05-1']) return '修复街区校时台，为三地的日期建立共同原点';
+  if (s.experience.story['L04-4']) return '两份地址都能收到信。旧城与分所，各自留下了下一班的位置。';
+  if (s.completed.includes('P12')) return s.outposts.active ? `经营${OUTPOSTS[s.outposts.active].name}，为另一面留下真实地址` : '阅读开所来信，选择两位空闲居民，启用一处分所';
+  if (s.experience.story['L04-1']) return '设立分所登记台，把积累的办法带到另一面';
   if (s.completed.includes('P11')) return '末班车每天抵达。下一张城市图，正等待一间分所。';
   if (s.completed.includes('P07')) {
     if (s.events.E10?.status !== 'claimed') return '归档雨城的来信，开始修复末班车厢';
@@ -507,14 +545,17 @@ export function goal(s: GameState): string {
 }
 export function view(s: GameState) {
   const next = structuredClone(s);
+  const currentProject = next.queue[0], priorProgress = currentProject?.progress ?? 0;
   const tickResult = tick(next);
   const net = amounts(), production = amounts(), operating = amounts();
   for (const r of RESOURCES) {
     production[r] = next.ledger.production[r] - s.ledger.production[r];
     operating[r] = next.ledger.operating[r] - s.ledger.operating[r];
-    net[r] = production[r] - operating[r] + next.ledger.imports[r] - s.ledger.imports[r] - next.ledger.exports[r] + s.ledger.exports[r] + next.ledger.rewards[r] - s.ledger.rewards[r] - next.ledger.fulfillment[r] + s.ledger.fulfillment[r] - next.ledger.fieldReserved[r] + s.ledger.fieldReserved[r];
+    net[r] = production[r] - operating[r] + next.ledger.imports[r] - s.ledger.imports[r] - next.ledger.exports[r] + s.ledger.exports[r] + next.ledger.rewards[r] - s.ledger.rewards[r] - next.ledger.fulfillment[r] + s.ledger.fulfillment[r] - next.ledger.fieldReserved[r] + s.ledger.fieldReserved[r] - next.ledger.supportSent[r] + s.ledger.supportSent[r];
   }
-  const reasons = [...projectReasons(s), ...tickResult.reasons, ...networkReasons(s, capacities(s))];
+  const reasons = [...projectReasons(s), ...tickResult.reasons, ...networkReasons(s, capacities(s)), ...calendarReasons(s)];
+  if (s.outposts.active) reasons.push(...outpostView(s, s.outposts.active).reasons.map(why => `${OUTPOSTS[s.outposts.active!].name}：${why}`));
+  if (s.outposts.support.enabled && s.outposts.support.queue.length) { const why = supportReason(s); if (why) reasons.push(`分所支援：${why}`); }
   const field = s.neighborhood.field, plan = s.neighborhood.delegation;
   if (field.queue.length && !field.active) { const why = fieldStartReason(s, field.queue[0], 'supply'); if (why) reasons.push(`预排外勤：${why}`); }
   if (plan.enabled && plan.stages.length) { const why = delegationReason(s, servicePreview(s)[plan.district]?.light ?? false, stockLimits(s)); if (why) reasons.push(why); }
@@ -522,7 +563,7 @@ export function view(s: GameState) {
     const d = districtState(s, id)!;
     if (d.autoRepair && PUBLIC_IDS.some(f => d.publicWorks[f].built && d.publicWorks[f].enabled && d.publicWorks[f].condition <= CITY_RULES.repairThreshold && !s.queue.some(p => p.district === id && p.definition === `maintain:${f}`))) reasons.push(`${DISTRICTS[id].name}自动巡检等待队列空位`);
   }
-  return { capacities: capacities(s), net, production, operating, costs: tickResult.costs, output: tickResult.output, lightOn: tickResult.lightOn, services: tickResult.services, lightingCost: tickResult.lightingCost, publicCost: tickResult.publicCost, reasons: [...new Set(reasons)], goal: goal(s) };
+  return { capacities: capacities(s), net, production, operating, costs: tickResult.costs, output: tickResult.output, projectOutput: currentProject ? currentProject.progress - priorProgress : 0, lightOn: tickResult.lightOn, services: tickResult.services, lightingCost: tickResult.lightingCost, publicCost: tickResult.publicCost, reasons: [...new Set(reasons)], goal: goal(s) };
 }
 export function summarize(before: GameState, after: GameState, awayMs: number): ReturnReport {
   const flows = emptyLedger();
@@ -544,15 +585,26 @@ export function summarize(before: GameState, after: GameState, awayMs: number): 
       , ...(after.neighborhood.field.returns > before.neighborhood.field.returns ? [`外勤已返程 ${after.neighborhood.field.returns - before.neighborhood.field.returns} 次，结果等你领取。`] : []),
       ...(after.neighborhood.delegation.deliveries > before.neighborhood.delegation.deliveries ? [`投递匣完成 ${after.neighborhood.delegation.deliveries - before.neighborhood.delegation.deliveries} 项已确认委托。`] : [])
     ].slice(0, 3),
-    neighborhood: { deliveries: after.neighborhood.delegation.deliveries - before.neighborhood.delegation.deliveries, fieldReturns: after.neighborhood.field.returns - before.neighborhood.field.returns, pending: after.neighborhood.field.pending.length, held: heldFieldSupplies(after) }
+    neighborhood: { deliveries: after.neighborhood.delegation.deliveries - before.neighborhood.delegation.deliveries, fieldReturns: after.neighborhood.field.returns - before.neighborhood.field.returns, pending: after.neighborhood.field.pending.length, held: heldFieldSupplies(after) },
+    ...(after.completed.includes('P13') ? { calendar: summarizeCalendar(before, after) } : {}),
+    outposts: OUTPOST_IDS.filter(id => after.outposts.sites[id]).map(id => {
+      const start = before.outposts.sites[id], end = after.outposts.sites[id]!, flows = emptyLedger();
+      for (const f of FLOWS) for (const r of RESOURCES) flows[f][r] = end.ledger[f][r] - (start?.ledger[f][r] ?? 0);
+      const active = after.outposts.active === id, sent = end.sent.light + end.sent.materials;
+      return { id, start: { ...(start?.resources ?? amounts()) }, end: { ...end.resources }, flows, active, completed: end.completed.filter(key => !start?.completed.includes(key)),
+        support: { sent, remaining: 4 - sent, queued: active ? after.outposts.support.queue.length : 0, inTransit: after.outposts.support.trip?.outpost === id ? { ...after.outposts.support.trip.cargo } : amounts() },
+        pending: end.completed.includes(`${id}-3`) && !end.handoff ? [`${OUTPOSTS[id].name}知识交接待确认`] : [],
+        reasons: [...outpostView(after, id).reasons, ...(active && after.outposts.support.queue.length && supportReason(after) ? [supportReason(after)!] : [])]
+      };
+    })
   };
 }
 export function refundPreview(s: GameState, p: Project) {
   const full = amounts(), actual = amounts(), overflow = amounts();
-  const work = definitionFor(s, p.definition, p.targetLevel, p.district, p.prefab).work;
+  const work = projectDefinition(s, p).work, stock = p.outpost ? s.outposts.sites[p.outpost]!.resources : s.resources, limits = p.outpost ? outpostLimits(s, p.outpost) : stockLimits(s);
   for (const r of RESOURCES) {
     full[r] = Math.floor(p.reserved[r] / UNIT * (work - p.progress) / work) * UNIT;
-    actual[r] = Math.min(full[r], stockLimits(s)[r] - s.resources[r]);
+    actual[r] = Math.max(0, Math.min(full[r], limits[r] - stock[r]));
     overflow[r] = full[r] - actual[r];
   }
   return { full, actual, overflow };
@@ -561,6 +613,16 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
   const s = structuredClone(state);
   const fail = (error: string) => ({ state, error });
   switch (action.type) {
+    case 'calendar-storage': case 'calendar-storage-pause': case 'calendar-toggle': case 'calendar-add': case 'calendar-cancel': case 'calendar-move': {
+      const reason = calendarAction(s, action);
+      if (reason) return fail(reason);
+      break;
+    }
+    case 'outpost-open': case 'outpost-seal': case 'outpost-reinforce': case 'outpost-recall': case 'outpost-assign': case 'outpost-priority': case 'outpost-lighting': case 'outpost-assembly': case 'outpost-mod': case 'outpost-enqueue': case 'outpost-handoff': case 'support-plan': case 'support-pause': {
+      const reason = outpostAction(s, action);
+      if (reason) return fail(reason);
+      break;
+    }
     case 'production-mode': {
       if (!ROUTE_IDS.includes(action.route) || !routeOpen(s, action.route) || !MODES.includes(action.mode) || s.network.legacyPending) return fail('请先通车并完成旧版时间结算');
       const node = s.network.routes[action.route].node;
@@ -711,9 +773,12 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
         p.status = 'running';
       } else {
         const refunds = refundPreview(s, p);
-        for (const r of RESOURCES) credit(s, r, refunds.actual[r], 'refunds');
+        if (p.outpost) {
+          const local = s.outposts.sites[p.outpost]!;
+          for (const r of RESOURCES) { local.resources[r] += refunds.actual[r]; local.ledger.refunds[r] += refunds.actual[r]; }
+        } else for (const r of RESOURCES) credit(s, r, refunds.actual[r], 'refunds');
         s.queue = s.queue.filter(item => item.uid !== action.uid);
-        log(s, `取消：${definitionFor(s, p.definition, p.targetLevel, p.district).name}，剩余费用已按容量返还。`);
+        log(s, `取消：${projectDefinition(s, p).name} · ${projectLocation(p)}，剩余费用已按容量返还。`);
       }
       break;
     }
@@ -778,7 +843,7 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       if (!t) return fail('模板不存在');
       if (action.type === 'template-delete') { s.city.templates = s.city.templates.filter(t => t.name !== action.name); break; }
       const d = districtState(s, t.district)!;
-      if (RESIDENTS.some(r => JOBS.reduce((n, j) => n + t.assignments[r][j], 0) + awayWorkers(s, t.district, r) + Number(s.neighborhood.field.active?.district === t.district && s.neighborhood.field.active.resident === r) > d.population[r])) return fail('模板所需居民不足或正在外派，当前安排保留');
+      if (RESIDENTS.some(r => JOBS.reduce((n, j) => n + t.assignments[r][j], 0) + awayWorkers(s, t.district, r) + Number(s.neighborhood.field.active?.district === t.district && s.neighborhood.field.active.resident === r) + stationedWorkers(s, t.district, r) > d.population[r])) return fail('模板所需居民不足或正在外派、分所派驻，当前安排保留');
       if (JOBS.some(j => RESIDENTS.reduce((n, r) => n + t.assignments[r][j], 0) > jobCapacity(s, j, t.district))) return fail('模板所需岗位容量不足，当前安排保留');
       if (RESIDENTS.reduce((n, r) => n + t.assignments[r].repair + t.assignments[r].assemble, 0) > jobCapacity(s, 'repair', t.district)) return fail('模板超过维修与装配共享岗位上限，当前安排保留');
       if (d.lighting !== t.lighting) {
@@ -869,6 +934,16 @@ export function parseCompletionKey(key: string): { district: DistrictId; local: 
   return null;
 }
 export function completionName(key: string): string {
+  if (key.includes('@')) {
+    const [id, local] = key.split('@') as [OutpostId, string];
+    if (!OUTPOST_IDS.includes(id)) return key;
+    const chapter = OUTPOST_PROJECTS[local as keyof typeof OUTPOST_PROJECTS];
+    if (chapter) return `${OUTPOSTS[id].name} · ${chapter.name}`;
+    if (local === 'lightFrame') return `${OUTPOSTS[id].name} · 回照灯架`;
+    if (local.startsWith('mod:') && MOD_IDS.includes(local.slice(4) as AssemblyMod)) return `${OUTPOSTS[id].name} · 制作${ASSEMBLY.recipes[local.slice(4) as AssemblyMod].name}`;
+    const match = /^build:([^:]+):([1-3])$/.exec(local);
+    return match && FACILITY_IDS.includes(match[1] as Facility) ? `${OUTPOSTS[id].name} · ${FACILITIES[match[1] as Facility].name} · ${match[2]}级` : key;
+  }
   const parsed = parseCompletionKey(key);
   if (!parsed) return key;
   const { district, local } = parsed;
