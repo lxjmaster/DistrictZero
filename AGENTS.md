@@ -199,9 +199,10 @@ the controller batch cap from 10,000 to 1,000 simulated seconds, based on measur
 production-build comparisons. Per-second economy, captured-time migration,
 whole-interval legacy rules, interrupted retry and first single save remain
 unchanged. Local verification and measurements are in docs/VERIFICATION.md.
-This maintenance is not committed or published under the completed release task;
-the public V0.6 still has the old batch cap. Preserve the earlier uncommitted
-compatibility configuration and documentation. Human sampling stays deferred.
+At that local checkpoint the maintenance was not committed or published, and
+the public V0.6 still had the old batch cap. The compatibility configuration
+and documentation were retained for the subsequent authorized publication.
+Human sampling stays deferred.
 
 On 2026-10-25 the user continued the explicitly identified next delivery step:
 review, commit and publish the local compatibility checks and long-settlement
@@ -211,6 +212,20 @@ necessary review fixes to master with the existing Pages deployment effect.
 The review found no blocking defect. Reuse the recorded local verification;
 verify the matching cloud run and deployed artifacts before claiming publication.
 Human playtesting remains deferred; new gameplay is outside this outcome.
+
+The maintenance is now published on 2026-10-25: commit `3625b6e`, successful
+Pages run 40168925170. The cloud passed all 330 unit/storage tests, type checking,
+build and deployment. Public HTML/JS/CSS/favicon match dist byte-for-byte, with
+`index-DoQiostp.js`. Six isolated desktop/320px public scenarios passed new saves,
+genuine schema 8 migration/recovery, complete import/reopening, provenance
+rejection, dual upkeep and pause. Four further public checks passed new saves
+and 24-hour complete-state/report equivalence; no >=50ms native long task was
+observed on this host. This is not real-phone or human-experience acceptance.
+Schema 9 / balance 0.6.0 and all economic rules remain unchanged. Browsers are
+closed and no local service was started. Evidence is retained under
+test-results/v06-maintenance-publication/ and docs/VERIFICATION.md. Publication
+documentation follows through the same workflow; verify its final run before
+reporting completion. No new gameplay or human contact is authorized here.
 
 ## Authoritative Design
 
