@@ -1,7 +1,7 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.5.0';
+export const BALANCE_VERSION = '0.6.0';
 export const BASE_RESOURCES = ['energy', 'parts', 'memory'] as const;
 export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component', 'rainFilm', 'railCore'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record', 'assemble'];
@@ -42,6 +42,9 @@ export const PROJECTS = {
   P14: { id: 'P14', name: '给雨城标出同一天', description: '雨城实际完成一次历法加工后，扩充储时容量至600秒。既有目标不会自动提高。', cost: cost(90, 80, 35, 3), work: 360000 },
   P15: { id: 'P15', name: '接上长站的日期', description: '长站实际完成一次历法加工后，明确排程上限由1项增至3项，不自动续填。', cost: cost(100, 90, 40, 4), work: 420000 },
   P16: { id: 'P16', name: '把日期写进共同名录', description: '经历真实跨轮加工之后，把三地的今天写进同一份名录，完成历法维修。', cost: cost(150, 120, 60, 6), work: 600000 },
+  P17: { id: 'P17', name: '摆开城市公约桌', description: '留下共同确认规则的位置；建成后仍需手动读信、选约和支付运行费用。', cost: cost(80, 100, 40, 4), work: 360000 },
+  P18: { id: 'P18', name: '给第二种约定留位置', description: '任一方向实际付费运行60秒并产生收益后，开放最多两条公约同时运行。', cost: cost(100, 120, 50, 4), work: 480000 },
+  P19: { id: 'P19', name: '把未来写成可修改的约定', description: '三方向都有真实成果、双约运行60秒后，把可调整的未来写进城市名录。', cost: cost(120, 150, 60, 6), work: 600000 },
   P12: { id: 'P12', name: '设立分所登记台', description: '带上旧城积累的办法与真实人手，在城市图的另一面开所。旧城继续工作，不会重置进度。', cost: cost(120, 80, 30, 2), work: 420000 },
   P01: { id: 'P01', name: '让临时路灯亮起', description: '先让经过的人看见这里。完成后开放宿舍与居民到达；事件奖励 6 记忆。', cost: cost(15, 10), work: 60000 },
   P02: { id: 'P02', name: '给站牌写上“0”', description: '空着的那一行，也是一条线路。完成后开放回声信箱；事件奖励 8 记忆。', cost: cost(20, 15), work: 120000 },

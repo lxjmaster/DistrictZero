@@ -209,7 +209,7 @@ for (const [version, resolution] of [
     }
     await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
     const resolved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVE_KEY);
-    expect(resolved.schemaVersion).toBe(8); expect(resolved.balanceVersion).toBe('0.5.0');
+    expect(resolved.schemaVersion).toBe(9); expect(resolved.balanceVersion).toBe('0.6.0');
   });
 }
 test('BT-08/FR-05/06: full storage, no repair worker, power exhaustion and recovery have visible reasons', async ({ page }) => {

@@ -12,6 +12,7 @@ import { completeOutpostProject, createOutposts, OUTPOST_IDS, OUTPOSTS, OUTPOST_
 import type { OutpostId } from './types';
 import { createCalendar, CALENDAR_RULES } from './calendar-config';
 import { calendarAction, calendarReasons, prepareCalendar, summarizeCalendar, tickCalendar } from './calendar';
+import { COVENANT_PROJECTS, covenantAction, covenantActive, covenantProjectReason, covenantReason, covenantWorkFactor, createCovenants, summarizeCovenants, tickCovenants } from './covenants';
 
 export function emptyLedger(): Ledger {
   return Object.fromEntries(FLOWS.map(f => [f, amounts()])) as Ledger;
@@ -27,7 +28,7 @@ export function createGame(now = 0): GameState {
     nextProject: 1, theme: 'dark', report: null,
     history: [{ second: 0, text: '收到工务交接单：请让这里有地方可去。' }],
     publicWorks: emptyDistrict().publicWorks, autoRepair: false,
-    city: { districts: {}, templates: [], maintenance: 0 }, network: createNetwork(), experience: createExperience(), neighborhood: createNeighborhood(), outposts: createOutposts(), calendar: createCalendar()
+    city: { districts: {}, templates: [], maintenance: 0 }, network: createNetwork(), experience: createExperience(), neighborhood: createNeighborhood(), outposts: createOutposts(), calendar: createCalendar(), covenants: createCovenants()
   };
 }
 export const populationCapacity = (s: GameState, id: DistrictId = 'district-0') => localBeds(districtState(s, id)!, id);
@@ -148,6 +149,7 @@ export function unlockReason(s: GameState, id: DefinitionId, district: DistrictI
   if (!Object.hasOwn(PROJECTS, id)) return '未知工程';
   if (district !== 'district-0') return '主线与研究统一在第0街区安排';
   if (s.completed.includes(id)) return '已经完成';
+  if (COVENANT_PROJECTS.some(project => project === id)) return covenantProjectReason(s, id);
   if (id === 'P12' && !s.experience.story['L04-1']) return '先归档第三章与L03来信，再阅读另一面等开门的信';
   if (id === 'P13' && !s.experience.story['L05-1']) return '先读完两份分所地址的来信与日期为0的维修单';
   if (id === 'P14' && (!s.completed.includes('P13') || s.calendar.boosts.rain.normal + s.calendar.boosts.rain.specialty < 1)) return '先修复校时台，并在雨城实际完成一次历法加工';
@@ -258,7 +260,7 @@ function serviceBudget(s: GameState, energy: number): { services: Services; ligh
   const services: Services = {}; let lighting = 0, upkeep = 0;
   const factor = s.events.E07?.choice === 'common' ? CITY_RULES.sharedUpkeep : 1;
   for (const id of activeDistricts(s)) {
-    const d = districtState(s, id)!, lightCost = Math.ceil(POLICIES[d.lighting].upkeep * factor);
+    const d = districtState(s, id)!, lightCost = Math.ceil(POLICIES[d.lighting].upkeep * factor * (covenantActive(s, 'preserve') ? 0.75 : 1));
     const service: Service = { light: energy >= lightCost, public: { relay: false, registry: false } };
     if (service.light) { energy -= lightCost; lighting += lightCost; }
     services[id] = service;
@@ -375,6 +377,7 @@ interface TickResult { lightOn: boolean; services: Services; lightingCost: numbe
 interface ProductionBudget { district: DistrictId; job: 'salvage' | 'record' | 'assemble'; wanted: number; inputs: Amounts; resource: keyof Amounts; capacityBlocked: boolean; produced: number; reserve?: Amounts }
 function tick(s: GameState): TickResult {
   s.clock.seconds += 1;
+  tickCovenants(s);
   scheduleMaintenance(s);
   // Freeze the single eligible project for this entire logical second.
   const fixedHead = s.queue[0];
@@ -384,6 +387,10 @@ function tick(s: GameState): TickResult {
   const budget = serviceBudget(s, s.resources.energy);
   result.services = budget.services; result.lightingCost = budget.lighting; result.publicCost = budget.upkeep;
   result.lightOn = budget.services['district-0']!.light;
+  if (covenantActive(s, 'preserve')) for (const id of districts) if (budget.services[id]!.light) {
+    const baseline = Math.ceil(POLICIES[districtState(s, id)!.lighting].upkeep * (s.events.E07?.choice === 'common' ? CITY_RULES.sharedUpkeep : 1));
+    s.covenants.lightSaved += baseline - Math.ceil(POLICIES[districtState(s, id)!.lighting].upkeep * (s.events.E07?.choice === 'common' ? CITY_RULES.sharedUpkeep : 1) * 0.75);
+  }
   spend(s, amounts(budget.lighting + budget.upkeep), 'operating');
   for (const id of districts) {
     const d = districtState(s, id)!, service = budget.services[id]!;
@@ -413,7 +420,9 @@ function tick(s: GameState): TickResult {
         inputs.energy += Math.ceil(INPUTS.repair.energy * count * factor);
         wanted += Math.round(BASE.repair * count * efficiency(s, 'repair', id) * (s.completed.includes('R01') ? RESEARCH_EFFECTS.R01 : 1));
       }
-      result.output.repair = perform(s, wanted, inputs, work - p.progress);
+      const baselineWork = Math.min(work - p.progress, Math.floor(wanted * (inputs.energy ? Math.min(1, s.resources.energy / inputs.energy) : 1) + 1e-9));
+      result.output.repair = perform(s, Math.round(wanted * covenantWorkFactor(s)), inputs, work - p.progress);
+      if (covenantActive(s, 'extend')) s.covenants.extraWork += Math.max(0, result.output.repair - baselineWork);
       p.progress += result.output.repair;
       if (p.progress >= work) completed = p;
       if (!result.output.repair) result.reasons.push('维修工等待电量');
@@ -441,7 +450,8 @@ function tick(s: GameState): TickResult {
       const specialized = s.address && specialization(d, service.light) === job ? CITY_RULES.specialization : 1;
       const publicFactor = job === 'record' && service.public.registry ? CITY_RULES.registryMemory : 1;
       const named = job === 'record' && s.events.E07?.choice === 'individual' ? CITY_RULES.namedMemory : 1;
-      const wanted = Math.round(BASE[job] * weightedWorkers(s, job, id) * efficiency(s, job, id) * lighting * research * specialized * publicFactor * named * (voice ? NEIGHBORHOOD_RULES.voiceOutput : 1));
+      const covenantFactor = job === 'record' && covenantActive(s, 'extend') || job === 'salvage' && covenantActive(s, 'coexist') ? 0.8 : 1;
+      const wanted = Math.round(BASE[job] * weightedWorkers(s, job, id) * efficiency(s, job, id) * lighting * research * specialized * publicFactor * named * (voice ? NEIGHBORHOOD_RULES.voiceOutput : 1) * covenantFactor);
       const room = capacity[output] - s.resources[output], produced = perform(s, wanted, inputs, room, output);
       result.output[job] += produced;
       production.push({ district: id, job, wanted, inputs, resource: output, capacityBlocked: room < wanted && produced === room, produced });
@@ -471,7 +481,7 @@ function tick(s: GameState): TickResult {
   if (powerWanted > result.output.power && s.resources.energy >= capacity.energy) result.reasons.push(result.output.power ? '电量满仓，发电工按消耗补充' : '电量满仓，发电工待命');
   const open = districts.filter(id => localCount(districtState(s, id)!) < localBeds(districtState(s, id)!, id));
   if (s.completed.includes('P01') && open.length) {
-    s.arrivalSeconds += 1;
+    if (!covenantActive(s, 'preserve') || s.clock.seconds % 5 !== 0) s.arrivalSeconds += 1;
     if (s.arrivalSeconds >= arrivalInterval(s)) {
       const type: Resident = s.arrivals < RULES.firstEchoArrivals ? 'echo' : (s.arrivals - RULES.firstEchoArrivals) % 2 === 0 ? 'shadow' : 'echo';
       const preferred = type === 'echo' ? 'bright' : 'dim';
@@ -507,6 +517,11 @@ export function advanceTo(s: GameState, now: number): GameState {
   return advanced;
 }
 export function goal(s: GameState): string {
+  if (s.experience.story['L06-4']) return '第0街区仍有下一页。公约可以调整，留下的真实成果已经归档。';
+  if (s.completed.includes('P19')) return '读完第0街区仍有下一页的来信，留下可修改的城市约定';
+  if (s.completed.includes('P18')) return '体验三种方向并留下实际收益，让双约付费运行60秒，完成公约名录';
+  if (s.completed.includes('P17')) return '读完规则来信，手动选约，付费运行60秒并取得真实收益';
+  if (s.experience.story['L06-1']) return '摆开城市公约桌，为共同承认的约定留一个位置';
   if (s.experience.story['L05-4']) return '今天有了共同的名字。怎样保存与续建，留给下一份城市公约。';
   if (s.completed.includes('P16')) return '读完共同名录的来信，留下三地历法维修的结果';
   if (s.completed.includes('P15')) return '明确安排一次跨轮加工，把日期写进共同名录';
@@ -554,6 +569,7 @@ export function view(s: GameState) {
     net[r] = production[r] - operating[r] + next.ledger.imports[r] - s.ledger.imports[r] - next.ledger.exports[r] + s.ledger.exports[r] + next.ledger.rewards[r] - s.ledger.rewards[r] - next.ledger.fulfillment[r] + s.ledger.fulfillment[r] - next.ledger.fieldReserved[r] + s.ledger.fieldReserved[r] - next.ledger.supportSent[r] + s.ledger.supportSent[r];
   }
   const reasons = [...projectReasons(s), ...tickResult.reasons, ...networkReasons(s, capacities(s)), ...calendarReasons(s)];
+  if (s.covenants.selected.length) { const reason = covenantReason(s); if (reason) reasons.push(reason); }
   if (s.outposts.active) reasons.push(...outpostView(s, s.outposts.active).reasons.map(why => `${OUTPOSTS[s.outposts.active!].name}：${why}`));
   if (s.outposts.support.enabled && s.outposts.support.queue.length) { const why = supportReason(s); if (why) reasons.push(`分所支援：${why}`); }
   const field = s.neighborhood.field, plan = s.neighborhood.delegation;
@@ -587,6 +603,7 @@ export function summarize(before: GameState, after: GameState, awayMs: number): 
     ].slice(0, 3),
     neighborhood: { deliveries: after.neighborhood.delegation.deliveries - before.neighborhood.delegation.deliveries, fieldReturns: after.neighborhood.field.returns - before.neighborhood.field.returns, pending: after.neighborhood.field.pending.length, held: heldFieldSupplies(after) },
     ...(after.completed.includes('P13') ? { calendar: summarizeCalendar(before, after) } : {}),
+    ...(after.completed.includes('P17') ? { covenants: summarizeCovenants(before, after) } : {}),
     outposts: OUTPOST_IDS.filter(id => after.outposts.sites[id]).map(id => {
       const start = before.outposts.sites[id], end = after.outposts.sites[id]!, flows = emptyLedger();
       for (const f of FLOWS) for (const r of RESOURCES) flows[f][r] = end.ledger[f][r] - (start?.ledger[f][r] ?? 0);
@@ -613,6 +630,11 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
   const s = structuredClone(state);
   const fail = (error: string) => ({ state, error });
   switch (action.type) {
+    case 'covenant-confirm': case 'covenant-pause': {
+      const reason = covenantAction(s, action);
+      if (reason) return fail(reason);
+      break;
+    }
     case 'calendar-storage': case 'calendar-storage-pause': case 'calendar-toggle': case 'calendar-add': case 'calendar-cancel': case 'calendar-move': {
       const reason = calendarAction(s, action);
       if (reason) return fail(reason);

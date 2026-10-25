@@ -1,5 +1,6 @@
 import { amounts, cost, RESOURCES, UNIT } from './config';
 import { calendarHeld } from './calendar-config';
+import { covenantActive } from './covenants';
 import type { Amounts, CargoManifest, Direction, DistrictId, GameState, NetworkContract, NetworkRoute, NetworkState, ProductionMode, Resident, Resource, RouteId } from './types';
 
 export const ROUTE_IDS: RouteId[] = ['rain', 'station'];
@@ -32,7 +33,8 @@ export const awayWorkers = (s: GameState, district: DistrictId, resident: Reside
 }).length;
 export const routeWear = (s: GameState) => Math.ceil((s.events.E12?.choice === 'reliable' ? NETWORK_RULES.reliableWear : s.events.E12?.choice === 'express' ? NETWORK_RULES.expressWear : NETWORK_RULES.wear) * (s.network.vehicle.active === 'railGuard' ? 0.75 : 1));
 export const travelSeconds = (s: GameState, id: RouteId) => Math.ceil(ROUTES[id].seconds * (s.events.E12?.choice === 'express' ? NETWORK_RULES.expressTime : 1));
-export const departureEnergy = (s: GameState, id: RouteId) => ROUTES[id].energy + (s.network.vehicle.active === 'freightRack' ? 2000 : 0);
+export const baseDepartureEnergy = (s: GameState, id: RouteId) => ROUTES[id].energy + (s.network.vehicle.active === 'freightRack' ? 2000 : 0);
+export const departureEnergy = (s: GameState, id: RouteId) => Math.ceil(baseDepartureEnergy(s, id) * (covenantActive(s, 'coexist') ? 0.8 : 1));
 export const asManifest = (value: number | CargoManifest): CargoManifest => typeof value === 'number' ? { normal: value, specialty: 0 } : value;
 export const validManifest = (v: CargoManifest) => !!v && MODES.every(mode => Number.isSafeInteger(v[mode]) && v[mode] >= 0 && v[mode] <= 32) && v.normal + v.specialty > 0;
 export function cargoFor(id: RouteId, direction: Direction, value: number | CargoManifest, mode: ProductionMode = 'normal'): Amounts {
@@ -83,6 +85,7 @@ export function dispatch(s: GameState, id: RouteId, direction: Direction, value:
   const route = s.network.routes[id], manifest = asManifest(value), cargo = cargoFor(id, direction, manifest, route.node.mode), source = direction === 'outbound' ? s.resources : route.node.resources, fee = departureEnergy(s, id), wear = routeWear(s);
   for (const r of RESOURCES) { source[r] -= cargo[r]; if (direction === 'outbound') s.ledger.exports[r] += cargo[r]; else route.node.shipped[r] += cargo[r]; }
   s.resources.energy -= fee; s.ledger.operating.energy += fee;
+  if (covenantActive(s, 'coexist')) s.covenants.feeSaved += baseDepartureEnergy(s, id) - fee;
   const duration = travelSeconds(s, id), reserved = !s.network.legacyPending;
   route.trip = { uid: `t-${s.network.nextTrip++}`, direction, loads: manifest.normal + manifest.specialty, manifest: { ...manifest }, mode: route.node.mode, cargo, duration, remaining: duration, spaceReserved: reserved, fee: reserved ? fee : null, wear: reserved ? wear : null, capacity: reserved ? vehicleCapacity(s) : null };
   route.departures += 1; route.condition = Math.max(0, route.condition - wear);

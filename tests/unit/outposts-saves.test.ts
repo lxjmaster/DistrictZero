@@ -55,7 +55,7 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
   it.each(versions)('B09: validates real V%s before adding empty scope and zero support flows', version => {
     const raw = JSON.parse(fixture(version)), decoded = decodeSave(fixture(version)), s = decoded.state;
     expect(raw.schemaVersion).toBe(versions.indexOf(version) + 1);
-    expect(decoded.schemaVersion).toBe(8); expect(decoded.balanceVersion).toBe('0.5.0'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
+    expect(decoded.schemaVersion).toBe(9); expect(decoded.balanceVersion).toBe('0.6.0'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
     expect(s.outposts).toEqual(createOutposts()); expect(s.ledger.supportSent).toEqual(amounts()); expect(s.ledger.supportReceived).toEqual(amounts());
     expect(s.queue.every(p => !p.outpost && !p.proof)).toBe(true);
     expect(s.completed).not.toContain('P12'); expect(s.experience.story['L04-1']).toBeUndefined();
@@ -88,7 +88,7 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
     for (const mutate of mutations) { const raw = JSON.parse(fixture(version)); mutate(raw.state); expect(() => decodeSave(JSON.stringify(raw))).toThrow(); }
   });
   it('B10: unknown and mismatched versions cannot replace primary or recovery bytes', () => {
-    const prior = fixture('0.3.3'), future = JSON.parse(prior); future.schemaVersion = 9; future.balanceVersion = '0.6.0';
+    const prior = fixture('0.3.3'), future = JSON.parse(prior); future.schemaVersion = 10; future.balanceVersion = '0.7.0';
     const entries = new Map<string, string>([[SAVE_KEY, JSON.stringify(future)], [BACKUP_KEY, prior]]);
     const store = new SaveStorage({ getItem: key => entries.get(key) ?? null, setItem: (key, value) => { entries.set(key, value); }, removeItem: key => { entries.delete(key); } });
     expect(store.load().blocked).toBe(true); expect(() => store.save(createGame(), 0)).toThrow(SaveVersionError);
@@ -102,7 +102,7 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
     fail = true; expect(() => store.save(loaded.state!, loaded.state!.clock.lastAt)).toThrow('quota');
     expect(entries.get(SAVE_KEY)).toBe(prior); expect(entries.get(BACKUP_KEY)).toBe(prior);
     fail = false; store.save(loaded.state!, loaded.state!.clock.lastAt);
-    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(8); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
+    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(9); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
   });
 });
 

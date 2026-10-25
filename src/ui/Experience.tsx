@@ -41,7 +41,7 @@ export function ResidentInbox({ state, send, disabled }: Props) {
   return <section className="panel resident-inbox" aria-label="住客来信">
     <div className="panel-title"><h2>住客留了话</h2><span className="caption">住客、邮递员与站务员</span></div>
     {pending.map(id => <article key={id} data-testid={`story-${id}`} className="resident-letter">
-      <span className="eyebrow">{id} / {id.startsWith('L05') ? '历法维修' : id.startsWith('L04') ? '未发生之城与分所' : id.startsWith('L03') ? '值得等待的列车' : id.startsWith('L02') ? '两封信，一个门牌' : '旧物与新用途'}</span><h3>{STORY_NAMES[id]}</h3><p>{storyText(state, id)}</p>
+      <span className="eyebrow">{id} / {id.startsWith('L06') ? '城市公约' : id.startsWith('L05') ? '历法维修' : id.startsWith('L04') ? '未发生之城与分所' : id.startsWith('L03') ? '值得等待的列车' : id.startsWith('L02') ? '两封信，一个门牌' : '旧物与新用途'}</span><h3>{STORY_NAMES[id]}</h3><p>{storyText(state, id)}</p>
       {id === 'L01-2' ? <div className="story-options">{(['dismantle', 'restore'] as RadioChoice[]).map(choice => {
         const payment = choice === 'restore' ? ASSEMBLY.restoreCost : amounts(), reward = choice === 'dismantle' ? ASSEMBLY.dismantleReward : amounts();
         const missing = missingCost(state, payment), full = RESOURCES.some(r => state.resources[r] - payment[r] + reward[r] > stockLimits(state)[r]);
@@ -50,7 +50,7 @@ export function ResidentInbox({ state, send, disabled }: Props) {
           <button disabled={disabled || missing.length > 0 || full} onClick={() => send({ type: 'story', node: id, choice })}>{choice === 'dismantle' ? '拆解收音机' : '修复收音机'}</button>
           {(missing.length > 0 || full) && <p className="short small">{full ? '需要2构件的奖励空间，选择会保留。' : missing.join('，')}</p>}
         </div>;
-      })}</div> : <button disabled={disabled} onClick={() => send({ type: 'story', node: id })}>{id === 'L01-1' ? '读完装配纸条' : id.startsWith('L05') ? '读完历法来信' : id.startsWith('L04') ? '读完分所来信' : id.startsWith('L03') ? '读完站务员回访' : id.startsWith('L02') ? '读完邮递员回访' : '读完住客回信'}</button>}
+      })}</div> : <button disabled={disabled} onClick={() => send({ type: 'story', node: id })}>{id === 'L01-1' ? '读完装配纸条' : id.startsWith('L06') ? '读完公约来信' : id.startsWith('L05') ? '读完历法来信' : id.startsWith('L04') ? '读完分所来信' : id.startsWith('L03') ? '读完站务员回访' : id.startsWith('L02') ? '读完邮递员回访' : '读完住客回信'}</button>}
       <p className="footnote">可以先放在这里。主线与生产照常继续，决定会等你回来。</p>
     </article>)}
   </section>;

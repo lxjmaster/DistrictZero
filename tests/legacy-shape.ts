@@ -29,7 +29,15 @@ export function preOutposts<T>(value: T): T {
 // Genuine schema-7 comparisons keep all V0.4 state. Calendar data and newly
 // available, unconfirmed L05 letters are additive, not old settlement effects.
 export function preCalendar<T>(value: T): T {
+  value = preCovenants(value);
   if (Array.isArray(value)) return value.filter(v => typeof v !== 'string' || !/^L05-[1-4]$/.test(v)).map(preCalendar) as T;
   if (value === null || typeof value !== 'object') return value;
   return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'calendar' && !/^L05-[1-4]$/.test(key)).map(([key, v]) => [key, preCalendar(v)])) as T;
+}
+
+// Project only additive V0.6 state and unconfirmed L06 prompts from old evidence.
+export function preCovenants<T>(value: T): T {
+  if (Array.isArray(value)) return value.filter(v => typeof v !== 'string' || !/^L06-[1-4]$/.test(v)).map(preCovenants) as T;
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'covenants' && !/^L06-[1-4]$/.test(key)).map(([key, v]) => [key, preCovenants(v)])) as T;
 }

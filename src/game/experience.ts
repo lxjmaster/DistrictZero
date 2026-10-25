@@ -8,7 +8,8 @@ export const LETTER_STORY_IDS: StoryNode[] = ['L02-1', 'L02-2', 'L02-3', 'L02-4'
 export const TRAIN_STORY_IDS: StoryNode[] = ['L03-1', 'L03-2', 'L03-3', 'L03-4'];
 export const OUTPOST_STORY_IDS: StoryNode[] = ['L04-1', 'L04-2', 'L04-3', 'L04-4'];
 export const CALENDAR_STORY_IDS: StoryNode[] = ['L05-1', 'L05-2', 'L05-3', 'L05-4'];
-export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS, ...CALENDAR_STORY_IDS];
+export const COVENANT_STORY_IDS: StoryNode[] = ['L06-1', 'L06-2', 'L06-3', 'L06-4'];
+export const STORY_IDS: StoryNode[] = [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS, ...CALENDAR_STORY_IDS, ...COVENANT_STORY_IDS];
 export const ASSEMBLY = {
   capacity: 30 * UNIT, warehouseCapacity: 10 * UNIT,
   recipes: {
@@ -23,6 +24,7 @@ export const ASSEMBLY = {
   maxSetting: 1_000_000 * UNIT
 } as const;
 export const STORY_NAMES: Record<StoryNode, string> = {
+  'L06-1': '空白处可以写约定', 'L06-2': '规则要有人照看', 'L06-3': '两行字之间的空隙', 'L06-4': '第0街区仍有下一页',
   'L05-1': '日期为0的维修单', 'L05-2': '把还没用上的一刻收好', 'L05-3': '三处钟面，一份交班', 'L05-4': '今天有了共同的名字',
   'L04-1': '另一面也有人等开门', 'L04-2': '带走的是办法', 'L04-3': '第一处异地交班', 'L04-4': '两份地址都能收到信',
   'L01-1': '没有插头的收音机', 'L01-2': '留下外壳，还是留下声音',
@@ -43,6 +45,11 @@ export function storyAvailable(s: GameState, id: StoryNode): boolean {
   if (!STORY_IDS.includes(id) || s.experience.story[id] || id.startsWith('L03') && s.network.legacyPending) return false;
   if (id.startsWith('L04') && s.network.legacyPending) return false;
   if (id.startsWith('L05') && s.network.legacyPending) return false;
+  if (id.startsWith('L06') && s.network.legacyPending) return false;
+  if (id === 'L06-1') return !!s.experience.story['L05-4'];
+  if (id === 'L06-2') return !!s.experience.story['L06-1'] && s.completed.includes('P17');
+  if (id === 'L06-3') return !!s.experience.story['L06-2'] && s.completed.includes('P18');
+  if (id === 'L06-4') return !!s.experience.story['L06-3'] && s.completed.includes('P19');
   if (id === 'L05-1') return !!s.experience.story['L04-4'];
   if (id === 'L05-2') return !!s.experience.story['L05-1'] && s.completed.includes('P13');
   if (id === 'L05-3') return !!s.experience.story['L05-2'] && s.completed.includes('P15');
@@ -66,10 +73,14 @@ export function storyAvailable(s: GameState, id: StoryNode): boolean {
 }
 export const pendingStories = (s: GameState) => STORY_IDS.filter(id => storyAvailable(s, id));
 export function storyText(s: GameState, id: StoryNode): string {
+  if (id === 'L06-1') return '共同名录还有一页空白。登记员问：“既然日期可以共同承认，明天的生活能不能也商量着来？”先摆开公约桌。城市不会替你选择要留下什么；三条方向可以比较，也可以付费调整。';
+  if (id === 'L06-2') return '灯可以留住，路可以接下去，不同日期也可以共处。每条约定都有持续投入和真实代价：照明省电会慢下施工与入住；施工加快会少记一些声音；列车省电要让回收慢一点。确认花6电、4零件、2记忆，下秒整组支付维护才生效。缺料就暂停效果，不欠债；免费暂停永远可用。';
+  if (id === 'L06-3') return '第二行字写下后，空隙也成为约定的一部分。封存与续建相乘，施工会是原来的93.75%；并存仍需要回收者让出一点速度。你可以带着一种约定体验另一种，也可以全部暂停。运途中的箱子和已经备好的原料，不会因为改约而变成另一份承诺。';
+  if (id === 'L06-4') return `第0街区没有得到一个不能更改的结局。留灯实际节省了${s.covenants.lightSaved / UNIT}电量，续建实际多完成${s.covenants.extraWork / UNIT}工程点，日期之间的列车实际少用${s.covenants.feeSaved / UNIT}电量；双约照看了${s.covenants.combined}秒。留下、继续、一起生活，都有过你的签名。0还留着空白，下一页可以重新商量。`;
   if (id === 'L05-1') return '两处分所的回信在同一天寄出，却写着不同的日期。旧站台抽屉里的维修单终于有了收件人：“日期：0。请让今天能够交班。”先修复旧城校时台；三地仍各自工作，新的日期不会替你决定生产什么。';
   if (id === 'L05-2') return '校时员拿出一只空盒：“还没用上的一刻，也可以收好。”每储一秒花0.20电量和0.02记忆；一次加工要60秒储备、一次校准，再花4电量和1记忆。原料须坐真实列车到达，整批备好后等待两地窗口；原来的列车、工务和住客不会跟着快进。装置与排程都还关着，启用的时机由你决定。';
   if (id === 'L05-3') return `雨城已经完成${s.calendar.boosts.rain.normal + s.calendar.boosts.rain.specialty}次历法加工，长站完成${s.calendar.boosts.station.normal + s.calendar.boosts.station.specialty}次。校时员把三处钟面画在同一张纸上：“对齐不是同时做同一件事，是知道什么时候交到下一双手里。”${s.calendar.crossRound ? `其中${s.calendar.crossRound}项真正等到了下一轮，货物仍以实际回程为准。` : '目前还没有跨轮完成的排程；写进清单不等于已经加工。'}三项清单只做你明确写下的工作，空下的位置不会自行填满。`;
-  if (id === 'L05-4') return `名录第一次容得下三地的今天。${s.calendar.crossRound}项跨轮加工留下了交班记录，时间盒里还有${s.calendar.stored}秒，剩余${s.calendar.allowance}次校准。今天不再是空白，也不要求每一刻都被用完。下一页只写着一个问题：“这些共同承认的约定，能不能成为城市公约？”那是下一段故事，尚未开放。`;
+  if (id === 'L05-4') return `名录第一次容得下三地的今天。${s.calendar.crossRound}项跨轮加工留下了交班记录，时间盒里还有${s.calendar.stored}秒，剩余${s.calendar.allowance}次校准。今天不再是空白，也不要求每一刻都被用完。下一页只写着一个问题：“这些共同承认的约定，能不能成为城市公约？”空白处的来信正等你阅读。`;
   if (id === 'L04-1') return '城市图翻到背面，还有一盏临时灯。门后的人问：“旧城的办法，能在这里用一次吗？”旧城会继续按现有安排工作，不会被重置。登记台需要真实材料；派去的人也仍占着原来的床位。你可以先读信，再决定什么时候开门。';
   if (id === 'L04-2') return `登记员把两张地图摆在桌上：无库巷没有仓库，借光庭留不住一半本地产出的光。带走的是${s.experience.blueprints.length}份已知蓝图与${s.experience.archives.length}份已读档案，不是复制一套库存或工具。每处先派两名空闲居民，旧城另转入20电量、20零件和8记忆；其后的补给每图一共四次，不会每天刷新。`;
   if (id === 'L04-3') {

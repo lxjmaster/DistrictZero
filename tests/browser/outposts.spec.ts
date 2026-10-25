@@ -316,7 +316,7 @@ for (const [device, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 
     await page.getByLabel('存档文本', { exact: true }).fill(exported); await route.press('检查存档'); await route.press('确认导入并替换');
     await expect(page.getByRole('alert')).toContainText('已导入存档'); expect(await saved(page)).toEqual(checkpoint); await route.press('知道了');
     await route.press('读取恢复副本'); await expect(page.getByRole('alert')).toContainText('已读取有效恢复副本');
-    expect(await saved(page)).toEqual(checkpoint); expect(JSON.parse(await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY)).schemaVersion).toBe(8);
+    expect(await saved(page)).toEqual(checkpoint); expect(JSON.parse(await page.evaluate(key => localStorage.getItem(key)!, BACKUP_KEY)).schemaVersion).toBe(9);
     await route.press('知道了');
     await route.press('分所'); await page.setViewportSize({ width: 320, height: 740 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

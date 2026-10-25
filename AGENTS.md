@@ -151,6 +151,33 @@ See docs/VERIFICATION.md and docs/PLAYTEST.md for evidence and limits. Human
 feedback remains unsampled; V0.6 is not authorized. No local service was started
 for publication, and the isolated verification browser is closed.
 
+On 2026-10-25 the user requested continuing in the order of docs/NEXT_STEPS.md.
+This authorizes the toolchain maintenance and complete local V0.6 implementation
+and verification after its fixed specification and genuine V0.5 evidence are
+prepared. Track actual work in issues/V0.6.md. This local continuation does not
+authorize committing, pushing, publishing or contacting human playtesters.
+The public release remains V0.5 until a later publishing instruction.
+
+The complete local V0.6 delivery is now verified against docs/V0.6_SPEC.md and
+G01-G12: schema 9 / balance 0.6.0, three covenants and every dual combination,
+P17-P19, L06-1 through L06-4, genuine schemas 1-8 migration and released V0.5
+offline references. All 330 distinct unit/storage cases and 51 distinct browser
+scenarios passed, including scoped reruns; type checking, production build and
+isolated preview passed. Exact run boundaries and review fixes are recorded in
+docs/VERIFICATION.md. Both task-owned ports 5173/4173 are stopped. Sources,
+fixtures, build and reproducible evidence remain local. Do not commit, push or
+publish without a subsequent publishing instruction. Human feedback remains
+unsampled; docs/HUMAN_PLAYTEST.md now includes the later-chapter appendix.
+
+On 2026-10-25, after the local V0.6 delivery, the user requested continuing the
+explicitly identified next step of publication. This authorizes committing and
+pushing the complete V0.6 implementation, toolchain maintenance and verified
+fixes to master, publishing through the existing GitHub Pages workflow,
+verifying the public site, and synchronizing publication documentation.
+Continue this unchanged outcome without repeated approval. Do not claim the
+release is public until its deployment and public checks pass. New features
+and contacting human playtesters remain outside this publishing task.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -177,6 +204,10 @@ regressions. Preserve fixed costs, 600-second rounds, stored-time conservation,
 finite orders and calibration, whole-batch input/output holds, and genuine
 schemas 1-7 migration. Calendar acceleration advances only the selected
 external node through the shared production function, never the world clock.
+For V0.6 changes, read docs/V0.6_SPEC.md and verify G01-G12 alongside prior
+regressions. Preserve its fixed costs, the one/two-covenant limit, atomic group
+upkeep before generation, manual confirmation and genuine schemas 1-8 sources.
+Do not reinterpret existing shipment snapshots or prepared calendar holds.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 

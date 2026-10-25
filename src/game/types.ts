@@ -1,5 +1,7 @@
 import type { OutpostAction, OutpostId, OutpostProject, OutpostProof, OutpostsState } from './outpost-types';
 import type { CalendarAction, CalendarReport, CalendarState } from './calendar-types';
+import type { CovenantAction, CovenantReport, CovenantState } from './covenant-types';
+export type { CovenantAction, CovenantId, CovenantReport, CovenantState } from './covenant-types';
 export type { CalendarAction, CalendarOrder, CalendarRecord, CalendarReport, CalendarState } from './calendar-types';
 export type { OutpostAction, OutpostId, OutpostProject, OutpostProof, OutpostsState, OutpostState, SupportKind } from './outpost-types';
 export type Resource = 'energy' | 'parts' | 'memory' | 'component' | 'rainFilm' | 'railCore';
@@ -12,7 +14,7 @@ export type Lighting = 'steady' | 'bright' | 'dim';
 export type DistrictId = 'district-0' | 'district-1' | 'district-2';
 export type BranchId = Exclude<DistrictId, 'district-0'>;
 export type PublicFacility = 'relay' | 'registry';
-export type MainProject = 'P01' | 'P02' | 'P03' | 'P04' | 'P05' | 'P06' | 'P07' | 'P08' | 'P09' | 'P10' | 'P11' | 'P12' | 'P13' | 'P14' | 'P15' | 'P16';
+export type MainProject = 'P01' | 'P02' | 'P03' | 'P04' | 'P05' | 'P06' | 'P07' | 'P08' | 'P09' | 'P10' | 'P11' | 'P12' | 'P13' | 'P14' | 'P15' | 'P16' | 'P17' | 'P18' | 'P19';
 export type Research = 'R01' | 'R02' | 'R03' | 'R04' | 'R05' | 'R06';
 export type RouteId = 'rain' | 'station';
 export type Direction = 'outbound' | 'inbound';
@@ -24,7 +26,7 @@ export type ArchiveId = 'A01' | 'A02' | 'A03';
 export type ProductionMode = 'normal' | 'specialty';
 export interface CargoManifest { normal: number; specialty: number }
 export interface NetworkContract { enabled: boolean; loads: 1 | 2; reserve: Amounts; targets: Amounts; buffer: number; manifest: CargoManifest; order: ProductionMode[] }
-export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4' | 'L02-1' | 'L02-2' | 'L02-3' | 'L02-4' | 'L03-1' | 'L03-2' | 'L03-3' | 'L03-4' | 'L04-1' | 'L04-2' | 'L04-3' | 'L04-4' | 'L05-1' | 'L05-2' | 'L05-3' | 'L05-4';
+export type StoryNode = 'L01-1' | 'L01-2' | 'L01-3' | 'L01-4' | 'L02-1' | 'L02-2' | 'L02-3' | 'L02-4' | 'L03-1' | 'L03-2' | 'L03-3' | 'L03-4' | 'L04-1' | 'L04-2' | 'L04-3' | 'L04-4' | 'L05-1' | 'L05-2' | 'L05-3' | 'L05-4' | 'L06-1' | 'L06-2' | 'L06-3' | 'L06-4';
 export type RadioChoice = 'dismantle' | 'restore';
 export type DefinitionId = MainProject | Research | OutpostProject | 'lightFrame' | 'calendar:service' | `build:${Facility}` | `public:${PublicFacility}` | `maintain:${PublicFacility}` | `route:${RouteId}` | `mod:${AssemblyMod}` | `blueprint:${AssemblyMod}` | `mailmod:${MailboxMod}` | `vehiclemod:${VehicleMod}`;
 export type EventId = 'E01' | 'E02' | 'E03' | 'E04' | 'E05' | 'E06' | 'E07' | 'E08' | 'E09' | 'E10' | 'E11' | 'E12' | 'E13' | 'E14' | 'E15';
@@ -63,6 +65,7 @@ export interface ReturnReport {
   stories: StoryNode[];
   neighborhood: { deliveries: number; fieldReturns: number; pending: number; held: Amounts };
   calendar?: CalendarReport;
+  covenants?: CovenantReport;
   outposts?: { id: OutpostId; start: Amounts; end: Amounts; flows: Ledger; active: boolean; completed: string[]; support: { sent: number; remaining: number; queued: number; inTransit: Amounts }; pending: string[]; reasons: string[] }[];
 }
 export interface NetworkNode {
@@ -176,9 +179,10 @@ export interface GameState extends DistrictState {
   neighborhood: NeighborhoodState;
   outposts: OutpostsState;
   calendar: CalendarState;
+  covenants: CovenantState;
 }
 export interface ProjectDefinition { id: DefinitionId; name: string; description: string; cost: Amounts; work: number }
-export type Action = OutpostAction | CalendarAction
+export type Action = OutpostAction | CalendarAction | CovenantAction
   | { type: 'assign'; resident: Resident; job: Job; delta: -1 | 1; district?: DistrictId }
   | { type: 'priority'; order: WorkJob[] }
   | { type: 'enqueue'; definition: DefinitionId; district?: DistrictId; prefab?: number }

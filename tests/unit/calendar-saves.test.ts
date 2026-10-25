@@ -59,7 +59,7 @@ describe('V0.5 genuine migration and recovery', () => {
   it.each(versions)('K08: validates genuine V%s and adds only an empty calendar', version => {
     const raw = JSON.parse(fixture(version)), decoded = decodeSave(fixture(version)), s = decoded.state;
     expect(raw.schemaVersion).toBe(versions.indexOf(version) + 1);
-    expect(decoded.schemaVersion).toBe(8); expect(decoded.balanceVersion).toBe('0.5.0'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
+    expect(decoded.schemaVersion).toBe(9); expect(decoded.balanceVersion).toBe('0.6.0'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
     expect(s.calendar).toEqual(createCalendar()); expect(s.completed).not.toContain('P13'); expect(s.experience.story['L05-1']).toBeUndefined();
     expect(s.network.legacyPending).toBe(raw.schemaVersion < 6);
     if (raw.schemaVersion === 7) expect(preCalendar(s)).toEqual(raw.state);
@@ -95,10 +95,10 @@ describe('V0.5 genuine migration and recovery', () => {
     fail = true; expect(() => store.save(loaded.state!, loaded.state!.clock.lastAt)).toThrow('quota');
     expect(entries.get(SAVE_KEY)).toBe(prior); expect(entries.get(BACKUP_KEY)).toBe(prior);
     fail = false; store.save(loaded.state!, loaded.state!.clock.lastAt);
-    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(8); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
+    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(9); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
   });
   it('K10: future/mismatched envelopes cannot replace the primary or recovery copy', () => {
-    const prior = fixture('0.4'), future = JSON.parse(prior); future.schemaVersion = 9; future.balanceVersion = '0.6.0';
+    const prior = fixture('0.4'), future = JSON.parse(prior); future.schemaVersion = 10; future.balanceVersion = '0.7.0';
     const entries = new Map<string, string>([[SAVE_KEY, JSON.stringify(future)], [BACKUP_KEY, prior]]);
     const store = new SaveStorage({ getItem: key => entries.get(key) ?? null, setItem: (key, value) => { entries.set(key, value); }, removeItem: key => { entries.delete(key); } });
     expect(store.load().blocked).toBe(true); expect(() => store.save(createGame(), 0)).toThrow(SaveVersionError);

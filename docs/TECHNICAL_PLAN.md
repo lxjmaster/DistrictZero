@@ -6,7 +6,7 @@
 范围：V0.1–V0.5实现与发布及后续系统扩展基础。\
 代码实现启动条件：已满足；用户于2026-10-14调用交接提示，授权完整V0.1本地实现与验证。
 
-本文保留初始设计与开发阶段建议；实际落地结构见各版本的“实际扩展”章节。V0.4分所与V0.5历法完成B01–B12/K01–K12本地验收后，已于2026-10-23连同全部审查修复一并发布；当前线上为V0.5。测试与公开验证结果及限制以[验证记录](VERIFICATION.md)为准，V0.6尚未获开发授权。
+本文保留初始设计与开发阶段建议；实际落地结构见各版本的“实际扩展”章节。V0.4分所与V0.5历法完成B01–B12/K01–K12本地验收后，已于2026-10-23连同全部审查修复一并发布；当前线上为V0.5。测试与公开验证结果及限制以[验证记录](VERIFICATION.md)为准，2026-10-25已获V0.6完整本地开发授权，固定规则与验收见[V0.6规格](V0.6_SPEC.md)，公开版本仍为V0.5。
 
 V0.1实际实现采用`src/game/config.ts`、`types.ts`、`engine.ts`、`saves.ts`集中组织内容、独立模拟和存档校验，`src/app/`管理时间、存储与会话，`src/ui/`管理界面。`advance`返回新状态，`summarize`生成变化报告。控制器串行动作，长结算每批最多10,000逻辑秒，并在批次间让浏览器处理界面。会话使用独占Web Locks；不支持时明确停止推进与写入。实际命令见[README](../README.md)，验收证据见[验证记录](VERIFICATION.md)。
 
@@ -549,3 +549,12 @@ UX14–UX20由`tests/unit/journey.test.ts`、`tests/browser/journey.spec.ts`及�
 真实结构7样本位于`tests/fixtures/v0.4-chapter.json`，改动前V0.4工作树引擎的86,400,517毫秒状态/报告对照位于`v0.4-offline-reference.json`，来源、原文件与源码摘要见`v0.4-provenance.md`。该引擎来自尚未提交的V0.4工作树，不将V0.3.3的HEAD冒充V0.4来源。已有真实结构1–6样本继续保留，比较投影只移除新增空历法及尚未确认的L05可用事项，不改写旧样本版本。
 
 K01–K12由`tests/unit/calendar.test.ts`、`tests/unit/calendar-saves.test.ts`、`tests/browser/calendar.spec.ts`与原FR/C/N/UX/B回归共同验证；具体执行次数、分段/离线结果、两设备路线、构建与隔离子路径预览以[验证记录](VERIFICATION.md)为准，实际成本与未采样的体验边界见[试玩记录](PLAYTEST.md)。未新增依赖；游戏提交[`3c094d7`](https://github.com/lxjmaster/DistrictZero/commit/3c094d77143da019cc5b6b756cb120131874f8b3)已于2026-10-23通过[Pages运行39943605835](https://github.com/lxjmaster/DistrictZero/actions/runs/39943605835)发布。CI一次全量296项测试、类型检查和构建通过，公开资源与生产构建一致，双端新档、真实结构6/7迁移恢复及完整/备料档导入重开已验证。当前线上为V0.5并包含V0.4；真人反馈未采样，V0.6未授权。
+## 23. V0.6公约的实际扩展（2026-10-25）
+
+`covenant-types.ts`、`covenants.ts`、`covenant-save.ts`分别承载结构、显式费用/效果/动作和来源校验。`engine.tick`在全局秒数推进后、发电之前整笔支付选中组合的维护费；空组合完全保留V0.5经济。效果只读取当前已付款逻辑秒，确认/暂停立即清除标记，不立即赠送生产或发车优惠。工务仍固定唯一秒首队首，分所不使用旧城公约倍率。方向证明同时需要累计付费秒与实际照明节省、加速工程或发车节省。
+
+`network.baseDepartureEnergy`保留原费用，`departureEnergy`只对已付费并存公约的新发车打折；在途费用及其余快照不重算。历法配方、整批原料/产物持有及窗口完全保留。公约维护与调整分别累计，都是既有`operating`账本的子集。报告展示区间差值和实际停因；即使本秒发电已经补足下秒库存，也保留本秒整组停效的可见解释。
+
+结构9/数值0.6.0接受真实结构1–8，先拒绝各来源不支持的新内容，再加入空公约。`scripts/v05-reference.mjs`只用发布提交`3c094d7`源码生成旧区间预期；真实完整、已备料和一动作发车样本见`tests/fixtures/v0.5-provenance.md`。既有旧运输`legacyPending`、恢复副本和捕获时点保持原边界。
+
+界面`Covenants.tsx`维护独立草稿，原生模态对话框支持键盘确认/取消；坏草稿不阻止免费暂停。P17–P19、L06-1–4及全部双约组合按[V0.6规格](V0.6_SPEC.md)实施。引擎/迁移专项在`tests/unit/covenants.test.ts`，双端完整路线和欠费/写入锁边界在`tests/browser/covenants.spec.ts`；实际通过次数及必要修复见[验证记录](VERIFICATION.md)。本轮只交付本地内容，不改变公开V0.5；真人体验未采样。

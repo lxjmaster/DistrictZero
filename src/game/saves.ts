@@ -3,10 +3,10 @@ import { capacities, createGame, definitionFor, eventTriggers, jobCapacity, jobS
 import type { Amounts, EventId, GameState, Ledger, ReturnReport } from './types';
 import type { DistrictId, DistrictState, WorkTemplate, PublicFacility } from './types';
 import { activeDistricts, cityCount, cityPopulation, CITY_RULES, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, plotsUsed, PUBLIC_IDS, scopedKey } from './city';
-import { awayWorkers, cargoFor, createNetwork, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, vehicleCapacity, reservedSpace, RECIPES, MODES, productResource, validContract, validManifest, departureEnergy } from './network';
+import { awayWorkers, cargoFor, createNetwork, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, vehicleCapacity, reservedSpace, RECIPES, MODES, productResource, validContract, validManifest, baseDepartureEnergy } from './network';
 import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_MOD_IDS } from './journey';
 import type { CargoManifest, VehicleMod, NetworkState } from './types';
-import { ASSEMBLY, assemblyUnlocked, createExperience, MOD_IDS, prefabLimit, STORY_IDS, RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS, OUTPOST_STORY_IDS } from './experience';
+import { ASSEMBLY, assemblyUnlocked, createExperience, MOD_IDS, prefabLimit, STORY_IDS, RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS, OUTPOST_STORY_IDS, CALENDAR_STORY_IDS } from './experience';
 import type { AssemblyMod, ExperienceState, StoryNode, NeighborhoodState, MailboxMod } from './types';
 
 import { blueprintSources, COMMISSION_IDS, COMMISSIONS, commissionDone, commissionReason, commissionVisible, createNeighborhood, FIELD_IDS, FIELD_SITES, fieldClueKnown, fieldOpenReason, fieldWorkers, heldFieldSupplies, fieldReward, MAIL_MOD_IDS, NEIGHBORHOOD_RULES } from './neighborhood';
@@ -15,7 +15,10 @@ import { assertOutposts, assertOutpostProject, readOutposts, readOutpostReport, 
 import { createCalendar } from './calendar-config';
 import { assertCalendar, readCalendar, readCalendarReport } from './calendar-save';
 
-export interface SaveEnvelope { format: 'districtzero'; schemaVersion: 8; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 | 5 | 6 | 7 }
+import { createCovenants } from './covenants';
+import { assertCovenants, readCovenants, readCovenantReport } from './covenant-save';
+
+export interface SaveEnvelope { format: 'districtzero'; schemaVersion: 9; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
 export class SaveVersionError extends Error {
   constructor(reason: string) { super(`存档无效：${reason}`); this.name = 'SaveVersionError'; }
 }
@@ -51,9 +54,9 @@ function readLedger(v: unknown, schema = 8): Ledger {
   })) as Ledger;
 }
 function sourceStories(schema: number): StoryNode[] {
-  return schema < 5 ? RADIO_STORY_IDS : schema < 6 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS] : schema < 7 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS] : schema < 8 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS] : STORY_IDS;
+  return schema < 5 ? RADIO_STORY_IDS : schema < 6 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS] : schema < 7 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS] : schema < 8 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS] : schema < 9 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS, ...CALENDAR_STORY_IDS] : STORY_IDS;
 }
-function readReport(v: unknown, schema = 8): ReturnReport | null {
+function readReport(v: unknown, schema = 9): ReturnReport | null {
   if (v === null) return null;
   const o = obj(v), arrivals = obj(o.arrivals);
   const ids = EVENT_IDS.slice(0, schema === 1 ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
@@ -80,6 +83,7 @@ function readReport(v: unknown, schema = 8): ReturnReport | null {
     , neighborhood: schema < 5 ? { deliveries: 0, fieldReturns: 0, pending: 0, held: amounts() } : (() => { const n = obj(o.neighborhood); return { deliveries: integer(n.deliveries, '代办交付'), fieldReturns: integer(n.fieldReturns, '外勤返程'), pending: integer(n.pending, '待领结果', 0, 3), held: readAmounts(n.held, '持有补给') }; })()
     , ...(schema >= 7 && o.outposts !== undefined ? { outposts: readOutpostReport(o.outposts) } : {})
     , ...(schema >= 8 && o.calendar !== undefined ? { calendar: readCalendarReport(o.calendar) } : {})
+    , ...(schema >= 9 && o.covenants !== undefined ? { covenants: readCovenantReport(o.covenants) } : {})
   };
   for (const r of RESOURCES) {
     const expected = report.start[r] + report.flows.production[r] + report.flows.rewards[r] + report.flows.refunds[r] + report.flows.imports[r] + report.flows.supportReceived[r] - report.flows.supportSent[r] - report.flows.exports[r] - report.flows.operating[r] - report.flows.reserved[r] - report.flows.fulfillment[r] - report.flows.fieldReserved[r];
@@ -155,7 +159,7 @@ function readNetwork(v: unknown, schema = 6): NetworkState {
   }
   return state;
 }
-function readExperience(v: unknown, schema = 8): ExperienceState {
+function readExperience(v: unknown, schema = 9): ExperienceState {
   const o = obj(v), story = obj(o.story), benches = obj(o.benches), plan = obj(o.assembly);
   if (Object.keys(story).some(id => !sourceStories(schema).includes(id as StoryNode)) || Object.keys(benches).length !== DISTRICT_IDS.length || typeof plan.enabled !== 'boolean') bad('旧物与装配状态错误');
   const mods = <T extends string>(v: unknown, label: string, ids: T[]) => {
@@ -294,6 +298,16 @@ function assertExperience(s: GameState) {
 }
 // Old versions are validated against their original content boundary. Only
 // zero-valued new dimensions are then supplied to the unchanged economy rules.
+function rejectOldCovenantContent(value: unknown): void {
+  if (Array.isArray(value)) {
+    if (value.some(v => typeof v === 'string' && (/^L06-[1-4]$/.test(v) || /(^|[/@])P1[7-9]$/.test(v)))) bad('旧版存档包含公约新内容');
+    value.forEach(rejectOldCovenantContent); return;
+  }
+  if (value === null || typeof value !== 'object') return;
+  const o = obj(value);
+  if (Object.keys(o).some(key => key === 'covenants' || /^L06-[1-4]$/.test(key)) || typeof o.definition === 'string' && /^P1[7-9]$/.test(o.definition)) bad('旧版存档包含公约新内容');
+  Object.values(o).forEach(rejectOldCovenantContent);
+}
 function rejectOldCalendarContent(value: unknown): void {
   if (Array.isArray(value)) {
     if (value.some(v => typeof v === 'string' && (/^L05-[1-4]$/.test(v) || /(^|[/@])(P1[3-6]|calendar:service)$/.test(v)))) bad('旧版存档包含历法新内容');
@@ -407,7 +421,8 @@ function assertNetwork(s: GameState) {
       if (!validManifest(trip.manifest) || trip.direction === 'outbound' && trip.manifest.specialty || trip.loads !== trip.manifest.normal + trip.manifest.specialty || RESOURCES.some(r => trip.cargo[r] !== expected[r])) bad('货物或整包货单错误');
       const rack = vehicle.active === 'freightRack' ? 20000 : 0, guard = vehicle.active === 'railGuard' ? 0.75 : 1;
       const validWear = [Math.ceil((s.events.E12?.choice === 'reliable' ? 80 : s.events.E12?.choice === 'express' ? 150 : 100) * guard), ...(!vehicle.active ? [100] : [])];
-      if (trip.spaceReserved ? ![40000 + rack, 80000 + rack].includes(trip.capacity!) || trip.capacity! > vehicleCapacity(s) || size > trip.capacity! || trip.fee !== departureEnergy(s, id) || !validWear.includes(trip.wear!) : trip.mode !== 'normal' || trip.manifest.specialty || trip.loads > 2 || trip.fee !== null || trip.wear !== null || trip.capacity !== null || size > (s.completed.includes('R06') ? 80000 : 40000)) bad('运单快照或旧车兼容标记错误');
+      const baseFee = baseDepartureEnergy(s, id), validFees = [baseFee, ...(s.covenants.paid.coexist && s.covenants.feeSaved >= Math.ceil(baseFee * 0.2) ? [Math.ceil(baseFee * 0.8)] : [])];
+      if (trip.spaceReserved ? ![40000 + rack, 80000 + rack].includes(trip.capacity!) || trip.capacity! > vehicleCapacity(s) || size > trip.capacity! || !validFees.includes(trip.fee!) || !validWear.includes(trip.wear!) : trip.mode !== 'normal' || trip.manifest.specialty || trip.loads > 2 || trip.fee !== null || trip.wear !== null || trip.capacity !== null || size > (s.completed.includes('R06') ? 80000 : 40000)) bad('运单快照或旧车兼容标记错误');
       if (trip.remaining > trip.duration || trip.duration !== config.seconds && !(s.events.E12?.choice === 'express' && trip.duration === Math.ceil(config.seconds * NETWORK_RULES.expressTime))) bad('运输时长错误');
     }
   }
@@ -546,8 +561,9 @@ export function assertInvariants(s: GameState, legacy = false) {
   assertNetwork(s);
   assertOutposts(s);
   assertCalendar(s);
+  assertCovenants(s);
 }
-function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): GameState {
+function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): GameState {
   const legacy = schema === 1;
   const o = obj(v), clock = obj(o.clock), events = obj(o.events), ids = EVENT_IDS.slice(0, legacy ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
   if (o.district !== 'district-0' || typeof o.lightingChosen !== 'boolean' || typeof o.memoryProduced !== 'boolean') bad('街区或状态标志错误');
@@ -589,6 +605,7 @@ function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): GameState
     experience: readExperience(o.experience, schema), neighborhood: schema < 5 ? createNeighborhood() : readNeighborhood(o.neighborhood, schema),
     outposts: schema < 7 ? createOutposts() : readOutposts(o.outposts),
     calendar: schema < 8 ? createCalendar() : readCalendar(o.calendar),
+    covenants: schema < 9 ? createCovenants() : readCovenants(o.covenants),
     history: (o.history as unknown[]).map(v => {
       const h = obj(v);
       if (typeof h.text !== 'string' || h.text.length > 1000) bad('近期文字格式错误');
@@ -612,7 +629,7 @@ function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): GameState
 }
 export function encodeSave(state: GameState, savedAt: number): string {
   assertInvariants(state);
-  return JSON.stringify({ format: 'districtzero', schemaVersion: 8, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
+  return JSON.stringify({ format: 'districtzero', schemaVersion: 9, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
 }
 export function decodeSave(text: string): SaveEnvelope {
   if (text.length > 2_000_000) bad('文件超过 2 MB');
@@ -621,13 +638,14 @@ export function decodeSave(text: string): SaveEnvelope {
   const o = obj(parsed);
   if (o.format !== 'districtzero') bad('这不是第0街区存档');
   const schema = o.schemaVersion;
-  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5 && schema !== 6 && schema !== 7 && schema !== 8) throw new SaveVersionError('结构版本不兼容，当前支持版本1/2/3/4/5/6/7迁移与版本8');
-  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : schema === 5 ? '0.3.2' : schema === 6 ? '0.3.3' : schema === 7 ? '0.4.0' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
+  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5 && schema !== 6 && schema !== 7 && schema !== 8 && schema !== 9) throw new SaveVersionError('结构版本不兼容，当前支持版本1–8迁移与版本9');
+  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : schema === 5 ? '0.3.2' : schema === 6 ? '0.3.3' : schema === 7 ? '0.4.0' : schema === 8 ? '0.5.0' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
+  if (schema < 9) rejectOldCovenantContent(o.state);
   if (schema < 8) rejectOldCalendarContent(o.state);
   if (schema < 7) rejectOldOutpostContent(o.state);
   if (schema === 4) {
     const old = obj(o.state);
     if (old.neighborhood !== undefined || obj(old.ledger).fieldReserved !== undefined || old.report !== null && (obj(old.report).neighborhood !== undefined || obj(obj(old.report).flows).fieldReserved !== undefined) || Array.isArray(old.queue) && old.queue.some(p => obj(p).legacyChapter !== undefined)) bad('旧版存档包含街巷新内容');
   }
-  return { format: 'districtzero', schemaVersion: 8, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(normalizeFreight(o.state)) : schema < 6 ? normalizeFreight(o.state) : o.state, schema), ...(schema < 8 ? { migratedFrom: schema as 1 | 2 | 3 | 4 | 5 | 6 | 7 } : {}) };
+  return { format: 'districtzero', schemaVersion: 9, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(normalizeFreight(o.state)) : schema < 6 ? normalizeFreight(o.state) : o.state, schema), ...(schema < 9 ? { migratedFrom: schema as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 } : {}) };
 }
