@@ -139,7 +139,17 @@ export class GameController {
     });
   }
   saveNow() { return this.serialize(async () => { await this.catchUp(); this.save(); }); }
-  exportText() { return encodeSave(this.snapshot.state, Math.floor(this.now())); }
+  exportReason(): string | null {
+    if (!this.snapshot.owner) return '请在运行中的主页面导出存档，或关闭主页面后等待此页接管。';
+    if (this.snapshot.busy !== null) return '请等待离线结算完成后再导出存档。';
+    if (this.snapshot.storageBlocked) return '原始存档尚未成功读取，暂不能导出；请使用兼容版本打开，或确认导入有效存档、明确重置。';
+    return null;
+  }
+  exportText() {
+    const reason = this.exportReason();
+    if (reason) throw new Error(reason);
+    return encodeSave(this.snapshot.state, Math.floor(this.now()));
+  }
   previewImport(text: string) { return decodeSave(text); }
   importText(text: string) {
     return this.serialize(async () => {

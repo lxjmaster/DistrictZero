@@ -175,6 +175,7 @@ function Archive({ state, send, disabled }: { state: GameState; send: Send; disa
 function Settings({ controller, snapshot, reset }: { controller: GameController; snapshot: Snapshot; reset: () => void }) {
   const [text, setText] = useState(''), [preview, setPreview] = useState<GameState | null>(null), [error, setError] = useState<string | null>(null), [fileName, setFileName] = useState('');
   const disabled = !snapshot.owner || snapshot.busy !== null;
+  const exportReason = controller.exportReason();
   const exportSave = () => {
     try {
       const blob = new Blob([controller.exportText()], { type: 'application/json' }), url = URL.createObjectURL(blob);
@@ -182,7 +183,7 @@ function Settings({ controller, snapshot, reset }: { controller: GameController;
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) { setError(e instanceof Error ? e.message : '导出失败'); }
   };
-  return <div className="stack"><section className="panel"><PanelTitle>保存与恢复</PanelTitle><p role="status">{snapshot.saveStatus}</p><p className="muted small">每 10 秒自动保存，关键操作立即保存。恢复副本保留最近一次有效进度；导入前保留替换前的进度。</p><div className="button-row"><button disabled={disabled} onClick={() => void controller.saveNow()}>立即保存</button><button onClick={exportSave}>导出存档</button><button disabled={disabled || snapshot.storageBlocked} onClick={() => void controller.restore()}>读取恢复副本</button></div><p className="footnote">存档只保存在当前浏览器、当前地址中。换浏览器、端口或设备前，请先导出。</p></section>
+  return <div className="stack"><section className="panel"><PanelTitle>保存与恢复</PanelTitle><p role="status">{snapshot.saveStatus}</p><p className="muted small">每 10 秒自动保存，关键操作立即保存。恢复副本保留最近一次有效进度；导入前保留替换前的进度。</p><div className="button-row"><button disabled={disabled} onClick={() => void controller.saveNow()}>立即保存</button><button disabled={exportReason !== null} onClick={exportSave}>导出存档</button><button disabled={disabled || snapshot.storageBlocked} onClick={() => void controller.restore()}>读取恢复副本</button></div>{exportReason && <p className="small muted" role="status">{exportReason}</p>}<p className="footnote">存档只保存在当前浏览器、当前地址中。换浏览器、端口或设备前，请先导出。</p></section>
     <section className="panel"><PanelTitle>导入交接记录</PanelTitle><p className="muted small">选择 JSON 文件或粘贴存档。检查后会显示摘要，再确认替换当前进度。</p>
       <label className={`file-label ${disabled ? 'disabled' : ''}`}><span className="file-button">选择存档文件</span><span className="file-name">{fileName || '尚未选择文件'}</span><input aria-label="选择存档文件" type="file" accept=".json,application/json" disabled={disabled} onChange={async e => { const file = e.target.files?.[0]; if (file) { setFileName(file.name); if (file.size > 2_000_000) { setError('文件超过 2 MB'); return; } setText(await file.text()); setPreview(null); setError(null); } }} /></label>
       <label htmlFor="save-text" className="small muted">存档文本</label><textarea id="save-text" value={text} disabled={disabled} onChange={e => { setText(e.target.value); setPreview(null); setError(null); }} placeholder="在这里粘贴第0街区的 JSON 存档" />

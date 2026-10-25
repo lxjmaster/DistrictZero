@@ -139,11 +139,13 @@ test('BT-05: one browser writer, read-only follower, and takeover after closing 
   await expect(follower.getByRole('button', { name: '安排让临时路灯亮起', exact: true })).toBeDisabled();
   await follower.getByRole('button', { name: '设置', exact: true }).click();
   await expect(follower.getByRole('button', { name: '立即保存', exact: true })).toBeDisabled();
+  await expect(follower.getByRole('button', { name: '导出存档', exact: true })).toBeDisabled();
   const locks = await follower.evaluate(async () => navigator.locks.query());
   expect(locks.held!.filter(l => l.name === 'districtzero.writer.v1')).toHaveLength(1);
   expect(locks.pending!.filter(l => l.name === 'districtzero.writer.v1')).toHaveLength(1);
   await page.close(); await expect(follower.getByTestId('save-status')).toHaveText('已保存');
   await expect(follower.getByRole('button', { name: '立即保存', exact: true })).toBeEnabled();
+  await expect(follower.getByRole('button', { name: '导出存档', exact: true })).toBeEnabled();
   expect((await saved(follower)).queue[0].uid).toBe(before.queue[0].uid);
   const afterLocks = await follower.evaluate(async () => navigator.locks.query());
   expect(afterLocks.held!.filter(l => l.name === 'districtzero.writer.v1')).toHaveLength(1);
@@ -186,6 +188,7 @@ for (const [version, resolution] of [
     await expect(page.getByTestId('save-status')).toContainText('原始存档保留');
     await page.clock.fastForward(60000); await expect(page.getByTestId('parts-stock')).toContainText('24.4');
     await click(page, '设置'); await expect(page.getByRole('button', { name: '读取恢复副本', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: '导出存档', exact: true })).toBeDisabled();
     await click(page, '立即保存'); await click(page, '纸色主题');
     expect(await page.evaluate(key => localStorage.getItem(key), SAVE_KEY)).toBe(primary);
     expect(await page.evaluate(key => localStorage.getItem(key), BACKUP_KEY)).toBe(backup);
@@ -208,6 +211,7 @@ for (const [version, resolution] of [
       await expect(page.getByTestId('save-status')).toHaveText('已保存'); expect((await saved(page)).clock.seconds).toBe(0);
     }
     await page.reload(); await expect(page.getByTestId('save-status')).toHaveText('已保存');
+    await click(page, '设置'); await expect(page.getByRole('button', { name: '导出存档', exact: true })).toBeEnabled();
     const resolved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVE_KEY);
     expect(resolved.schemaVersion).toBe(9); expect(resolved.balanceVersion).toBe('0.6.0');
   });
