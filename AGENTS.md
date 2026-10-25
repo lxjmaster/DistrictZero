@@ -178,6 +178,20 @@ Continue this unchanged outcome without repeated approval. Do not claim the
 release is public until its deployment and public checks pass. New features
 and contacting human playtesters remain outside this publishing task.
 
+V0.6 is now published at https://lxjmaster.github.io/DistrictZero/ on 2026-10-25:
+game commit `bd59528`, successful Pages run 40165093552. The cloud run passed
+all 330 unit/storage tests in one serial run, type checking, production build
+and deployment, with zero dependency audit findings. Public HTML/JS/CSS/favicon
+match the local build byte-for-byte. Six isolated desktop/320px mobile scenarios
+passed: schema 9 / balance 0.6.0 new saves; genuine schema 8 prepared/in-transit
+migration, original recovery copy and restoration; complete chapter import,
+reopening, invalid provenance rejection, actual dual upkeep and free pause.
+Public migration checks use zero offline elapsed time; long offline and genuine
+schemas 1-8 remain covered by the recorded local acceptance. Evidence and limits
+are in docs/VERIFICATION.md. Human feedback remains unsampled. No local service
+was started for publication; the isolated verification browser is closed.
+This completed publication does not authorize new gameplay or human contact.
+
 ## Authoritative Design
 
 Read these documents before implementation:

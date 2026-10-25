@@ -1,8 +1,33 @@
 # DistrictZero 验证记录
 
+## V0.6 公开发布
+
+日期：2026-10-25。**V0.6「城市公约」已发布到[GitHub Pages](https://lxjmaster.github.io/DistrictZero/)**，当前数值0.6.0、存档结构9，完整六章P01–P19、三类公约、全部双约组合及L06四封信均已上线。下方本地验收保留发布前的历史事实。
+
+| 检查 | 实际结果 |
+| --- | --- |
+| 提交与部署 | 游戏提交[`bd59528`](https://github.com/lxjmaster/DistrictZero/commit/bd59528969ddb314b307a8affc5a3a43fbf864d2)已推送master；[Pages运行40165093552](https://github.com/lxjmaster/DistrictZero/actions/runs/40165093552)的build/deploy均成功，部署结束于2026-10-25 05:24:23 UTC |
+| 云端验证 | 普通`npm ci`成功，审计0项；`npm run test -- --no-file-parallelism`一次执行13文件、**330/330通过，270.98秒**，类型检查及生产构建通过。51个不同浏览器场景的本地证据含定向复验，详见本地验收；不声称CI执行了浏览器测试 |
+| 公开资源 | HTTP均为200；隔离浏览器逐字节核对HTML、JS、CSS、favicon与dist一致，实际加载`index-DWNTLu44.js`、`index-BEWL3Re3.css`，没有旧资源、失败资源或越域请求 |
+| 双端新档 | 桌面1440×1000、手机320×740均创建结构9/数值0.6.0新档，初始资源正确，公约为空、关闭且无收费成果；设置页版本正确，重开逐字段一致 |
+| 真实V0.5迁移与恢复 | 桌面使用真实已备料结构8导出；手机使用发布旧引擎正常发车得到的“在途＋已备料＋活动分所”结构8来源。新增空公约，其他全部原状态逐字段相同；旧版恢复副本原字节保留，实际读取副本与重开再次通过，原备料/在途空间仍显示 |
+| 完整章与公约操作 | 双端从最终本地路线导出结构9完整档，通过真实UI导入，保留替换前副本，重开一致，P19/L06四封信保留；伪造公约付费来源的坏档被拒且主存/副本均不写。双约实际推进10秒，各付费秒与双约秒增加10；免费暂停不扣资源、不清累计维护，重开仍暂停 |
+| 布局与清理 | 六个场景均无脚本异常、水平溢出；减少动态生效。桌面/手机公约截图已查看。全部上下文隔离，未访问日常浏览器存档，浏览器已关闭；本次没有启动本地服务 |
+
+脚本`test-results/v06-publication-check.mjs`与结果`test-results/v06-publication/verification.json`保留复现步骤、来源SHA-256、响应记录、迁移档及截图；六个场景一次通过，完成时间2026-10-25T05:25:37.078Z。工作流日志保留在`test-results/v06-publication-run.log`。公开迁移仅对齐`savedAt`与`clock.lastAt`，离线间隔为0毫秒，不修改经济或成果。长离线、七天分段一致性与真实结构1–8覆盖沿用本地证据；不声称本次公开检查重跑了所有迁移/长离线路线。
+
+| 公开资源 | SHA-256 |
+| --- | --- |
+| `index.html` | `754401731da402e65c5fab41da5b3f84c1c0d7069668134d49591ddd6268bda8` |
+| `assets/index-DWNTLu44.js` | `c36e081866e2cbd3ec3fbc87dd2b1a4f3e307ad90bba59d4ffb72acb481c3f4b` |
+| `assets/index-BEWL3Re3.css` | `e649a91db005d8134075ac81e4c7672a37f64d1757f705a70414b84b163a85c1` |
+| `favicon.svg` | `7fe770d1bd7fb654a8e16caa6faf5cb806d16528c0884e59b4f5cd8f48634699` |
+
+发布文档的后续推送沿用同一Pages流程，最终交付须确认对应运行成功、远端提交及公开资源仍匹配。真人理解、趣味、长期平衡、真实触摸、Safari和Firefox仍未采样；没有联系试玩者或新增玩法。
+
 ## V0.5 公开发布
 
-日期：2026-10-23。**V0.5已发布到[GitHub Pages](https://lxjmaster.github.io/DistrictZero/)**，同时包含此前仅本地交付的完整V0.4分所、V0.5历法及两版审查修复。当前数值0.5.0、存档结构8；五章P01–P16及既有体验扩展均已上线。下方“本地”章节保留发布前的历史验收，不代表当前未发布。
+日期：2026-10-23。**V0.5当时已发布到[GitHub Pages](https://lxjmaster.github.io/DistrictZero/)**，同时包含此前仅本地交付的完整V0.4分所、V0.5历法及两版审查修复。当时数值0.5.0、存档结构8；五章P01–P16及既有体验扩展均已上线。下方“本地”章节保留发布前的历史验收，不代表当前未发布；最新V0.6见上方。
 
 | 检查 | 实际结果 |
 | --- | --- |
@@ -541,7 +566,7 @@ V0.1当时仅支持存档结构版本1、数值版本0.1.0；当时没有历史�
 兼容依据：[Vitest 4迁移说明](https://v4.vitest.dev/guide/migration.html)、[Vite 7.3.7元数据](https://registry.npmjs.org/vite/7.3.7)、[Vitest 4.1.12元数据](https://registry.npmjs.org/vitest/4.1.12)、[Vitest维护方安全公告](https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9)。工具链运行环境声明取Vite/Vitest支持范围交集，排除Node.js 23；CI继续使用Node.js 22。
 ## 2026-10-25：V0.6公约本地验收
 
-本地结构9 / 数值0.6.0；公开站点仍为V0.5，本次没有commit、push或部署。固定范围为[V0.6规格](V0.6_SPEC.md)的G01–G12，三条公约、三种双约组合、P17–P19及L06四封来信已实现。
+本节记录发布前本地结构9 / 数值0.6.0验收；当时公开站点仍为V0.5，没有commit、push或部署。随后发布见上方。固定范围为[V0.6规格](V0.6_SPEC.md)的G01–G12，三条公约、三种双约组合、P17–P19及L06四封来信已实现。
 
 ### 执行结果与修复
 
