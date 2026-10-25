@@ -227,6 +227,21 @@ test-results/v06-maintenance-publication/ and docs/VERIFICATION.md. Publication
 documentation follows through the same workflow; verify its final run before
 reporting completion. No new gameplay or human contact is authorized here.
 
+The user requested the next delivery step after the export-state review fix on
+2026-10-25. The fix is now published: commit `22d3746`, successful Pages run
+40177133068, all 334 unit/storage/controller tests, type checking and build
+passed in CI. Public HTML/JS/CSS/favicon match dist byte-for-byte, using
+`index-CXTUBI9I.js`. Eight isolated desktop/320px scenarios passed normal export,
+follower rejection and takeover, incompatible-original protection with confirmed
+import/reset recovery, and valid in-memory export after ordinary write failure.
+Settlement-in-progress rejection and export after the full interval are covered
+by the controller regression, not an additional public browser scenario.
+Schema 9 / balance 0.6.0 and economic rules remain unchanged. Browsers are closed;
+no local service was started. Evidence is in docs/VERIFICATION.md and
+test-results/export-fix-publication/. Publication documentation follows through
+the existing workflow and its final deployment must be verified before delivery.
+Human playtesting stays deferred; this outcome adds no new gameplay scope.
+
 ## Authoritative Design
 
 Read these documents before implementation:
