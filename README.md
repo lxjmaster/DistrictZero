@@ -34,6 +34,8 @@ npm run typecheck   # TypeScript 类型检查
 npm run test        # 引擎与存档测试
 npx playwright install chromium  # 首次浏览器测试前安装测试浏览器
 npm run test:e2e    # 实际浏览器流程，使用可控制时钟加速等待
+npx playwright install firefox webkit  # 定向兼容检查所需的额外引擎
+npm run test:compat # Firefox / WebKit关键流程；不等于真实Safari或手机
 npm run build      # 类型检查并生成 dist/
 npm run preview    # 在 http://127.0.0.1:4173/DistrictZero/ 查看构建产物
 ```
@@ -162,6 +164,7 @@ V0.3.1使用存档结构4、数值版本0.3.1，自动迁移结构1/0.1.0、2/0.
 ## 实现与验证资料
 
 - [下一步计划：工具链维护、V0.6公约规格与体验验证](docs/NEXT_STEPS.md)
+- [备用试玩简版入口与反馈字段](docs/PLAYTEST_START.md)（真人体验按用户要求暂缓）
 - [产品需求与验收 FR-01–FR-14](docs/PRODUCT_SPEC.md)
 - [技术设计与测试场景](docs/TECHNICAL_PLAN.md)
 - [第二章内容与验收 C01–C08](docs/V0.2_SPEC.md)

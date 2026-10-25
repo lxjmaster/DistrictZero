@@ -192,6 +192,26 @@ are in docs/VERIFICATION.md. Human feedback remains unsampled. No local service
 was started for publication; the isolated verification browser is closed.
 This completed publication does not authorize new gameplay or human contact.
 
+After publication on 2026-10-25 the user requested continued technical work and
+explicitly deferred human playtesting. The local follow-up verifies Firefox and
+Playwright WebKit, then optimizes long-settlement responsiveness. It changes only
+the controller batch cap from 10,000 to 1,000 simulated seconds, based on measured
+production-build comparisons. Per-second economy, captured-time migration,
+whole-interval legacy rules, interrupted retry and first single save remain
+unchanged. Local verification and measurements are in docs/VERIFICATION.md.
+This maintenance is not committed or published under the completed release task;
+the public V0.6 still has the old batch cap. Preserve the earlier uncommitted
+compatibility configuration and documentation. Human sampling stays deferred.
+
+On 2026-10-25 the user continued the explicitly identified next delivery step:
+review, commit and publish the local compatibility checks and long-settlement
+responsiveness maintenance, then verify the public deployment and synchronize
+its documentation. This authorizes committing and pushing this maintenance and
+necessary review fixes to master with the existing Pages deployment effect.
+The review found no blocking defect. Reuse the recorded local verification;
+verify the matching cloud run and deployed artifacts before claiming publication.
+Human playtesting remains deferred; new gameplay is outside this outcome.
+
 ## Authoritative Design
 
 Read these documents before implementation:

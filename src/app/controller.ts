@@ -94,7 +94,9 @@ export class GameController {
     const long = elapsed >= 30000;
     if (long) this.publish({ busy: 0 });
     while (remaining > 0) {
-      const step = Math.min(remaining, 10_000_000);
+      // Yield after at most 1,000 simulated seconds; economic ticks and the
+      // captured settlement boundary remain unchanged across browser tasks.
+      const step = Math.min(remaining, 1_000_000);
       state = advance(state, step);
       remaining -= step;
       if (long && remaining > 0) {
