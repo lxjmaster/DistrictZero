@@ -301,6 +301,20 @@ Pages workflow, verifying the public site and synchronizing release records.
 Do not report publication before the matching deployment and public checks
 pass. New gameplay and contacting human playtesters remain outside this task.
 
+V0.6.1 is now publicly deployed on 2026-10-27 at
+https://lxjmaster.github.io/DistrictZero/: game commit `7481f1c`, successful
+Pages run 40493000396. The cloud passed all 380 unit/storage/controller tests,
+type checking and production build. Public HTML, JS, CSS and favicon match the
+local build byte-for-byte. Six isolated desktop/320px scenarios passed new
+saves/reopening, genuine schema 9 ready-save zero-elapsed migration and original
+recovery, actual A04 payment/reopening, and separately labeled synthetic E07
+lighting precision. Public migration does not establish long-offline behavior;
+that and schemas 1-9 are covered by recorded local acceptance. Human feedback
+remains unsampled. Evidence is in docs/VERIFICATION.md and
+test-results/v061-publication/. Publication documentation follows through the
+same workflow; verify its final run before reporting completion. No new gameplay
+or human contact is authorized here.
+
 ## Authoritative Design
 
 Read these documents before implementation:
