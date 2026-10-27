@@ -1,0 +1,1434 @@
+{
+  "format": "districtzero",
+  "schemaVersion": 9,
+  "balanceVersion": "0.6.0",
+  "savedAt": 0,
+  "state": {
+    "facilities": {
+      "generator": 3,
+      "recycler": 1,
+      "workbench": 2,
+      "dorm": 3,
+      "warehouse": 3,
+      "mailbox": 1
+    },
+    "population": {
+      "shadow": 4,
+      "echo": 4
+    },
+    "assignments": {
+      "shadow": {
+        "power": 2,
+        "salvage": 1,
+        "repair": 0,
+        "record": 0,
+        "assemble": 0
+      },
+      "echo": {
+        "power": 0,
+        "salvage": 0,
+        "repair": 1,
+        "record": 2,
+        "assemble": 1
+      }
+    },
+    "lighting": "bright",
+    "publicWorks": {
+      "relay": {
+        "built": true,
+        "enabled": true,
+        "condition": 0
+      },
+      "registry": {
+        "built": true,
+        "enabled": true,
+        "condition": 0
+      }
+    },
+    "autoRepair": false,
+    "district": "district-0",
+    "resources": {
+      "energy": 500000,
+      "parts": 550000,
+      "memory": 120000,
+      "component": 12000,
+      "rainFilm": 0,
+      "railCore": 0
+    },
+    "earned": {
+      "energy": 10477384,
+      "parts": 4989612,
+      "memory": 1047110,
+      "component": 45000,
+      "rainFilm": 0,
+      "railCore": 0
+    },
+    "ledger": {
+      "production": {
+        "energy": 10477384,
+        "parts": 4959612,
+        "memory": 998110,
+        "component": 43000,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "rewards": {
+        "energy": 0,
+        "parts": 30000,
+        "memory": 49000,
+        "component": 2000,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "operating": {
+        "energy": 7646384,
+        "parts": 712612,
+        "memory": 28110,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "reserved": {
+        "energy": 2245000,
+        "parts": 3657000,
+        "memory": 873000,
+        "component": 33000,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "refunds": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "exports": {
+        "energy": 76000,
+        "parts": 72000,
+        "memory": 22000,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "imports": {
+        "energy": 0,
+        "parts": 32000,
+        "memory": 12000,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "fulfillment": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "fieldReserved": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "supportSent": {
+        "energy": 40000,
+        "parts": 40000,
+        "memory": 16000,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "supportReceived": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      }
+    },
+    "arrivalSeconds": 0,
+    "arrivals": 14,
+    "lightingChosen": true,
+    "priority": [
+      "salvage",
+      "repair",
+      "record",
+      "assemble"
+    ],
+    "queue": [],
+    "completed": [
+      "P01",
+      "build:dorm:1",
+      "P02",
+      "build:warehouse:1",
+      "build:mailbox:1",
+      "R01",
+      "R02",
+      "P03",
+      "build:dorm:2",
+      "build:generator:2",
+      "build:dorm:3",
+      "build:workbench:2",
+      "build:warehouse:2",
+      "P04",
+      "P05",
+      "district-1/build:dorm:1",
+      "district-1/build:recycler:1",
+      "district-1/build:dorm:2",
+      "district-1/build:recycler:2",
+      "district-2/build:dorm:1",
+      "district-2/build:mailbox:1",
+      "district-2/build:dorm:2",
+      "district-2/build:mailbox:2",
+      "public:relay",
+      "public:registry",
+      "R03",
+      "R04",
+      "P06",
+      "P07",
+      "P08",
+      "build:warehouse:3",
+      "P09",
+      "R05",
+      "R06",
+      "build:generator:3",
+      "P10",
+      "P11",
+      "P12",
+      "O01@O01-1",
+      "O01@O01-2",
+      "O01@O01-3",
+      "O02@O02-1",
+      "O02@O02-2",
+      "O02@O02-3",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19"
+    ],
+    "events": {
+      "E01": {
+        "status": "claimed"
+      },
+      "E03": {
+        "status": "claimed",
+        "choice": "bright"
+      },
+      "E02": {
+        "status": "claimed"
+      },
+      "E04": {
+        "status": "claimed"
+      },
+      "E05": {
+        "status": "claimed"
+      },
+      "E06": {
+        "status": "claimed"
+      },
+      "E07": {
+        "status": "claimed",
+        "choice": "common"
+      },
+      "E08": {
+        "status": "claimed"
+      },
+      "E09": {
+        "status": "claimed"
+      },
+      "E10": {
+        "status": "claimed"
+      },
+      "E11": {
+        "status": "claimed"
+      },
+      "E12": {
+        "status": "claimed",
+        "choice": "reliable"
+      },
+      "E13": {
+        "status": "claimed"
+      },
+      "E14": {
+        "status": "claimed"
+      },
+      "E15": {
+        "status": "claimed"
+      }
+    },
+    "memoryProduced": true,
+    "address": "0-001",
+    "clock": {
+      "seconds": 15176,
+      "remainderMs": 0,
+      "lastAt": 0
+    },
+    "nextProject": 54,
+    "theme": "dark",
+    "report": null,
+    "city": {
+      "districts": {
+        "district-1": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 2,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 0
+          },
+          "population": {
+            "shadow": 3,
+            "echo": 1
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 2,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            }
+          },
+          "lighting": "dim",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        },
+        "district-2": {
+          "facilities": {
+            "generator": 0,
+            "recycler": 0,
+            "workbench": 0,
+            "dorm": 2,
+            "warehouse": 0,
+            "mailbox": 2
+          },
+          "population": {
+            "shadow": 1,
+            "echo": 3
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 2,
+              "assemble": 0
+            }
+          },
+          "lighting": "bright",
+          "publicWorks": {
+            "relay": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            },
+            "registry": {
+              "built": false,
+              "enabled": true,
+              "condition": 0
+            }
+          },
+          "autoRepair": false
+        }
+      },
+      "templates": [],
+      "maintenance": 2
+    },
+    "network": {
+      "routes": {
+        "rain": {
+          "node": {
+            "resources": {
+              "energy": 10000,
+              "parts": 12000,
+              "memory": 24000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "received": {
+              "energy": 40000,
+              "parts": 72000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 36000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "used": {
+              "energy": 30000,
+              "parts": 60000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 12000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "cycle": 60,
+            "mode": "specialty",
+            "batches": {
+              "normal": 3,
+              "specialty": 0
+            }
+          },
+          "condition": 560,
+          "autoRepair": false,
+          "contract": {
+            "enabled": false,
+            "loads": 1,
+            "reserve": {
+              "energy": 50000,
+              "parts": 30000,
+              "memory": 10000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "targets": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 60000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "buffer": 1,
+            "manifest": {
+              "normal": 1,
+              "specialty": 0
+            },
+            "order": [
+              "normal",
+              "specialty"
+            ]
+          },
+          "staff": {
+            "district": "district-0",
+            "resident": "shadow"
+          },
+          "trip": null,
+          "departures": 5,
+          "exports": 4,
+          "imports": 1
+        },
+        "station": {
+          "node": {
+            "resources": {
+              "energy": 0,
+              "parts": 32000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "received": {
+              "energy": 24000,
+              "parts": 0,
+              "memory": 16000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "produced": {
+              "energy": 0,
+              "parts": 64000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "used": {
+              "energy": 24000,
+              "parts": 0,
+              "memory": 16000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "shipped": {
+              "energy": 0,
+              "parts": 32000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "cycle": 60,
+            "mode": "specialty",
+            "batches": {
+              "normal": 2,
+              "specialty": 0
+            }
+          },
+          "condition": 680,
+          "autoRepair": false,
+          "contract": {
+            "enabled": false,
+            "loads": 1,
+            "reserve": {
+              "energy": 50000,
+              "parts": 30000,
+              "memory": 10000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "targets": {
+              "energy": 0,
+              "parts": 240000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "buffer": 1,
+            "manifest": {
+              "normal": 1,
+              "specialty": 0
+            },
+            "order": [
+              "normal",
+              "specialty"
+            ]
+          },
+          "staff": {
+            "district": "district-2",
+            "resident": "echo"
+          },
+          "trip": {
+            "uid": "t-9",
+            "direction": "outbound",
+            "loads": 1,
+            "manifest": {
+              "normal": 1,
+              "specialty": 0
+            },
+            "mode": "specialty",
+            "cargo": {
+              "energy": 12000,
+              "parts": 0,
+              "memory": 6000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "duration": 180,
+            "remaining": 60,
+            "spaceReserved": true,
+            "fee": 4800,
+            "wear": 80,
+            "capacity": 80000
+          },
+          "departures": 4,
+          "exports": 2,
+          "imports": 1
+        }
+      },
+      "priority": [
+        "rain",
+        "station"
+      ],
+      "nextTrip": 10,
+      "maintenance": 0,
+      "vehicle": {
+        "built": [],
+        "active": null
+      },
+      "legacyPending": false,
+      "rulesSince": null
+    },
+    "experience": {
+      "archives": [],
+      "story": {
+        "L01-1": {},
+        "L01-2": {
+          "choice": "dismantle"
+        },
+        "L01-3": {},
+        "L01-4": {},
+        "L03-1": {},
+        "L03-2": {},
+        "L03-3": {},
+        "L03-4": {},
+        "L04-1": {},
+        "L04-2": {},
+        "L04-3": {},
+        "L04-4": {},
+        "L05-1": {},
+        "L05-2": {},
+        "L05-3": {},
+        "L05-4": {},
+        "L06-1": {},
+        "L06-2": {},
+        "L06-3": {},
+        "L06-4": {}
+      },
+      "blueprints": [
+        "quickJig"
+      ],
+      "benches": {
+        "district-0": {
+          "built": [],
+          "active": null
+        },
+        "district-1": {
+          "built": [],
+          "active": null
+        },
+        "district-2": {
+          "built": [],
+          "active": null
+        }
+      },
+      "assembly": {
+        "enabled": true,
+        "target": 12000,
+        "reserve": {
+          "energy": 30000,
+          "parts": 30000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    "neighborhood": {
+      "commissions": {
+        "completed": [],
+        "tracked": [],
+        "shown": {},
+        "nextShown": 1
+      },
+      "field": {
+        "active": null,
+        "queue": [],
+        "pending": [],
+        "sites": {
+          "F01": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          },
+          "F02": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          },
+          "F03": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          },
+          "F04": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          },
+          "F05": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          },
+          "F06": {
+            "first": null,
+            "clue": false,
+            "supplies": 0
+          }
+        },
+        "nextTrip": 1,
+        "returns": 0,
+        "recalls": 0,
+        "consumed": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "refunded": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "rewarded": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      },
+      "mailboxes": {
+        "district-0": {
+          "built": [],
+          "active": null
+        },
+        "district-1": {
+          "built": [],
+          "active": null
+        },
+        "district-2": {
+          "built": [],
+          "active": null
+        }
+      },
+      "delegation": {
+        "enabled": false,
+        "district": "district-0",
+        "stages": [],
+        "reserve": {
+          "energy": 10000,
+          "parts": 20000,
+          "memory": 5000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "deliveries": 0
+      }
+    },
+    "outposts": {
+      "active": null,
+      "sites": {
+        "O01": {
+          "resources": {
+            "energy": 80000,
+            "parts": 0,
+            "memory": 400,
+            "component": 0,
+            "rainFilm": 0,
+            "railCore": 0
+          },
+          "earned": {
+            "energy": 365000,
+            "parts": 114000,
+            "memory": 14400,
+            "component": 3000,
+            "rainFilm": 0,
+            "railCore": 0
+          },
+          "ledger": {
+            "production": {
+              "energy": 365000,
+              "parts": 114000,
+              "memory": 14400,
+              "component": 3000,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "rewards": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "operating": {
+              "energy": 245000,
+              "parts": 30000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "reserved": {
+              "energy": 60000,
+              "parts": 104000,
+              "memory": 22000,
+              "component": 3000,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "refunds": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "exports": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "imports": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "fulfillment": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "fieldReserved": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "supportSent": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "supportReceived": {
+              "energy": 20000,
+              "parts": 20000,
+              "memory": 8000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            }
+          },
+          "facilities": {
+            "generator": 1,
+            "recycler": 1,
+            "workbench": 1,
+            "dorm": 0,
+            "warehouse": 0,
+            "mailbox": 1
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            }
+          },
+          "lighting": "steady",
+          "priority": [
+            "salvage",
+            "repair",
+            "record",
+            "assemble"
+          ],
+          "assembly": {
+            "enabled": false,
+            "target": 3000,
+            "reserve": {
+              "energy": 10000,
+              "parts": 10000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            }
+          },
+          "bench": {
+            "built": [],
+            "active": null
+          },
+          "completed": [
+            "O01-1",
+            "O01-2",
+            "O01-3"
+          ],
+          "roofPrefab": 0,
+          "proof": null,
+          "handoff": true,
+          "lightFrame": false,
+          "initialTransferred": true,
+          "sent": {
+            "light": 0,
+            "materials": 0
+          }
+        },
+        "O02": {
+          "resources": {
+            "energy": 95000,
+            "parts": 700,
+            "memory": 320,
+            "component": 0,
+            "rainFilm": 0,
+            "railCore": 0
+          },
+          "earned": {
+            "energy": 468500,
+            "parts": 160000,
+            "memory": 22320,
+            "component": 5000,
+            "rainFilm": 0,
+            "railCore": 0
+          },
+          "ledger": {
+            "production": {
+              "energy": 468500,
+              "parts": 160000,
+              "memory": 22320,
+              "component": 5000,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "rewards": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "operating": {
+              "energy": 313500,
+              "parts": 49300,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "reserved": {
+              "energy": 80000,
+              "parts": 130000,
+              "memory": 30000,
+              "component": 5000,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "refunds": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "exports": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "imports": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "fulfillment": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "fieldReserved": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "supportSent": {
+              "energy": 0,
+              "parts": 0,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            },
+            "supportReceived": {
+              "energy": 20000,
+              "parts": 20000,
+              "memory": 8000,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            }
+          },
+          "facilities": {
+            "generator": 1,
+            "recycler": 1,
+            "workbench": 1,
+            "dorm": 0,
+            "warehouse": 0,
+            "mailbox": 1
+          },
+          "assignments": {
+            "shadow": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            },
+            "echo": {
+              "power": 0,
+              "salvage": 0,
+              "repair": 0,
+              "record": 0,
+              "assemble": 0
+            }
+          },
+          "lighting": "steady",
+          "priority": [
+            "salvage",
+            "repair",
+            "record",
+            "assemble"
+          ],
+          "assembly": {
+            "enabled": false,
+            "target": 3000,
+            "reserve": {
+              "energy": 10000,
+              "parts": 10000,
+              "memory": 0,
+              "component": 0,
+              "rainFilm": 0,
+              "railCore": 0
+            }
+          },
+          "bench": {
+            "built": [],
+            "active": null
+          },
+          "completed": [
+            "O02-1",
+            "O02-2",
+            "O02-3"
+          ],
+          "roofPrefab": null,
+          "proof": "local",
+          "handoff": true,
+          "lightFrame": false,
+          "initialTransferred": true,
+          "sent": {
+            "light": 0,
+            "materials": 0
+          }
+        }
+      },
+      "crew": [],
+      "support": {
+        "enabled": false,
+        "queue": [],
+        "reserve": {
+          "energy": 50000,
+          "parts": 30000,
+          "memory": 10000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "trip": null
+      },
+      "knowledge": {
+        "manifest": true,
+        "lightFrame": true
+      },
+      "nextCrew": 5,
+      "nextTrip": 1
+    },
+    "calendar": {
+      "originSecond": 11663,
+      "storage": {
+        "enabled": false,
+        "target": 300,
+        "reserve": {
+          "energy": 30000,
+          "parts": 0,
+          "memory": 10000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      },
+      "stored": 300,
+      "captured": 420,
+      "allowance": 4,
+      "services": 0,
+      "enabled": false,
+      "orders": [
+        {
+          "uid": "cal-3",
+          "route": "rain",
+          "mode": "specialty",
+          "supply": {
+            "energy": 10000,
+            "parts": 12000,
+            "memory": 0,
+            "component": 0,
+            "rainFilm": 0,
+            "railCore": 0
+          },
+          "product": {
+            "energy": 0,
+            "parts": 0,
+            "memory": 0,
+            "component": 0,
+            "rainFilm": 2000,
+            "railCore": 0
+          },
+          "createdRound": 5,
+          "earliestRound": 7,
+          "prepared": true
+        }
+      ],
+      "nextOrder": 4,
+      "boosts": {
+        "rain": {
+          "normal": 1,
+          "specialty": 0
+        },
+        "station": {
+          "normal": 1,
+          "specialty": 0
+        }
+      },
+      "crossRound": 2,
+      "history": [
+        {
+          "uid": "cal-1",
+          "route": "rain",
+          "mode": "normal",
+          "createdRound": 0,
+          "completedRound": 1,
+          "second": 12263
+        },
+        {
+          "uid": "cal-2",
+          "route": "station",
+          "mode": "normal",
+          "createdRound": 1,
+          "completedRound": 2,
+          "second": 13103
+        }
+      ]
+    },
+    "covenants": {
+      "paid": {
+        "preserve": 60,
+        "extend": 811,
+        "coexist": 711
+      },
+      "blocked": 0,
+      "combined": 531,
+      "changes": 5,
+      "upkeep": {
+        "energy": 41750,
+        "parts": 30440,
+        "memory": 7710,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "adjustments": {
+        "energy": 30000,
+        "parts": 20000,
+        "memory": 10000,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "lightSaved": 3600,
+      "extraWork": 215670,
+      "feeSaved": 2800,
+      "selected": [
+        "extend",
+        "coexist"
+      ],
+      "reserve": {
+        "energy": 0,
+        "parts": 0,
+        "memory": 0,
+        "component": 0,
+        "rainFilm": 0,
+        "railCore": 0
+      },
+      "paidSecond": 15176,
+      "history": [
+        {
+          "second": 14125,
+          "kind": "confirm",
+          "selected": [
+            "preserve"
+          ]
+        },
+        {
+          "second": 14185,
+          "kind": "confirm",
+          "selected": [
+            "extend"
+          ]
+        },
+        {
+          "second": 14465,
+          "kind": "confirm",
+          "selected": [
+            "coexist"
+          ]
+        },
+        {
+          "second": 14645,
+          "kind": "confirm",
+          "selected": [
+            "extend",
+            "coexist"
+          ]
+        },
+        {
+          "second": 15055,
+          "kind": "pause",
+          "selected": []
+        },
+        {
+          "second": 15055,
+          "kind": "confirm",
+          "selected": [
+            "extend",
+            "coexist"
+          ]
+        }
+      ]
+    },
+    "history": [
+      {
+        "second": 8345,
+        "text": "完工：把屋檐接成一条路 · 无库巷"
+      },
+      {
+        "second": 9305,
+        "text": "完工：给无库巷留下地址 · 无库巷"
+      },
+      {
+        "second": 9305,
+        "text": "住客回信：第一处异地交班。"
+      },
+      {
+        "second": 9305,
+        "text": "无库巷交接已确认，知识保留，现有安排没有改变。"
+      },
+      {
+        "second": 9305,
+        "text": "无库巷已封存；居民返回原住处并保持空闲，图内库存与成果保留。"
+      },
+      {
+        "second": 9305,
+        "text": "启用借光庭，两名居民的原住处保留。"
+      },
+      {
+        "second": 9505,
+        "text": "完工：接好借光插口 · 借光庭"
+      },
+      {
+        "second": 10195,
+        "text": "完工：安排庭院的下一班 · 借光庭"
+      },
+      {
+        "second": 11315,
+        "text": "完工：让院子有自己的地址 · 借光庭"
+      },
+      {
+        "second": 11315,
+        "text": "借光庭交接已确认，知识保留，现有安排没有改变。"
+      },
+      {
+        "second": 11315,
+        "text": "借光庭已封存；居民返回原住处并保持空闲，图内库存与成果保留。"
+      },
+      {
+        "second": 11315,
+        "text": "住客回信：两份地址都能收到信。"
+      },
+      {
+        "second": 11315,
+        "text": "住客回信：日期为0的维修单。"
+      },
+      {
+        "second": 11663,
+        "text": "完工：修复街区校时台"
+      },
+      {
+        "second": 11665,
+        "text": "住客回信：把还没用上的一刻收好。"
+      },
+      {
+        "second": 11665,
+        "text": "雨城补给列车发车，装载1包货物。目的地空间已预留。"
+      },
+      {
+        "second": 11785,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 12263,
+        "text": "雨城历法加工完成：常规整理，使用60秒时间与1次校准。产物仍在当地。"
+      },
+      {
+        "second": 12526,
+        "text": "完工：给雨城标出同一天"
+      },
+      {
+        "second": 12535,
+        "text": "长站补给列车发车，装载1包货物。目的地空间已预留。"
+      },
+      {
+        "second": 12715,
+        "text": "长站收到补给，已完整卸货。"
+      },
+      {
+        "second": 13103,
+        "text": "长站历法加工完成：旧轨回收，使用60秒时间与1次校准。产物仍在当地。"
+      },
+      {
+        "second": 13410,
+        "text": "完工：接上长站的日期"
+      },
+      {
+        "second": 13415,
+        "text": "住客回信：三处钟面，一份交班。"
+      },
+      {
+        "second": 13850,
+        "text": "完工：把日期写进共同名录"
+      },
+      {
+        "second": 13855,
+        "text": "住客回信：今天有了共同的名字。"
+      },
+      {
+        "second": 13855,
+        "text": "住客回信：空白处可以写约定。"
+      },
+      {
+        "second": 14116,
+        "text": "完工：摆开城市公约桌"
+      },
+      {
+        "second": 14125,
+        "text": "住客回信：规则要有人照看。"
+      },
+      {
+        "second": 14464,
+        "text": "完工：给第二种约定留位置"
+      },
+      {
+        "second": 14465,
+        "text": "住客回信：两行字之间的空隙。"
+      },
+      {
+        "second": 14525,
+        "text": "雨城补给列车发车，装载1包货物。目的地空间已预留。"
+      },
+      {
+        "second": 14645,
+        "text": "雨城收到补给，已完整卸货。"
+      },
+      {
+        "second": 15053,
+        "text": "完工：把未来写成可修改的约定"
+      },
+      {
+        "second": 15055,
+        "text": "住客回信：第0街区仍有下一页。"
+      },
+      {
+        "second": 15055,
+        "text": "雨城切换生产模式，未结算周期已清零；库存及在途货物保留。"
+      },
+      {
+        "second": 15055,
+        "text": "长站切换生产模式，未结算周期已清零；库存及在途货物保留。"
+      },
+      {
+        "second": 15056,
+        "text": "雨城补给列车发车，装载1包货物。目的地空间已预留。"
+      },
+      {
+        "second": 15056,
+        "text": "长站补给列车发车，装载1包货物。目的地空间已预留。"
+      },
+      {
+        "second": 15176,
+        "text": "雨城收到补给，已完整卸货。"
+      }
+    ]
+  }
+}

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import type { GameController, Snapshot } from '../app/controller';
-import { BALANCE_VERSION, EVENTS, EVENT_IDS, FACILITIES, FACILITY_IDS, FLOWS, JOBS, jobNames, POLICIES, RESIDENTS, RESOURCES, residentNames, resourceNames, flowNames } from '../game/config';
+import { BALANCE_VERSION, SAVE_SCHEMA_VERSION, EVENTS, EVENT_IDS, FACILITIES, FACILITY_IDS, FLOWS, JOBS, jobNames, POLICIES, RESIDENTS, RESOURCES, residentNames, resourceNames, flowNames } from '../game/config';
 import { completionName, definitionFor, duration, enqueueReason, format, freeResidents, jobCapacity, jobSlotsUsed, populationCapacity, populationCount, projectDefinition, projectLocation, projectReasons, refundPreview, stockLimits, view, workers } from '../game/engine';
-import { activeDistricts, arrivalInterval, cityCount, cityPopulation, dismantleReason, districtState, DISTRICTS, CITY_RULES } from '../game/city';
+import { activeDistricts, arrivalInterval, cityCount, cityPopulation, dismantleReason, districtState, DISTRICTS } from '../game/city';
 import { CityPage, PublicInfrastructure, WorkTemplates } from './City';
 import { JourneyArchive, NetworkPage } from './Network';
 import { ChapterProofPanel, MailboxPanel, MattersPage, NeighborhoodArchive } from './Neighborhood';
@@ -41,7 +41,7 @@ function ResourcePanel({ state }: { state: GameState }) {
       </summary>
       <div className="resource-detail"><p>本秒生产 {format(current.production[r])} · 消耗 {format(current.operating[r])} · 净变化 {format(current.net[r])}</p>
         {state.completed.includes('P08') && <p>发车与到货也计入净变化；本城和外部城市分别保存库存。</p>}{held[r] > 0 && <p>另有 {format(held[r])} 空间为在途货物预留，尚未入库；生产最多备到 {format(current.capacities[r] - held[r])}。</p>}
-        <p>{r === 'energy' ? `发电 ${format(current.output.power)}；全城照明 ${format(current.lightingCost)}、公共设施 ${format(current.publicCost)}；回收 ${format(current.costs.salvage.energy)}、维修 ${format(current.costs.repair.energy)}、记录 ${format(current.costs.record.energy)}、装配 ${format(current.costs.assemble.energy)}。` : r === 'parts' ? `回收 ${format(current.output.salvage)}；记录消耗 ${format(current.costs.record.parts)}，装配消耗 ${format(current.costs.assemble.parts)}/秒。` : r === 'memory' ? `记录 ${format(current.output.record)}；故事奖励等待你领取。` : r !== 'component' ? '城市特产：用于本章调查、委托、车辆方案与档案复原；完成有限用途后可停供。' : `装配 ${format(current.output.assemble)}/秒；目标 ${format(state.experience.assembly.target)}。用于预制施工和工具改装，最多50%工程量可提前预制。`}</p>
+        <p>{r === 'energy' ? `发电 ${format(current.output.power)}；全城照明 ${format(current.lightingCost, 3)}、公共设施 ${format(current.publicCost)}；回收 ${format(current.costs.salvage.energy)}、维修 ${format(current.costs.repair.energy)}、记录 ${format(current.costs.record.energy)}、装配 ${format(current.costs.assemble.energy)}。` : r === 'parts' ? `回收 ${format(current.output.salvage)}；记录消耗 ${format(current.costs.record.parts)}，装配消耗 ${format(current.costs.assemble.parts)}/秒。` : r === 'memory' ? `记录 ${format(current.output.record)}；故事奖励等待你领取。` : r !== 'component' ? '城市特产：用于本章调查、委托、车辆方案与档案复原；完成有限用途后可停供。' : `装配 ${format(current.output.assemble)}/秒；目标 ${format(state.experience.assembly.target)}。用于预制施工和工具改装，最多50%工程量可提前预制。`}</p>
         <p className="small">自动外勤出发与委托代办也计入本秒净变化，费用与奖励分别记账。</p><p>累计取得 {format(state.earned[r])}</p>
         {FLOWS.map(f => <p key={f}>{flowNames[f]}：{format(state.ledger[f][r])}</p>)}
       </div>
@@ -125,7 +125,7 @@ function Policies({ state, send, disabled, confirm, district }: { state: GameSta
     <div className="policy-grid">{(Object.keys(POLICIES) as Lighting[]).map(id => <button key={id} className={`policy ${local.lighting === id ? 'selected' : ''}`} aria-pressed={local.lighting === id} aria-label={`切换${POLICIES[id].name}`} disabled={disabled || !state.lightingChosen || local.lighting === id} onClick={() => confirm(id)}>
       <strong>{POLICIES[id].name} {local.lighting === id ? '· 当前' : ''}</strong><span>{POLICIES[id].text}</span>
     </button>)}</div>
-    <p className="footnote">{state.lightingChosen ? '本区每次切换消耗 5 零件。明灯吸引回声入住，暗灯吸引影子入住。' : '第一名回声居民入住后，通过“有人来住”事件免费选择。'}{state.events.E07?.choice === 'common' && ` 共灯生效，本区当前照明实际维护 ${format(Math.ceil(POLICIES[local.lighting].upkeep * CITY_RULES.sharedUpkeep))} 电量/秒。`}</p>
+    <p className="footnote">{state.lightingChosen ? '本区每次切换消耗 5 零件。明灯吸引回声入住，暗灯吸引影子入住。' : '第一名回声居民入住后，通过“有人来住”事件免费选择。'}{state.events.E07?.choice === 'common' && ' 共灯生效。'} 本区下一秒照明预计支出 {format(current.services[district]?.lightingCost ?? 0, 3)} 电量/秒，已计入可生效的共灯与公约；未供电时不扣费。</p>
     <div className="priority-title"><h3>供给优先级</h3><span className="muted small">全城发电 → 分区照明 → 公共设施 → 工作</span></div>
     <div className="priority-list">{state.priority.filter(job => job !== 'assemble' || assemblyUnlocked(state)).map((job, i) => <div key={job}><span><b>{i + 1}</b>{jobNames[job]}</span><button aria-label={`提高${jobNames[job]}优先级`} disabled={disabled || i === 0} onClick={() => {
       const order = [...state.priority]; [order[i], order[i - 1]] = [order[i - 1], order[i]]; send({ type: 'priority', order });
@@ -191,7 +191,7 @@ function Settings({ controller, snapshot, reset }: { controller: GameController;
       <button disabled={disabled || !text} onClick={() => { try { setPreview(controller.previewImport(text).state); setError(null); } catch (e) { setPreview(null); setError(e instanceof Error ? e.message : '无法读取存档'); } }}>检查存档</button>
       {preview && <div className="import-preview"><h3>检查通过 · 等待确认</h3><p>将以 {duration(preview.clock.seconds)} 的进度、{cityCount(preview)} 位居民、{preview.address ?? '未登记地址'} 替换当前 {duration(snapshot.state.clock.seconds)} 的进度。</p><p className="small">现有进度先保留为恢复副本，导入档按其最近结算时间补算。</p><button className="primary" disabled={disabled} onClick={() => { void controller.importText(text); setPreview(null); setText(''); }}>确认导入并替换</button></div>}
     </section>
-    <section className="panel"><PanelTitle>显示与关于</PanelTitle><div className="button-row"><button disabled={disabled} aria-pressed={snapshot.state.theme === 'dark'} onClick={() => void controller.dispatch({ type: 'theme', theme: 'dark' })}>夜色主题</button><button disabled={disabled} aria-pressed={snapshot.state.theme === 'light'} onClick={() => void controller.dispatch({ type: 'theme', theme: 'light' })}>纸色主题</button></div><p className="small muted">DistrictZero V{BALANCE_VERSION} · 数值版本 {BALANCE_VERSION} · 存档结构版本 9 · 兼容V0.1/V0.2/V0.3/V0.3.1/V0.3.2/V0.3.3/V0.4/V0.5存档</p><p className="muted">从0开始，让一座城有地方可去。</p><button className="danger" disabled={disabled} onClick={reset}>重置本地进度</button></section>
+    <section className="panel"><PanelTitle>显示与关于</PanelTitle><div className="button-row"><button disabled={disabled} aria-pressed={snapshot.state.theme === 'dark'} onClick={() => void controller.dispatch({ type: 'theme', theme: 'dark' })}>夜色主题</button><button disabled={disabled} aria-pressed={snapshot.state.theme === 'light'} onClick={() => void controller.dispatch({ type: 'theme', theme: 'light' })}>纸色主题</button></div><p className="small muted">DistrictZero V{BALANCE_VERSION} · 数值版本 {BALANCE_VERSION} · 存档结构版本 {SAVE_SCHEMA_VERSION} · 兼容 V0.1 / V0.2 / V0.3 / V0.3.1 / V0.3.2 / V0.3.3 / V0.4 / V0.5 / V0.6 存档</p><p className="muted">从0开始，让一座城有地方可去。</p><button className="danger" disabled={disabled} onClick={reset}>重置本地进度</button></section>
   </div>;
 }
 function Dialog({ title, children, close }: { title: string; children: ReactNode; close: () => void }) {

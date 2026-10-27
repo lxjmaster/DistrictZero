@@ -1,10 +1,10 @@
-import { amounts, BALANCE_VERSION, EVENT_IDS, FACILITY_IDS, FLOWS, INITIAL, JOBS, POLICIES, PROJECTS, RESIDENTS, RESOURCES, RULES, WORK_JOBS } from './config';
+import { amounts, BALANCE_VERSION, EVENT_IDS, FACILITY_IDS, FLOWS, INITIAL, JOBS, POLICIES, PROJECTS, RESIDENTS, RESOURCES, RULES, SAVE_SCHEMA_VERSION, WORK_JOBS } from './config';
 import { capacities, createGame, definitionFor, eventTriggers, jobCapacity, jobSlotsUsed, legacyChapterReady, parseCompletionKey, projectKey } from './engine';
 import type { Amounts, EventId, GameState, Ledger, ReturnReport } from './types';
 import type { DistrictId, DistrictState, WorkTemplate, PublicFacility } from './types';
 import { activeDistricts, cityCount, cityPopulation, CITY_RULES, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, plotsUsed, PUBLIC_IDS, scopedKey } from './city';
 import { awayWorkers, cargoFor, createNetwork, fleetSize, NETWORK_RULES, occupiedVehicles, ROUTE_IDS, ROUTES, routeOpen, vehicleCapacity, reservedSpace, RECIPES, MODES, productResource, validContract, validManifest, baseDepartureEnergy } from './network';
-import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_MOD_IDS } from './journey';
+import { ARCHIVES, ARCHIVE_IDS, archiveUnlocked, LEGACY_ARCHIVE_IDS, VEHICLE_MOD_IDS } from './journey';
 import type { CargoManifest, VehicleMod, NetworkState } from './types';
 import { ASSEMBLY, assemblyUnlocked, createExperience, MOD_IDS, prefabLimit, STORY_IDS, RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS, OUTPOST_STORY_IDS, CALENDAR_STORY_IDS } from './experience';
 import type { AssemblyMod, ExperienceState, StoryNode, NeighborhoodState, MailboxMod } from './types';
@@ -18,7 +18,7 @@ import { assertCalendar, readCalendar, readCalendarReport } from './calendar-sav
 import { createCovenants } from './covenants';
 import { assertCovenants, readCovenants, readCovenantReport } from './covenant-save';
 
-export interface SaveEnvelope { format: 'districtzero'; schemaVersion: 9; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
+export interface SaveEnvelope { format: 'districtzero'; schemaVersion: typeof SAVE_SCHEMA_VERSION; balanceVersion: string; savedAt: number; state: GameState; migratedFrom?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }
 export class SaveVersionError extends Error {
   constructor(reason: string) { super(`存档无效：${reason}`); this.name = 'SaveVersionError'; }
 }
@@ -56,7 +56,7 @@ function readLedger(v: unknown, schema = 8): Ledger {
 function sourceStories(schema: number): StoryNode[] {
   return schema < 5 ? RADIO_STORY_IDS : schema < 6 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS] : schema < 7 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS] : schema < 8 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS] : schema < 9 ? [...RADIO_STORY_IDS, ...LETTER_STORY_IDS, ...TRAIN_STORY_IDS, ...OUTPOST_STORY_IDS, ...CALENDAR_STORY_IDS] : STORY_IDS;
 }
-function readReport(v: unknown, schema = 9): ReturnReport | null {
+function readReport(v: unknown, schema: number = SAVE_SCHEMA_VERSION): ReturnReport | null {
   if (v === null) return null;
   const o = obj(v), arrivals = obj(o.arrivals);
   const ids = EVENT_IDS.slice(0, schema === 1 ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
@@ -159,7 +159,7 @@ function readNetwork(v: unknown, schema = 6): NetworkState {
   }
   return state;
 }
-function readExperience(v: unknown, schema = 9): ExperienceState {
+function readExperience(v: unknown, schema: number = SAVE_SCHEMA_VERSION): ExperienceState {
   const o = obj(v), story = obj(o.story), benches = obj(o.benches), plan = obj(o.assembly);
   if (Object.keys(story).some(id => !sourceStories(schema).includes(id as StoryNode)) || Object.keys(benches).length !== DISTRICT_IDS.length || typeof plan.enabled !== 'boolean') bad('旧物与装配状态错误');
   const mods = <T extends string>(v: unknown, label: string, ids: T[]) => {
@@ -168,7 +168,7 @@ function readExperience(v: unknown, schema = 9): ExperienceState {
     return list;
   };
   return {
-    archives: schema < 6 ? [] : strings(o.archives, '复原档案', 3).map(id => choice(id, ARCHIVE_IDS, '复原档案')),
+    archives: schema < 6 ? [] : strings(o.archives, '复原档案', schema < 10 ? LEGACY_ARCHIVE_IDS.length : ARCHIVE_IDS.length).map(id => choice(id, schema < 10 ? LEGACY_ARCHIVE_IDS : ARCHIVE_IDS, '复原档案')),
     story: Object.fromEntries(Object.entries(story).map(([id, value]) => {
       const node = obj(value);
       if (Object.keys(node).some(key => key !== 'choice') || (id === 'L01-2' ? node.choice === undefined : node.choice !== undefined)) bad('住客节点选择错误');
@@ -268,14 +268,22 @@ function assertNeighborhood(s: GameState) {
     if (!districtState(s, id) && (box.built.length || box.active) || box.active && (!box.built.includes(box.active) || !districtState(s, id)?.facilities.mailbox)) bad('信箱改装与设施不一致');
     for (const mod of box.built) if (!s.experience.blueprints.includes(mod) || !s.completed.includes(scopedKey(`mailmod:${mod}`, id))) bad('信箱缺少蓝图或制作记录');
   }
+  return paid;
 }
-function assertExperience(s: GameState) {
+function assertExperience(s: GameState, neighborhoodPayments: Amounts) {
   const e = readExperience(s.experience), story = e.story;
   for (const ids of [RADIO_STORY_IDS, LETTER_STORY_IDS, TRAIN_STORY_IDS]) for (let i = 1; i < ids.length; i++) if (story[ids[i]] && !story[ids[i - 1]]) bad('住客支线顺序错误');
   if (story['L03-1'] && !s.completed.includes('P08') || story['L03-2'] && s.events.E12?.status !== 'claimed' || story['L03-3'] && !s.completed.includes('P09') || story['L03-4'] && !s.completed.includes('P11')) bad('站务回访缺少实际成果');
-  if (new Set(e.archives).size !== e.archives.length || e.archives.length && !archivesUnlocked(s)) bad('档案重复或尚未开放');
+  if (new Set(e.archives).size !== e.archives.length || e.archives.some(id => !archiveUnlocked(s, id))) bad('档案重复或尚未开放');
   const payments = amounts(); for (const id of e.archives) for (const r of RESOURCES) payments[r] += ARCHIVES[id].cost[r];
   if (RESOURCES.some(r => payments[r] > s.ledger.fulfillment[r])) bad('档案缺少实际支付');
+  // A04 cannot reuse a payment already committed to a completed commission,
+  // claimed first visit, radio restoration, or another archive. Restrict the
+  // stronger combined check to A04 so old source boundaries remain unchanged.
+  if (e.archives.includes('A04')) {
+    const radio = story['L01-2']?.choice === 'restore' ? ASSEMBLY.restoreCost : amounts();
+    if (RESOURCES.some(r => payments[r] + neighborhoodPayments[r] + radio[r] > s.ledger.fulfillment[r])) bad('三地候车回执缺少独立支付');
+  }
   if (story['L02-1'] && !s.completed.includes('P04') || story['L02-2'] && s.events.E07?.status !== 'claimed' || story['L02-3'] && !commissionDone(s, 'CM03-1') || story['L02-4'] && !s.completed.includes('P06')) bad('邮递员回访缺少实际成果');
   if (story['L02-3'] && !e.blueprints.includes('dispatchBox')) bad('邮递员回访缺少投递匣蓝图');
   if (story['L01-1'] && s.events.E01?.status !== 'claimed') bad('装配纸条缺少第一盏灯');
@@ -555,15 +563,15 @@ export function assertInvariants(s: GameState, legacy = false) {
   integer(s.city.maintenance, '巡检次数'); integer(s.arrivals, '到达人数', 0, 18);
   integer(s.arrivalSeconds, '到达计时', 0, 119);
   integer(s.clock.seconds, '模拟时间'); integer(s.clock.lastAt, '最近结算时间'); integer(s.clock.remainderMs, '毫秒余量', 0, 999);
-  assertNeighborhood(s);
-  assertExperience(s);
+  const neighborhoodPayments = assertNeighborhood(s);
+  assertExperience(s, neighborhoodPayments);
   readReport(s.report);
   assertNetwork(s);
   assertOutposts(s);
   assertCalendar(s);
   assertCovenants(s);
 }
-function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): GameState {
+function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10): GameState {
   const legacy = schema === 1;
   const o = obj(v), clock = obj(o.clock), events = obj(o.events), ids = EVENT_IDS.slice(0, legacy ? 5 : schema === 2 ? 10 : EVENT_IDS.length);
   if (o.district !== 'district-0' || typeof o.lightingChosen !== 'boolean' || typeof o.memoryProduced !== 'boolean') bad('街区或状态标志错误');
@@ -629,7 +637,7 @@ function readState(v: unknown, schema: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): GameS
 }
 export function encodeSave(state: GameState, savedAt: number): string {
   assertInvariants(state);
-  return JSON.stringify({ format: 'districtzero', schemaVersion: 9, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
+  return JSON.stringify({ format: 'districtzero', schemaVersion: SAVE_SCHEMA_VERSION, balanceVersion: BALANCE_VERSION, savedAt: integer(savedAt, '保存时间'), state } satisfies SaveEnvelope, null, 2);
 }
 export function decodeSave(text: string): SaveEnvelope {
   if (text.length > 2_000_000) bad('文件超过 2 MB');
@@ -638,8 +646,15 @@ export function decodeSave(text: string): SaveEnvelope {
   const o = obj(parsed);
   if (o.format !== 'districtzero') bad('这不是第0街区存档');
   const schema = o.schemaVersion;
-  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5 && schema !== 6 && schema !== 7 && schema !== 8 && schema !== 9) throw new SaveVersionError('结构版本不兼容，当前支持版本1–8迁移与版本9');
-  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : schema === 5 ? '0.3.2' : schema === 6 ? '0.3.3' : schema === 7 ? '0.4.0' : schema === 8 ? '0.5.0' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
+  if (schema !== 1 && schema !== 2 && schema !== 3 && schema !== 4 && schema !== 5 && schema !== 6 && schema !== 7 && schema !== 8 && schema !== 9 && schema !== SAVE_SCHEMA_VERSION) throw new SaveVersionError('结构版本不兼容，当前支持版本1–9迁移与版本10');
+  if (o.balanceVersion !== (schema === 1 ? '0.1.0' : schema === 2 ? '0.2.0' : schema === 3 ? '0.3.0' : schema === 4 ? '0.3.1' : schema === 5 ? '0.3.2' : schema === 6 ? '0.3.3' : schema === 7 ? '0.4.0' : schema === 8 ? '0.5.0' : schema === 9 ? '0.6.0' : BALANCE_VERSION)) throw new SaveVersionError('数值版本不兼容');
+  if (schema < 10) {
+    const experience = obj(o.state).experience;
+    if (experience !== undefined) {
+      const archives = obj(experience).archives;
+      if (Array.isArray(archives) && archives.includes('A04')) bad('旧版存档包含三地候车回执');
+    }
+  }
   if (schema < 9) rejectOldCovenantContent(o.state);
   if (schema < 8) rejectOldCalendarContent(o.state);
   if (schema < 7) rejectOldOutpostContent(o.state);
@@ -647,5 +662,5 @@ export function decodeSave(text: string): SaveEnvelope {
     const old = obj(o.state);
     if (old.neighborhood !== undefined || obj(old.ledger).fieldReserved !== undefined || old.report !== null && (obj(old.report).neighborhood !== undefined || obj(obj(old.report).flows).fieldReserved !== undefined) || Array.isArray(old.queue) && old.queue.some(p => obj(p).legacyChapter !== undefined)) bad('旧版存档包含街巷新内容');
   }
-  return { format: 'districtzero', schemaVersion: 9, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(normalizeFreight(o.state)) : schema < 6 ? normalizeFreight(o.state) : o.state, schema), ...(schema < 9 ? { migratedFrom: schema as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 } : {}) };
+  return { format: 'districtzero', schemaVersion: SAVE_SCHEMA_VERSION, balanceVersion: BALANCE_VERSION, savedAt: integer(o.savedAt, '保存时间'), state: readState(schema < 4 ? normalizeLegacy(normalizeFreight(o.state)) : schema < 6 ? normalizeFreight(o.state) : o.state, schema), ...(schema < SAVE_SCHEMA_VERSION ? { migratedFrom: schema as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 } : {}) };
 }

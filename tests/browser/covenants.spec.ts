@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { COVENANTS, COVENANT_IDS, covenantProof } from '../../src/game/covenants';
-import { advance, definitionFor, summarize } from '../../src/game/engine';
+import { advance, definitionFor, summarize, view } from '../../src/game/engine';
 import { assertInvariants, decodeSave } from '../../src/game/saves';
 import { RESOURCES } from '../../src/game/config';
 import { SAVE_KEY, BACKUP_KEY } from '../../src/app/storage';
@@ -80,7 +80,7 @@ for (const mobile of [false, true]) test(`G01-10: genuine V0.5 migration, all di
   const complete = await saved(page); assertInvariants(complete);
   await click(page, '设置'); const download = page.waitForEvent('download'); await click(page, '导出存档');
   const stream = await (await download).createReadStream(), chunks: Buffer[] = []; for await (const part of stream!) chunks.push(Buffer.from(part));
-  const exported = Buffer.concat(chunks).toString(); expect(JSON.parse(exported)).toMatchObject({ schemaVersion: 9, balanceVersion: '0.6.0' }); expect(decodeSave(exported).state).toEqual(complete);
+  const exported = Buffer.concat(chunks).toString(); expect(JSON.parse(exported)).toMatchObject({ schemaVersion: 10, balanceVersion: '0.6.1' }); expect(decodeSave(exported).state).toEqual(complete);
   await writeFile(info.outputPath(`${mobile ? 'mobile' : 'desktop'}-v06-save.json`), exported);
   const forged = JSON.parse(exported); forged.state.covenants.paid.extend++;
   await page.getByLabel('存档文本', { exact: true }).fill(JSON.stringify(forged)); await click(page, '检查存档'); await expect(page.getByRole('alert')).toBeVisible();
@@ -121,4 +121,58 @@ test('G03/G07/G09: actual shortage is visible, next-second recovery works, and o
   await click(follower, '公约'); await expect(follower.getByRole('button', { name: '免费暂停全部公约', exact: true })).toBeEnabled();
   await follower.getByLabel('公约电量保留', { exact: true }).fill('bad'); await click(follower, '免费暂停全部公约');
   expect((await saved(follower)).covenants.selected).toEqual([]); assertInvariants(await saved(follower)); await context.close();
+});
+
+test('G02/G09/FR-06: district lighting preview includes covenant payment and pause conditions', async ({ page }) => {
+  await page.clock.install({ time: new Date(START) }); await page.clock.pauseAt(new Date(START));
+  const source = JSON.parse(await readFile(new URL('../fixtures/v0.5-chapter.json', import.meta.url), 'utf8'));
+  source.savedAt = START; source.state.clock.lastAt = START;
+  await page.addInitScript(({ key, text }) => localStorage.setItem(key, text), { key: SAVE_KEY, text: JSON.stringify(source) });
+  await page.goto('/'); await expect(page.getByTestId('save-status')).toHaveText('已保存');
+  await story(page, 'L06-1'); await click(page, '公约'); await project(page, 'P17'); await story(page, 'L06-2');
+  await select(page, ['preserve']);
+  const lighting = page.getByRole('region', { name: '照明与优先级', exact: true });
+  await click(page, '经营'); await expect(lighting).toContainText('0.06 电量/秒');
+  await click(page, '经营旧巷'); await expect(lighting).toContainText('0.06 电量/秒');
+  await click(page, '经营信笺里'); await expect(lighting).toContainText('0.06 电量/秒');
+  await click(page, '经营第0街区');
+  await click(page, '公约'); await click(page, '免费暂停全部公约');
+  await click(page, '经营'); await expect(lighting).toContainText('0.08 电量/秒');
+  await click(page, '公约');
+  const before = await saved(page);
+  await page.getByLabel('公约电量保留', { exact: true }).fill(String((before.resources.energy - 6000) / 1000));
+  await select(page, ['preserve']);
+  // The next tick cannot pay upkeep before generation. Merely selecting the
+  // covenant must not advertise a lighting discount that this tick cannot earn.
+  await click(page, '经营'); await expect(lighting).toContainText('0.08 电量/秒');
+  await wait(page, 1); // This tick generates enough for the following payment.
+  await click(page, '经营'); await expect(lighting).toContainText('0.06 电量/秒');
+  expect((await saved(page)).covenants.paidSecond).toBeNull();
+  // Keep the footer explicitly predictive: it is not a claim about the last tick.
+  await expect(lighting).toContainText('下一秒');
+});
+
+test('G02/FR-06: independent lighting previews preserve thousandth-unit covenant costs', async ({ page }) => {
+  await page.clock.install({ time: new Date(START) }); await page.clock.pauseAt(new Date(START));
+  const source = JSON.parse(await readFile(new URL('../fixtures/v0.6-ready.json', import.meta.url), 'utf8'));
+  // Synthetic alternate E07 choice on a genuine chapter state; the rest of the
+  // economics and the actual covenant confirmation use the normal game rules.
+  source.state.events.E07.choice = 'individual';
+  source.savedAt = START; source.state.clock.lastAt = START;
+  decodeSave(JSON.stringify(source));
+  await page.addInitScript(({ key, text }) => localStorage.setItem(key, text), { key: SAVE_KEY, text: JSON.stringify(source) });
+  await page.goto('/'); await expect(page.getByTestId('save-status')).toHaveText('已保存');
+  await click(page, '公约'); await select(page, ['preserve']); await click(page, '经营');
+  const lighting = page.getByRole('region', { name: '照明与优先级', exact: true });
+  expect(view(await saved(page)).services['district-0']?.lightingCost).toBe(75);
+  await expect(lighting).toContainText('本区下一秒照明预计支出 0.075 电量/秒');
+  expect(view(await saved(page)).lightingCost).toBe(225);
+  const energy = page.locator('details.resource-energy');
+  await energy.locator('summary').click();
+  await expect(energy).toContainText('全城照明 0.225');
+  await click(page, '切换常灯'); await click(page, '确认切换');
+  expect(view(await saved(page)).services['district-0']?.lightingCost).toBe(38);
+  await expect(lighting).toContainText('本区下一秒照明预计支出 0.038 电量/秒');
+  expect(view(await saved(page)).lightingCost).toBe(188);
+  await expect(energy).toContainText('全城照明 0.188');
 });

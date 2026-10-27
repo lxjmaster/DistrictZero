@@ -4,7 +4,7 @@ import { amounts, RESIDENTS, RESOURCES, residentNames, resourceNames, UNIT } fro
 import { DISTRICTS } from '../game/city';
 import { capacities, duration, enqueueReason, format, freeResidents, missingCost } from '../game/engine';
 import { awayWorkers, cargoFor, contractPlan, departureEnergy, departureReason, fleetSize, MODES, NETWORK_RULES, occupiedVehicles, productResource, RECIPES, reservedSpace, ROUTE_IDS, ROUTES, routeOpen, routeWear, travelSeconds, vehicleCapacity } from '../game/network';
-import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, remainingSpecialtyUses, VEHICLE_MOD_IDS, VEHICLE_MODS } from '../game/journey';
+import { ARCHIVES, ARCHIVE_IDS, archiveUnlocked, archivesUnlocked, LEGACY_ARCHIVE_IDS, remainingSpecialtyUses, VEHICLE_MOD_IDS, VEHICLE_MODS } from '../game/journey';
 import { STORY_NAMES, storyText, TRAIN_STORY_IDS } from '../game/experience';
 import { calendarHeld } from '../game/calendar-config';
 import type { Action, Amounts, CargoManifest, DefinitionId, DistrictId, GameState, ProductionMode, RouteId, ArchiveId } from '../game/types';
@@ -93,10 +93,22 @@ function VehiclePanel({ state, disabled, send }: Omit<Props, 'district'>) {
 }
 export function JourneyArchive({ state, send, disabled }: Omit<Props, 'district'>) {
   const [confirm, setConfirm] = useState<ArchiveId | null>(null), unlocked = archivesUnlocked(state);
-  if (!unlocked && !state.experience.story['L03-1']) return null;
-  return <section className="panel" aria-label="夜网与复原档案"><div className="panel-title"><h2>列车带回来的来历</h2><span className="caption">站务员 · 已复原 {state.experience.archives.length} / 3</span></div>
+  const visible = ARCHIVE_IDS.filter(id => archiveUnlocked(state, id));
+  if (!visible.length && !state.experience.story['L03-1']) return null;
+  return <section className="panel" aria-label="夜网与复原档案"><div className="panel-title"><h2>列车带回来的来历</h2><span className="caption">站务员 · 已复原 {state.experience.archives.length} / {LEGACY_ARCHIVE_IDS.length + Number(archiveUnlocked(state, 'A04'))}</span></div>
     {TRAIN_STORY_IDS.filter(id => state.experience.story[id]).map(id => <details className="archive-event" key={id}><summary>{id} {STORY_NAMES[id]}</summary><p>{storyText(state, id)}</p></details>)}
-    {unlocked ? <><p className="small muted">每份直接支付并复原一次，不占工务队列。胶片与轨芯是这些有限来历的材料。</p>{ARCHIVE_IDS.map(id => { const def = ARCHIVES[id], done = state.experience.archives.includes(id), missing = missingCost(state, def.cost); return <article className="mod-card" key={id} data-testid={`archive-${id}`}><span className="eyebrow">{id} · {def.place}</span><h3>{def.name}</h3>{done ? <p>{def.text}</p> : <><p className="small">复原费用 <Cargo value={def.cost} /></p><button disabled={disabled || missing.length > 0} onClick={() => setConfirm(id)}>复原{def.name}</button>{missing.length > 0 && <p className="condition">{missing.join('，')}</p>}{confirm === id && <div className="inline-confirm"><p>支付上述材料，复原“{def.name}”？</p><div className="button-row"><button disabled={disabled || missing.length > 0} onClick={() => { send({ type: 'archive', id }); setConfirm(null); }}>确认复原{id}</button><button onClick={() => setConfirm(null)}>暂时收好材料</button></div></div>}</>}</article>; })}</> : <p className="condition">CM05听雨间委托或F05修棚首访会留下复原方法。</p>}
+    {visible.length > 0 && <><p className="small muted">每份直接支付并复原一次，不占工务队列。胶片与轨芯是这些有限来历的材料。</p>{visible.map(id => {
+      const def = ARCHIVES[id], done = state.experience.archives.includes(id), epilogue = id === 'A04';
+      const missing = missingCost(state, def.cost, epilogue ? 3 : 2);
+      return <article className="mod-card" key={id} data-testid={`archive-${id}`}><span className="eyebrow">{id} · {def.place}{epilogue && ' · 可选尾声'}</span><h3>{def.name}</h3>{done ? <p>{def.text}</p> : <>
+        {def.invitation && <p>{def.invitation}</p>}{epilogue && <p className="small muted">一次交接后永久收藏，无数值收益或后续维护。以前留下的库存可直接使用，暂时离开也没有期限。</p>}
+        <p className="small">{epilogue ? '交接费用' : '复原费用'} <Cargo value={def.cost} /></p>
+        {epilogue && <p className="small">旧城可用：{RESOURCES.filter(r => def.cost[r] > 0).map(r => `${format(state.resources[r], 3)} ${resourceNames[r]}`).join(' · ')}</p>}
+        <button disabled={disabled || missing.length > 0} onClick={() => setConfirm(id)}>{epilogue ? '交接并收藏' : `复原${def.name}`}</button>
+        {missing.length > 0 && <p className="condition">{missing.join('，')}</p>}{confirm === id && <div className="inline-confirm"><p>支付上述材料，{epilogue ? '永久收藏' : '复原'}“{def.name}”？</p><div className="button-row"><button disabled={disabled || missing.length > 0} onClick={() => { send({ type: 'archive', id }); setConfirm(null); }}>{epilogue ? '确认交接A04' : `确认复原${id}`}</button><button onClick={() => setConfirm(null)}>暂时收好材料</button></div></div>}
+      </>}</article>;
+    })}</>}
+    {!unlocked && <p className="condition">CM05听雨间委托或F05修棚首访会留下前三份档案的复原方法。</p>}
   </section>;
 }
 export function NetworkPage({ state, district, disabled, send, project }: Props & { project: (id: DefinitionId) => ReactNode }) {
@@ -104,7 +116,7 @@ export function NetworkPage({ state, district, disabled, send, project }: Props 
   return <div className="stack"><section className="panel network-overview"><span className="eyebrow">第三章 / 城际夜网</span><h2>让下一班车有地方抵达</h2><p className="muted small">本城三个街区共享物资。雨城与长站各有仓库、常规与特产两种配方，同城回程可以混装。</p><p className="network-fleet">共享列车 {occupiedVehicles(state)} / {fleetSize(state)} 辆使用中 · 每车最多 {format(vehicleCapacity(state), 0)} 单位</p><p className="small muted">外派 {RESIDENTS.reduce((n, type) => n + awayWorkers(state, district, type), 0)} 位夜工来自当前街区；外派期间不承担本地岗位，住处保留。</p>
       <div className="priority-list">{state.network.priority.map((id, i) => <div key={id}><span><b>{i + 1}</b>{ROUTES[id].name}合同</span><button disabled={disabled || i === 0} aria-label={`提高${ROUTES[id].name}线路优先级`} onClick={() => send({ type: 'network-priority', order: [...state.network.priority].reverse() })}>优先调度</button></div>)}</div><p className="footnote">合同按此顺序使用共享车辆。稳班磨损80；快班时长×0.8、磨损150；护轨再乘0.75向上取整。已有运单使用出发时的安排。</p>
       {RESOURCES.some(r => held[r]) && <p className="small" data-testid="home-reservations">本城为在途货物留出 <Cargo value={held} />；这是空位，尚未计入收入。</p>}
-      <details><summary>{uses.length ? `城市特产还有${uses.length}类有限用途` : '本章特产用途已完成，可以收拢与停产'}</summary><p className="small">{uses.length ? uses.join('、') : '两处调查、听雨间、修车棚、两套车辆方案和三份档案均已留下。无需每天补交；目标设为0或暂停合同即可停供，生产也可以切回常规。'}</p></details>
+      <details><summary>{uses.length ? `城市特产还有${uses.length}类有限用途` : '当前特产用途已完成，可以收拢与停产'}</summary><p className="small">{uses.length ? uses.join('、') : '当前开放的调查、委托、车辆方案与档案均已留下。无需每天补交；目标设为0或暂停合同即可停供，生产也可以切回常规。'}</p></details>
     </section>
     {state.completed.includes('P08') && <VehiclePanel state={state} disabled={disabled} send={send} />}
     {ROUTE_IDS.map(id => routeOpen(state, id) ? <RouteCard key={id} state={state} district={district} disabled={disabled} send={send} id={id} /> : <section className="panel" key={id}><h2>{ROUTES[id].name} · 等待通车</h2><p className="muted small">{id === 'rain' ? '先修复末班车厢，再安排外派与第一份补给。' : '先收到雨城的回程箱子，决定班次，再恢复长站货台。'}</p></section>)}

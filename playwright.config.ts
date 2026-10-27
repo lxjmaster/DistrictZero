@@ -2,6 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/browser',
+  // Playwright clears this directory before a run. Keep reproducible analyses
+  // and publication evidence outside the disposable browser-test subtree.
+  outputDir: './test-results/browser',
   timeout: 90000,
   expect: { timeout: 10000 },
   fullyParallel: false,

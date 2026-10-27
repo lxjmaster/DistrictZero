@@ -22,7 +22,7 @@ export type AssemblyMod = 'quickJig' | 'thriftBench';
 export type MailboxMod = 'voiceBox' | 'dispatchBox';
 export type VehicleMod = 'freightRack' | 'railGuard';
 export type Modification = AssemblyMod | MailboxMod | VehicleMod;
-export type ArchiveId = 'A01' | 'A02' | 'A03';
+export type ArchiveId = 'A01' | 'A02' | 'A03' | 'A04';
 export type ProductionMode = 'normal' | 'specialty';
 export interface CargoManifest { normal: number; specialty: number }
 export interface NetworkContract { enabled: boolean; loads: 1 | 2; reserve: Amounts; targets: Amounts; buffer: number; manifest: CargoManifest; order: ProductionMode[] }

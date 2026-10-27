@@ -5,7 +5,7 @@ import { amounts, JOBS, RESIDENTS, RESOURCES, UNIT } from '../../src/game/config
 import { activeDistricts, districtState } from '../../src/game/city';
 import { activateNetworkRules, advance, applyAction, capacities, refundPreview, stockLimits, summarize, unlockReason } from '../../src/game/engine';
 import { pendingStories } from '../../src/game/experience';
-import { ARCHIVE_IDS, archivesUnlocked, remainingSpecialtyUses, VEHICLE_MOD_IDS } from '../../src/game/journey';
+import { LEGACY_ARCHIVE_IDS, archivesUnlocked, remainingSpecialtyUses, VEHICLE_MOD_IDS } from '../../src/game/journey';
 import { FIELD_SITES, fieldReward } from '../../src/game/neighborhood';
 import { cargoFor, contractPlan, departureReason, networkProof, productResource, RECIPES, reservedSpace, ROUTE_IDS, routeWear, vehicleCapacity } from '../../src/game/network';
 import { assertInvariants, decodeSave, encodeSave } from '../../src/game/saves';
@@ -292,9 +292,9 @@ describe('V0.3.3 finite people, investigations and archives', () => {
     s = deliver(s, 'CM06-1'); s = visit(visit(s, 'F06', 'first', 'a'), 'F06', 'clue');
     for (const mod of VEHICLE_MOD_IDS) s = finish(s, mod);
     s = deliver(s, 'CM06-2'); expect(pendingStories(s)).toContain('L03-4'); s = act(s, { type: 'story', node: 'L03-4' }); s = deliver(s, 'CM06-3');
-    funds(s); for (const id of ARCHIVE_IDS) { const before = { ...s.ledger.fulfillment }; s = act(s, { type: 'archive', id }); expect(s.ledger.fulfillment.memory).toBeGreaterThan(before.memory); expect(applyAction(s, { type: 'archive', id }).state).toEqual(s); }
+    funds(s); for (const id of LEGACY_ARCHIVE_IDS) { const before = { ...s.ledger.fulfillment }; s = act(s, { type: 'archive', id }); expect(s.ledger.fulfillment.memory).toBeGreaterThan(before.memory); expect(applyAction(s, { type: 'archive', id }).state).toEqual(s); }
     s = deliver(s, 'CM05-3'); expect(s.neighborhood.commissions.completed).toHaveLength(9); expect(remainingSpecialtyUses(s)).toEqual([]);
-    expect(Object.keys(s.experience.story).filter(id => id.startsWith('L03'))).toHaveLength(4); expect(s.experience.archives).toEqual(ARCHIVE_IDS);
+    expect(Object.keys(s.experience.story).filter(id => id.startsWith('L03'))).toHaveLength(4); expect(s.experience.archives).toEqual(LEGACY_ARCHIVE_IDS);
     expect(decodeSave(encodeSave(s, 0)).state).toEqual(s); assertInvariants(s);
   });
 });

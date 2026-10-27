@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { amounts, JOBS, RESIDENTS, RESOURCES } from '../../src/game/config';
+import { amounts, BALANCE_VERSION, JOBS, RESIDENTS, RESOURCES, SAVE_SCHEMA_VERSION } from '../../src/game/config';
 import { activeDistricts } from '../../src/game/city';
 import { activateNetworkRules, advance, applyAction, createGame, summarize } from '../../src/game/engine';
 import { createOutposts, OUTPOST_INITIAL, outpostCapacities } from '../../src/game/outposts';
@@ -55,7 +55,7 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
   it.each(versions)('B09: validates real V%s before adding empty scope and zero support flows', version => {
     const raw = JSON.parse(fixture(version)), decoded = decodeSave(fixture(version)), s = decoded.state;
     expect(raw.schemaVersion).toBe(versions.indexOf(version) + 1);
-    expect(decoded.schemaVersion).toBe(9); expect(decoded.balanceVersion).toBe('0.6.0'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
+    expect(decoded.schemaVersion).toBe(10); expect(decoded.balanceVersion).toBe('0.6.1'); expect(decoded.migratedFrom).toBe(raw.schemaVersion);
     expect(s.outposts).toEqual(createOutposts()); expect(s.ledger.supportSent).toEqual(amounts()); expect(s.ledger.supportReceived).toEqual(amounts());
     expect(s.queue.every(p => !p.outpost && !p.proof)).toBe(true);
     expect(s.completed).not.toContain('P12'); expect(s.experience.story['L04-1']).toBeUndefined();
@@ -88,7 +88,8 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
     for (const mutate of mutations) { const raw = JSON.parse(fixture(version)); mutate(raw.state); expect(() => decodeSave(JSON.stringify(raw))).toThrow(); }
   });
   it('B10: unknown and mismatched versions cannot replace primary or recovery bytes', () => {
-    const prior = fixture('0.3.3'), future = JSON.parse(prior); future.schemaVersion = 10; future.balanceVersion = '0.7.0';
+    const prior = fixture('0.3.3'), future = JSON.parse(prior); future.schemaVersion = SAVE_SCHEMA_VERSION + 1; future.balanceVersion = BALANCE_VERSION;
+    expect(() => decodeSave(JSON.stringify(future))).toThrow('结构版本不兼容');
     const entries = new Map<string, string>([[SAVE_KEY, JSON.stringify(future)], [BACKUP_KEY, prior]]);
     const store = new SaveStorage({ getItem: key => entries.get(key) ?? null, setItem: (key, value) => { entries.set(key, value); }, removeItem: key => { entries.delete(key); } });
     expect(store.load().blocked).toBe(true); expect(() => store.save(createGame(), 0)).toThrow(SaveVersionError);
@@ -102,7 +103,7 @@ describe('V0.4 genuine source migration and old offline settlement', () => {
     fail = true; expect(() => store.save(loaded.state!, loaded.state!.clock.lastAt)).toThrow('quota');
     expect(entries.get(SAVE_KEY)).toBe(prior); expect(entries.get(BACKUP_KEY)).toBe(prior);
     fail = false; store.save(loaded.state!, loaded.state!.clock.lastAt);
-    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(9); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
+    expect(JSON.parse(entries.get(SAVE_KEY)!).schemaVersion).toBe(10); expect(entries.get(BACKUP_KEY)).toBe(prior); expect(store.recovery()).toEqual(loaded.state);
   });
 });
 

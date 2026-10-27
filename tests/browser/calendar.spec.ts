@@ -119,7 +119,7 @@ class CalendarRoute {
     const stream = await (await downloadPromise).createReadStream(), chunks: Buffer[] = [];
     for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
     const exported = Buffer.concat(chunks).toString('utf8');
-    expect(JSON.parse(exported)).toMatchObject({ schemaVersion: 9, balanceVersion: '0.6.0' });
+    expect(JSON.parse(exported)).toMatchObject({ schemaVersion: 10, balanceVersion: '0.6.1' });
     expect(decodeSave(exported).state).toEqual(checkpoint);
     await writeFile(info.outputPath(`${name}.json`), exported);
     const forged = JSON.parse(exported); forged.state.calendar.stored += 1;

@@ -4,7 +4,7 @@ import type { DistrictId, PublicFacility } from './types';
 import { activeDistricts, arrivalInterval, CITY_RULES, cityPopulation, cityWorkers, dismantleReason, districtState, DISTRICTS, DISTRICT_IDS, emptyDistrict, localBeds, localCount, localWorkers, plotsUsed, PUBLIC_IDS, PUBLIC_WORKS, scopedKey, specialization } from './city';
 import { awayWorkers, createNetwork, dispatch, NETWORK_RULES, networkReasons, ROUTE_IDS, ROUTES, routeOpen, tickNetwork, inventoryLimits, networkProof, validContract, MODES, productResource, occupiedVehicles } from './network';
 import type { RouteId, VehicleMod } from './types';
-import { ARCHIVES, ARCHIVE_IDS, archivesUnlocked, VEHICLE_COST, VEHICLE_MOD_IDS, VEHICLE_MODS, VEHICLE_WORK } from './journey';
+import { ARCHIVES, archiveUnlocked, VEHICLE_COST, VEHICLE_MOD_IDS, VEHICLE_MODS, VEHICLE_WORK } from './journey';
 import { ASSEMBLY, assemblyRecipe, assemblyUnlocked, createExperience, MOD_IDS, pendingStories, prefabLimit, prefabricated, STORY_NAMES, storyAvailable } from './experience';
 import type { AssemblyMod, MailboxMod } from './types';
 import { COMMISSION_IDS, commissionDone, commissionVisible, createNeighborhood, deliverCommission, delegationReason, fieldOpenReason, fieldStartReason, heldFieldSupplies, idleResidents, MAIL_MOD_IDS, MAIL_MODS, NEIGHBORHOOD_RULES, recallField, claimField, startField, tickNeighborhood } from './neighborhood';
@@ -199,8 +199,8 @@ export function enqueueReason(s: GameState, id: DefinitionId, district: District
   const planned = s.queue.filter(p => !p.outpost && p.district === district && ((p.definition.startsWith('build:') && p.targetLevel === 1) || p.definition.startsWith('public:'))).length;
   return newPlot && plotsUsed(d) + planned >= DISTRICTS[district].plots ? '地块已被待建工程预留' : null;
 }
-export function missingCost(s: GameState, c: Amounts): string[] {
-  return RESOURCES.filter(r => s.resources[r] < c[r]).map(r => `缺少 ${format(c[r] - s.resources[r])} ${resourceNames[r]}`);
+export function missingCost(s: GameState, c: Amounts, decimals = 2): string[] {
+  return RESOURCES.filter(r => s.resources[r] < c[r]).map(r => `缺少 ${format(c[r] - s.resources[r], decimals)} ${resourceNames[r]}`);
 }
 export function projectReasons(s: GameState, p = s.queue[0]): string[] {
   if (!p) return ['尚未安排工程'];
@@ -251,7 +251,7 @@ function weightedWorkers(s: GameState, job: Job, id: DistrictId) {
   const d = districtState(s, id)!;
   return d.assignments.shadow[job] * (job === 'salvage' ? TRAITS.shadowSalvage : 1) + d.assignments.echo[job] * (job === 'record' ? TRAITS.echoMemory : 1);
 }
-interface Service { light: boolean; public: Record<PublicFacility, boolean> }
+interface Service { light: boolean; lightingCost: number; public: Record<PublicFacility, boolean> }
 type Services = Partial<Record<DistrictId, Service>>;
 function powerBudget(s: GameState) {
   return activeDistricts(s).reduce((n, id) => n + Math.round(BASE.power * workers(s, 'power', id) * efficiency(s, 'power', id)), 0);
@@ -261,7 +261,7 @@ function serviceBudget(s: GameState, energy: number): { services: Services; ligh
   const factor = s.events.E07?.choice === 'common' ? CITY_RULES.sharedUpkeep : 1;
   for (const id of activeDistricts(s)) {
     const d = districtState(s, id)!, lightCost = Math.ceil(POLICIES[d.lighting].upkeep * factor * (covenantActive(s, 'preserve') ? 0.75 : 1));
-    const service: Service = { light: energy >= lightCost, public: { relay: false, registry: false } };
+    const service: Service = { light: energy >= lightCost, lightingCost: energy >= lightCost ? lightCost : 0, public: { relay: false, registry: false } };
     if (service.light) { energy -= lightCost; lighting += lightCost; }
     services[id] = service;
   }
@@ -658,8 +658,8 @@ export function applyAction(state: GameState, action: Action): { state: GameStat
       s.network.vehicle.active = action.mod; break;
     }
     case 'archive': {
-      if (!ARCHIVE_IDS.includes(action.id) || !archivesUnlocked(s) || s.experience.archives.includes(action.id)) return fail('档案尚未开放或已经复原');
-      const def = ARCHIVES[action.id], missing = missingCost(s, def.cost);
+      if (!archiveUnlocked(s, action.id) || s.experience.archives.includes(action.id)) return fail('档案尚未开放或已经复原');
+      const def = ARCHIVES[action.id], missing = missingCost(s, def.cost, action.id === 'A04' ? 3 : 2);
       if (missing.length) return fail(missing.join('，'));
       spend(s, def.cost, 'fulfillment'); s.experience.archives.push(action.id);
       log(s, `档案复原：${def.name}。${def.text}`); break;

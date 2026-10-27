@@ -4,7 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import { SAVE_KEY } from '../../src/app/storage';
 import { RESOURCES } from '../../src/game/config';
 import { view } from '../../src/game/engine';
-import { ARCHIVE_IDS, remainingSpecialtyUses } from '../../src/game/journey';
+import { LEGACY_ARCHIVE_IDS, remainingSpecialtyUses } from '../../src/game/journey';
 import { decodeSave } from '../../src/game/saves';
 import type { CommissionStage, FieldSite, GameState, RouteId } from '../../src/game/types';
 
@@ -77,7 +77,7 @@ export async function completeJourneyContent(page: Page, info: TestInfo, device:
   await deliver(page, 'CM06-2');
   await targets(page, '6', '6'); await mark('modifiedSupply');
   await click(page, '档案');
-  for (const id of ARCHIVE_IDS) { const card = page.getByTestId(`archive-${id}`); await card.getByRole('button', { name: /^复原/ }).click(); await click(page, `确认复原${id}`); }
+  for (const id of LEGACY_ARCHIVE_IDS) { const card = page.getByTestId(`archive-${id}`); await card.getByRole('button', { name: /^复原/ }).click(); await click(page, `确认复原${id}`); }
   await deliver(page, 'CM05-3');
   // Stand down collectors while preparing the mixed return and later field
   // rewards. Both decisions keep real whole-package destination space available.
@@ -100,7 +100,7 @@ export async function completeJourneyContent(page: Page, info: TestInfo, device:
   observations.revisit = { ...(observations.revisit as object), after: revisitAfter, elapsed: revisitAfter.clock.seconds - revisitBefore.clock.seconds };
   await page.getByTestId('story-L03-4').getByRole('button', { name: '读完站务员回访' }).click(); await deliver(page, 'CM06-3'); await mark('contentComplete');
   const end = await saved(page); expect(end.neighborhood.commissions.completed.filter(id => /^CM0[4-6]/.test(id))).toHaveLength(9);
-  expect(end.experience.archives).toEqual(ARCHIVE_IDS); expect(remainingSpecialtyUses(end)).toEqual([]);
+  expect(end.experience.archives).toEqual(LEGACY_ARCHIVE_IDS); expect(remainingSpecialtyUses(end)).toEqual([]);
   await click(page, '经营第0街区'); await click(page, '经营'); await expect(page.getByTestId('night-platform')).toContainText('候车长椅已按班次转向');
   await expect(page.getByTestId('night-platform')).toContainText('听雨间已有雨声'); await expect(page.getByTestId('night-platform')).toContainText('修车棚留好了交班工具');
   await page.getByTestId('street-scene').screenshot({ path: info.outputPath(`${device}-night-street.png`), animations: 'disabled' });

@@ -3,7 +3,7 @@ import { amounts, FACILITIES, FACILITY_IDS, JOBS, jobNames, POLICIES, RESIDENTS,
 import { activeDistricts, DISTRICTS } from '../game/city';
 import { completionName, duration, format, freeResidents } from '../game/engine';
 import { ASSEMBLY, MOD_IDS, STORY_IDS, STORY_NAMES, storyText } from '../game/experience';
-import { ARCHIVES, ARCHIVE_IDS, VEHICLE_MODS } from '../game/journey';
+import { ARCHIVES, ARCHIVE_IDS, archiveUnlocked, VEHICLE_MODS } from '../game/journey';
 import { MAIL_MODS } from '../game/neighborhood';
 import { OUTPOST_IDS, OUTPOST_INITIAL, OUTPOST_PROJECTS, OUTPOSTS, SUPPORT_KINDS, SUPPORT_PACKAGES, SUPPORT_RULES, outpostAssemblyRecipe, outpostCapacities, outpostDefinition, outpostEnqueueReason, outpostFree, outpostJobCapacity, outpostMaxLevel, outpostPopulation, outpostPrefabLimit, outpostReservedSpace, outpostSealReason, outpostView, outpostWorkers, supportReason } from '../game/outposts';
 import type { Action, Amounts, DefinitionId, Facility, GameState, Lighting, Modification, OutpostId, OutpostProject, OutpostProof, ReturnReport, SupportKind } from '../game/types';
@@ -237,7 +237,7 @@ function SharedKnowledge({ state }: { state: GameState }) {
   const names: Record<Modification, string> = { quickJig: ASSEMBLY.recipes.quickJig.name, thriftBench: ASSEMBLY.recipes.thriftBench.name, voiceBox: MAIL_MODS.voiceBox.name, dispatchBox: MAIL_MODS.dispatchBox.name, freightRack: VEHICLE_MODS.freightRack.name, railGuard: VEHICLE_MODS.railGuard.name };
   return <section className="panel" aria-label="共享知识与来信历史"><h2>随行的是已学会的办法</h2><p className="small">R01工具规范：{state.completed.includes('R01') ? '已学会，可用于当地维修' : '尚未学会'}；R02回声整理：{state.completed.includes('R02') ? '已学会，可用于当地记录' : '尚未学会'}。其他研究、门牌、专业组合与公共设备仍作用于旧城。</p>
     <details><summary>蓝图 · 已知{state.experience.blueprints.length}份</summary><ul>{Object.entries(names).map(([key, name]) => <li key={key}>{state.experience.blueprints.includes(key as Modification) ? `${name} · 已知${MOD_IDS.includes(key as typeof MOD_IDS[number]) ? '，分所需重新制作' : '，对应业务留在旧城'}` : '一份尚未发现的工具图样'}</li>)}</ul><p className="small">已制工具不会随派驻复制；工具完工也不会自动启用。</p></details>
-    <details><summary>复原档案 · 已读{state.experience.archives.length}份</summary>{ARCHIVE_IDS.map(archive => state.experience.archives.includes(archive) ? <article key={archive}><h3>{ARCHIVES[archive].name}</h3><p className="small">{ARCHIVES[archive].text}</p></article> : <p className="small muted" key={archive}>{archive} · 尚未发现/复原，不显示未读结论。</p>)}</details>
+    <details><summary>复原档案 · 已读{state.experience.archives.length}份</summary>{ARCHIVE_IDS.filter(archive => archive !== 'A04' || archiveUnlocked(state, archive)).map(archive => state.experience.archives.includes(archive) ? <article key={archive}><h3>{ARCHIVES[archive].name}</h3><p className="small">{ARCHIVES[archive].text}</p></article> : <p className="small muted" key={archive}>{archive} · 尚未发现/复原，不显示未读结论。</p>)}</details>
     <details><summary>回看联系人已读来信</summary>{STORY_IDS.filter(story => state.experience.story[story]).map(story => <details className="archive-event" key={story}><summary>{story} · {STORY_NAMES[story]}</summary><p>{storyText(state, story)}</p></details>)}</details>
     <p className="small">分所补给清单：{state.outposts.knowledge.manifest ? '已交接，最多明确预排3包' : '尚未交接，最多1包'}；回照灯架：{state.outposts.knowledge.lightFrame ? '已交接，可在分所各制作一次' : '尚未交接'}。</p>
   </section>;

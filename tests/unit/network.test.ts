@@ -48,7 +48,7 @@ function both(expanded = false) {
 describe('V0.3 migration, inventory and workers', () => {
   it('N01: migrates the genuine V0.2 chapter and its historical report without free cargo', () => {
     const raw = JSON.parse(v2Text), migrated = decodeSave(v2Text);
-    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(9);
+    expect(migrated.migratedFrom).toBe(2); expect(migrated.schemaVersion).toBe(10);
     for (const key of ['resources', 'earned', 'facilities', 'population', 'assignments', 'events', 'completed', 'queue', 'city', 'clock', 'history'] as const) expect(preExpansion(migrated.state[key])).toEqual(raw.state[key]);
     expect(preExpansion(migrated.state.ledger)).toEqual(preExpansion({ ...raw.state.ledger, exports: amounts(), imports: amounts() }));
     expect(preExpansion(migrated.state.report)).toEqual(preExpansion({ ...raw.state.report, flows: { ...raw.state.report.flows, exports: amounts(), imports: amounts() }, transport: { departures: 0, deliveries: 0, maintenance: 0 } }));

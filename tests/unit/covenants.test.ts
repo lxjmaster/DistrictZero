@@ -59,6 +59,22 @@ describe('V0.6 covenant runtime and complete chapter', () => {
     expect(coexist.output.salvage).toBeLessThan(plain.output.salvage);
     expect(view(act(choose(waiting, ['preserve']), { type: 'covenant-pause' })).output).toEqual(plain.output);
   });
+  it('G02/FR-06: district lighting costs preview the next payment, recover after shortage, and sum to the city cost', () => {
+    const base = act(ready(), { type: 'covenant-pause' }), preserved = choose(base, ['preserve']);
+    const plain = view(base), discounted = view(preserved);
+    for (const id of ['district-0', 'district-1', 'district-2'] as const) {
+      expect(plain.services[id]!.lightingCost).toBe(80);
+      expect(discounted.services[id]!.lightingCost).toBe(60);
+    }
+    expect(Object.values(discounted.services).reduce((sum, service) => sum + service!.lightingCost, 0)).toBe(discounted.lightingCost);
+    const blocked = choose(base, ['preserve'], { ...base.resources, energy: base.resources.energy - 6000, parts: 0, memory: 0, component: 0, rainFilm: 0, railCore: 0 });
+    expect(view(blocked).services['district-0']!.lightingCost).toBe(80);
+    const recovered = run(blocked, 1); expect(recovered.covenants.paidSecond).toBeNull();
+    expect(view(recovered).services['district-0']!.lightingCost).toBe(60);
+    expect(view(act(preserved, { type: 'covenant-pause' })).services['district-0']!.lightingCost).toBe(80);
+    const unpowered = run(act(createGame(), { type: 'assign', resident: 'shadow', job: 'power', delta: -1 }), 1000);
+    expect(view(unpowered).services['district-0']).toMatchObject({ light: false, lightingCost: 0 });
+  });
   it.each([['preserve', 'extend'], ['preserve', 'coexist'], ['extend', 'coexist']] as CovenantId[][])('G02: permits the %s + %s combination with one summed payment', (a, b) => {
     const before = choose(dual(), [a, b]), after = run(before, 1);
     expect(after.covenants.combined - before.covenants.combined).toBe(1);
@@ -137,7 +153,7 @@ describe('V0.6 genuine migrations and source validation', () => {
   const versions = ['0.1', '0.2', '0.3', '0.3.1', '0.3.2', '0.3.3', '0.4', '0.5'];
   it.each(versions)('G07: migrates genuine V%s with only empty, disabled covenants', version => {
     const text = fixture(`v${version}-chapter`), raw = JSON.parse(text), loaded = decodeSave(text);
-    expect(loaded.migratedFrom).toBe(raw.schemaVersion); expect(loaded.schemaVersion).toBe(9); expect(loaded.state.covenants).toEqual(createCovenants());
+    expect(loaded.migratedFrom).toBe(raw.schemaVersion); expect(loaded.schemaVersion).toBe(10); expect(loaded.state.covenants).toEqual(createCovenants());
     expect(decodeSave(encodeSave(loaded.state, loaded.savedAt)).state).toEqual(loaded.state);
     if (version === '0.5') expect(preCovenants(loaded.state)).toEqual(raw.state);
   });
@@ -154,7 +170,7 @@ describe('V0.6 genuine migrations and source validation', () => {
     const prior = fixture(), values = new Map([[SAVE_KEY, prior]]); let fail = true;
     const store = new SaveStorage({ getItem: k => values.get(k) ?? null, setItem: (k, v) => { if (fail && k === SAVE_KEY) throw Error('quota'); values.set(k, v); }, removeItem: k => { values.delete(k); } });
     const loaded = store.load(); expect(loaded.warning).toContain('V0.5'); expect(() => store.save(loaded.state!, loaded.state!.clock.lastAt)).toThrow('quota'); expect(values.get(BACKUP_KEY)).toBe(prior); expect(values.get(SAVE_KEY)).toBe(prior);
-    fail = false; store.save(loaded.state!, loaded.state!.clock.lastAt); expect(JSON.parse(values.get(SAVE_KEY)!).schemaVersion).toBe(9); expect(store.recovery()).toEqual(loaded.state);
+    fail = false; store.save(loaded.state!, loaded.state!.clock.lastAt); expect(JSON.parse(values.get(SAVE_KEY)!).schemaVersion).toBe(10); expect(store.recovery()).toEqual(loaded.state);
   });
   it('G10: rejects unpaid, impossible and unproven runtime, story, project and report changes', () => {
     const s = run(choose(ready(), ['preserve']), 60);

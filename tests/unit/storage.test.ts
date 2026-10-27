@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { advance, createGame } from '../../src/game/engine';
 import { decodeSave, encodeSave } from '../../src/game/saves';
@@ -8,6 +9,16 @@ function memoryStorage() {
   return { data, getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { data.set(key, value); }, removeItem: (key: string) => { data.delete(key); } };
 }
 describe('validated save and recovery', () => {
+  it.each(['0.1', '0.2', '0.3', '0.3.1', '0.3.2', '0.3.3', '0.4', '0.5', '0.6'])('keeps the V%s migration notice accurate without revealing the optional epilogue', version => {
+    const primary = readFileSync(new URL(`../fixtures/v${version}-chapter.json`, import.meta.url), 'utf8');
+    const memory = memoryStorage(), store = new SaveStorage(memory);
+    memory.setItem(SAVE_KEY, primary);
+    const loaded = store.load();
+    expect(loaded.state).toEqual(decodeSave(primary).state);
+    expect(loaded.warning).toContain(`V${version}存档已迁移`);
+    expect(loaded.warning).not.toContain('三地候车回执');
+    expect(memory.getItem(SAVE_KEY)).toBe(primary);
+  });
   it('keeps the previous valid save and recovers a corrupted primary', () => {
     const memory = memoryStorage(), store = new SaveStorage(memory), original = createGame();
     store.save(original, 0); store.save(advance(original, 30000), 30000);

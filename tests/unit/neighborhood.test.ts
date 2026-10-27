@@ -221,7 +221,7 @@ describe('V0.3.2 mailbox, delegation and second-chapter compatibility', () => {
 describe('V0.3.2 source-version validation, report and elapsed-time equivalence', () => {
   it.each(['0.1', '0.2', '0.3', '0.3.1'])('UX05/19: genuine %s migration preserves old simulation state and starts new work disabled', version => {
     const raw = JSON.parse(fixture(version)), loaded = decodeSave(fixture(version));
-    expect(loaded.schemaVersion).toBe(9); expect(loaded.balanceVersion).toBe('0.6.0');
+    expect(loaded.schemaVersion).toBe(10); expect(loaded.balanceVersion).toBe('0.6.1');
     expect(loaded.migratedFrom).toBe(version === '0.3.1' ? 4 : Number(version.split('.')[1]));
     expect(loaded.state.resources).toEqual({ ...raw.state.resources, component: raw.state.resources.component ?? 0, rainFilm: 0, railCore: 0 });
     expect(loaded.state.neighborhood).toEqual(createNeighborhood());

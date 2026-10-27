@@ -242,6 +242,65 @@ test-results/export-fix-publication/. Publication documentation follows through
 the existing workflow and its final deployment must be verified before delivery.
 Human playtesting stays deferred; this outcome adds no new gameplay scope.
 
+On 2026-10-27 the user requested the next implementation task after the fixed
+three-city epilogue specification. This authorizes complete local V0.6.1 A04
+implementation and T01-T10 verification against docs/THREE_CITY_EPILOGUE_SPEC.md.
+It does not authorize a commit, push, publication, new chapter or human contact.
+Preserve the preceding uncommitted lighting-preview fix and analysis materials.
+
+The local V0.6.1 delivery is now complete: schema 10 / balance 0.6.1, one manual
+A04 payment and permanent readable text, per-archive eligibility, and genuine
+schemas 1-9 migration with original source boundaries. The released V0.6 engine
+independently replays all 220 chapter-route actions and supplies three complete
+24-hour + 517ms state/report references. All 369 unit/storage/controller tests,
+30 distinct browser scenarios across scoped runs, type checking, production
+build and four isolated /DistrictZero/ preview scenarios passed. The old A01-A03
+complete desktop/mobile routes remain valid. The narrow settings version list
+now wraps naturally at 320px with enlarged text; the original assertion remains.
+See docs/VERIFICATION.md and docs/PLAYTEST.md for exact execution and limits.
+The public site remains V0.6.0 / schema 9. Human feedback remains unsampled.
+Task-owned 5173/4173 services and temporary source extractions are stopped or
+removed; sources, genuine fixtures, build and verification evidence are retained.
+The file workline issues/V0.6.1.md is complete and UNREGISTERED because the plan
+CLI has no official session binding; do not invent one. Publishing or further
+content requires a subsequent user instruction.
+
+On 2026-10-27 the user requested and received an independent V0.6.1 review,
+then authorized fixing its two findings. Both fixes are complete locally:
+A04 payment validation combines determinable prior costs, and its inventory
+and missing-cost messages retain 0.001 precision. All 371 unit/storage/controller
+tests, 11 epilogue browser scenarios, type checking and production build passed.
+See docs/VERIFICATION.md for scope and the cumulative-ledger limitation. This
+fix request does not authorize a commit, push, publication or human contact.
+
+After a further comprehensive review, the user requested fixes for lighting
+precision, historical analysis output isolation, future-schema test coverage
+and stale historical-document status. Those fixes are complete locally. The
+pre-fix 66-scenario browser suite, post-fix five covenant browser scenarios and
+two focused save tests, type checking, build and isolated three-step analysis
+passed; historical analysis directories were preserved. See docs/VERIFICATION.md
+for exact scope. Publication and human contact remain unauthorized.
+
+The next review and requested local fixes removed premature A04 migration
+notices, isolated preview evidence and verified the served build against dist,
+and corrected the README's local-versus-public schema description. All 18
+storage tests, type checking, build and four isolated preview scenarios passed;
+the original preview evidence was preserved. See docs/VERIFICATION.md. No
+commit, push, public deployment or human contact is authorized by this task.
+
+The latest review's two local fixes align citywide lighting cost precision
+with district previews and correct the technical save-envelope example. Two
+targeted browser scenarios, type checking and build passed; see
+docs/VERIFICATION.md. This task does not authorize commit, push, publication
+or human contact.
+
+On 2026-10-27 the user selected publication of V0.6.1, including the local
+epilogue, lighting changes and all review fixes. This authorizes committing and
+pushing the complete local delivery to master, deploying through the existing
+Pages workflow, verifying the public site and synchronizing release records.
+Do not report publication before the matching deployment and public checks
+pass. New gameplay and contacting human playtesters remain outside this task.
+
 ## Authoritative Design
 
 Read these documents before implementation:
@@ -272,6 +331,10 @@ For V0.6 changes, read docs/V0.6_SPEC.md and verify G01-G12 alongside prior
 regressions. Preserve its fixed costs, the one/two-covenant limit, atomic group
 upkeep before generation, manual confirmation and genuine schemas 1-8 sources.
 Do not reinterpret existing shipment snapshots or prepared calendar holds.
+
+For V0.6.1 changes, read docs/THREE_CITY_EPILOGUE_SPEC.md and verify T01-T10.
+Keep A04 optional and finite, preserve the original A01-A03 gates, and retain
+genuine schemas 1-9 source rejection and released-engine offline references.
 
 docs/HANDOFF_PROMPT.md records context for resuming work; it is not an automatic trigger to start implementation when encountered during initialization.
 

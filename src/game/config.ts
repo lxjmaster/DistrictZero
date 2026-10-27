@@ -1,7 +1,8 @@
 import type { Amounts, Facility, Flow, Job, Lighting, ProjectDefinition, Resident, Resource, EventId } from './types';
 
 export const UNIT = 1000;
-export const BALANCE_VERSION = '0.6.0';
+export const BALANCE_VERSION = '0.6.1';
+export const SAVE_SCHEMA_VERSION = 10;
 export const BASE_RESOURCES = ['energy', 'parts', 'memory'] as const;
 export const RESOURCES: Resource[] = ['energy', 'parts', 'memory', 'component', 'rainFilm', 'railCore'];
 export const JOBS: Job[] = ['power', 'salvage', 'repair', 'record', 'assemble'];

@@ -1,0 +1,2245 @@
+{
+  "commit": "81de80fe32f400beec768c50dc40465cd4b470c4",
+  "gameSourceSha256": "a59105eeeca00260d72ddf22b75cb9d40841e5a4ee75d87ea9dc1abe6b6b5ffd",
+  "scriptSha256": "bb54a4fa9954033d39b349fa9146d41852516ff9cc990bc1105bda40bd71d407",
+  "sourceSha256": "e74a822ca6b34a1bbc583ddea67c78a8e8f5f0eceba90985e30111257d111823",
+  "actions": [
+    {
+      "second": 0,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "P01"
+      }
+    },
+    {
+      "second": 25,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 25,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "repair",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 85,
+      "chapter": 1,
+      "action": {
+        "type": "event",
+        "event": "E01"
+      }
+    },
+    {
+      "second": 85,
+      "chapter": 1,
+      "action": {
+        "type": "story",
+        "node": "L01-1"
+      }
+    },
+    {
+      "second": 85,
+      "chapter": 1,
+      "action": {
+        "type": "story",
+        "node": "L01-2",
+        "choice": "dismantle"
+      }
+    },
+    {
+      "second": 85,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "repair",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 85,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 215,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm"
+      }
+    },
+    {
+      "second": 215,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 215,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "repair",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 335,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "repair",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 335,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 455,
+      "chapter": 1,
+      "action": {
+        "type": "event",
+        "event": "E03",
+        "choice": "bright"
+      }
+    },
+    {
+      "second": 455,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 455,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "P02",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 575,
+      "chapter": 1,
+      "action": {
+        "type": "event",
+        "event": "E02"
+      }
+    },
+    {
+      "second": 575,
+      "chapter": 1,
+      "action": {
+        "type": "story",
+        "node": "L01-3"
+      }
+    },
+    {
+      "second": 575,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 575,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:warehouse",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 725,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:mailbox",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 875,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 875,
+      "chapter": 1,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 955,
+      "chapter": 1,
+      "action": {
+        "type": "event",
+        "event": "E04"
+      }
+    },
+    {
+      "second": 955,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "R01",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 1315,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "R02",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 1565,
+      "chapter": 1,
+      "action": {
+        "type": "enqueue",
+        "definition": "P03",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 2545,
+      "chapter": 1,
+      "action": {
+        "type": "event",
+        "event": "E05"
+      }
+    },
+    {
+      "second": 2545,
+      "chapter": 1,
+      "action": {
+        "type": "story",
+        "node": "L01-4"
+      }
+    },
+    {
+      "second": 2545,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 2665,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:generator",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 2785,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "power",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 2785,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3165,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3165,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3165,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3165,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:workbench",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3225,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:warehouse",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3295,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "P04",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 3465,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "P05"
+      }
+    },
+    {
+      "second": 3475,
+      "chapter": 2,
+      "action": {
+        "type": "event",
+        "event": "E06"
+      }
+    },
+    {
+      "second": 3665,
+      "chapter": 2,
+      "action": {
+        "type": "event",
+        "event": "E07",
+        "choice": "common"
+      }
+    },
+    {
+      "second": 3665,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 3715,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:recycler",
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 3755,
+      "chapter": 2,
+      "action": {
+        "type": "lighting",
+        "district": "district-1",
+        "lighting": "dim"
+      }
+    },
+    {
+      "second": 3755,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 3805,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:recycler",
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 3845,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 3895,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:mailbox",
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 3955,
+      "chapter": 2,
+      "action": {
+        "type": "lighting",
+        "district": "district-2",
+        "lighting": "bright"
+      }
+    },
+    {
+      "second": 3955,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:dorm",
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 4005,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:mailbox",
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 4435,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 4435,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 4435,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 4435,
+      "chapter": 2,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 4435,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "public:relay",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 4525,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "public:registry"
+      }
+    },
+    {
+      "second": 4535,
+      "chapter": 2,
+      "action": {
+        "type": "event",
+        "event": "E08"
+      }
+    },
+    {
+      "second": 4635,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "R03",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 4745,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "R04",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 4885,
+      "chapter": 2,
+      "action": {
+        "type": "auto-repair",
+        "district": "district-0",
+        "enabled": true
+      }
+    },
+    {
+      "second": 4885,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "P06",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5155,
+      "chapter": 2,
+      "action": {
+        "type": "enqueue",
+        "definition": "P07"
+      }
+    },
+    {
+      "second": 5165,
+      "chapter": 2,
+      "action": {
+        "type": "event",
+        "event": "E09"
+      }
+    },
+    {
+      "second": 5485,
+      "chapter": 2,
+      "action": {
+        "type": "event",
+        "event": "E10"
+      }
+    },
+    {
+      "second": 5485,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "P08",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "event",
+        "event": "E11"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "story",
+        "node": "L03-1"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 5645,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:warehouse",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5725,
+      "chapter": 3,
+      "action": {
+        "type": "network-staff",
+        "route": "rain",
+        "district": "district-0",
+        "resident": "shadow",
+        "delta": 1
+      }
+    },
+    {
+      "second": 5725,
+      "chapter": 3,
+      "action": {
+        "type": "dispatch",
+        "route": "rain",
+        "direction": "outbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 5845,
+      "chapter": 3,
+      "action": {
+        "type": "dispatch",
+        "route": "rain",
+        "direction": "inbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "event",
+        "event": "E12",
+        "choice": "reliable"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "story",
+        "node": "L03-2"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 5965,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "P09",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6165,
+      "chapter": 3,
+      "action": {
+        "type": "event",
+        "event": "E13"
+      }
+    },
+    {
+      "second": 6165,
+      "chapter": 3,
+      "action": {
+        "type": "story",
+        "node": "L03-3"
+      }
+    },
+    {
+      "second": 6165,
+      "chapter": 3,
+      "action": {
+        "type": "network-staff",
+        "route": "station",
+        "district": "district-2",
+        "resident": "echo",
+        "delta": 1
+      }
+    },
+    {
+      "second": 6165,
+      "chapter": 3,
+      "action": {
+        "type": "dispatch",
+        "route": "station",
+        "direction": "outbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 6345,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "R05",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6485,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "R06",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 6645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 6645,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6645,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "build:generator",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6695,
+      "chapter": 3,
+      "action": {
+        "type": "dispatch",
+        "route": "station",
+        "direction": "inbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 6875,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 6875,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 6875,
+      "chapter": 3,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 6875,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "P10",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 7145,
+      "chapter": 3,
+      "action": {
+        "type": "event",
+        "event": "E14"
+      }
+    },
+    {
+      "second": 7145,
+      "chapter": 3,
+      "action": {
+        "type": "contract",
+        "route": "rain",
+        "enabled": true,
+        "loads": 1,
+        "reserve": {
+          "energy": 50000,
+          "parts": 30000,
+          "memory": 10000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "buffer": 1,
+        "manifest": {
+          "normal": 1,
+          "specialty": 0
+        },
+        "targets": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 60000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 7145,
+      "chapter": 3,
+      "action": {
+        "type": "contract",
+        "route": "station",
+        "enabled": true,
+        "loads": 1,
+        "reserve": {
+          "energy": 50000,
+          "parts": 30000,
+          "memory": 10000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        },
+        "buffer": 1,
+        "manifest": {
+          "normal": 1,
+          "specialty": 0
+        },
+        "targets": {
+          "energy": 0,
+          "parts": 240000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 7145,
+      "chapter": 3,
+      "action": {
+        "type": "enqueue",
+        "definition": "P11",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 3,
+      "action": {
+        "type": "event",
+        "event": "E15"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 3,
+      "action": {
+        "type": "story",
+        "node": "L03-4"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "auto-repair",
+        "district": "district-0",
+        "enabled": false
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "contract-pause",
+        "route": "rain"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "contract-pause",
+        "route": "station"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": -1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": 1,
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "assembly-plan",
+        "enabled": true,
+        "target": 12000,
+        "reserve": {
+          "energy": 30000,
+          "parts": 30000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "story",
+        "node": "L04-1"
+      }
+    },
+    {
+      "second": 7475,
+      "chapter": 4,
+      "action": {
+        "type": "enqueue",
+        "definition": "P12",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "story",
+        "node": "L04-2"
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": -1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-open",
+        "outpost": "O01",
+        "crew": [
+          {
+            "district": "district-1",
+            "resident": "shadow"
+          },
+          {
+            "district": "district-2",
+            "resident": "echo"
+          }
+        ]
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "shadow",
+        "job": "power",
+        "delta": 1
+      }
+    },
+    {
+      "second": 7785,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 7835,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 7835,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 7835,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O01-1"
+      }
+    },
+    {
+      "second": 7985,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": -1
+      }
+    },
+    {
+      "second": 7985,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8035,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8035,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8065,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8065,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8145,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8145,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8145,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O01-2"
+      }
+    },
+    {
+      "second": 8345,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8345,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8465,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8465,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8635,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8635,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8705,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": true,
+        "target": 3000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 8705,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8705,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": 1
+      }
+    },
+    {
+      "second": 8855,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": false,
+        "target": 3000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 8855,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": -1
+      }
+    },
+    {
+      "second": 8855,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9055,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9055,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9055,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O01-3"
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "story",
+        "node": "L04-3"
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-handoff",
+        "outpost": "O01"
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-seal",
+        "confirmClear": true
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-open",
+        "outpost": "O02",
+        "crew": [
+          {
+            "district": "district-1",
+            "resident": "shadow"
+          },
+          {
+            "district": "district-2",
+            "resident": "echo"
+          }
+        ]
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "shadow",
+        "job": "power",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9305,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9355,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9355,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9355,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O02-1"
+      }
+    },
+    {
+      "second": 9505,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9505,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9565,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9565,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9655,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9655,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9745,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": true,
+        "target": 2000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 9745,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9745,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9845,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": false,
+        "target": 2000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 9845,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9845,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9995,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 9995,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 9995,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O02-2",
+        "proof": "local"
+      }
+    },
+    {
+      "second": 10195,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": -1
+      }
+    },
+    {
+      "second": 10195,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 10345,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 10345,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1
+      }
+    },
+    {
+      "second": 10565,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": -1
+      }
+    },
+    {
+      "second": 10565,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 10615,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": true,
+        "target": 3000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 10615,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 10615,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": 1
+      }
+    },
+    {
+      "second": 10765,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assembly",
+        "enabled": false,
+        "target": 3000,
+        "reserve": {
+          "energy": 10000,
+          "parts": 10000,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 10765,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "assemble",
+        "delta": -1
+      }
+    },
+    {
+      "second": 10765,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": 1
+      }
+    },
+    {
+      "second": 11015,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "salvage",
+        "delta": -1
+      }
+    },
+    {
+      "second": 11015,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-assign",
+        "resident": "echo",
+        "job": "repair",
+        "delta": 1
+      }
+    },
+    {
+      "second": 11015,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-enqueue",
+        "definition": "O02-3"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-handoff",
+        "outpost": "O02"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 4,
+      "action": {
+        "type": "outpost-seal",
+        "confirmClear": true
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 4,
+      "action": {
+        "type": "story",
+        "node": "L04-4"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 5,
+      "action": {
+        "type": "assign",
+        "resident": "shadow",
+        "job": "salvage",
+        "delta": 1,
+        "district": "district-1"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 5,
+      "action": {
+        "type": "assign",
+        "resident": "echo",
+        "job": "record",
+        "delta": 1,
+        "district": "district-2"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 5,
+      "action": {
+        "type": "story",
+        "node": "L05-1"
+      }
+    },
+    {
+      "second": 11315,
+      "chapter": 5,
+      "action": {
+        "type": "enqueue",
+        "definition": "P13",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 11665,
+      "chapter": 5,
+      "action": {
+        "type": "story",
+        "node": "L05-2"
+      }
+    },
+    {
+      "second": 11665,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-storage",
+        "enabled": true,
+        "target": 300,
+        "reserve": {
+          "energy": 30000,
+          "parts": 0,
+          "memory": 10000,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 11665,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-toggle",
+        "enabled": true
+      }
+    },
+    {
+      "second": 11665,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-add",
+        "route": "rain",
+        "mode": "normal",
+        "delay": 1
+      }
+    },
+    {
+      "second": 11665,
+      "chapter": 5,
+      "action": {
+        "type": "dispatch",
+        "route": "rain",
+        "direction": "outbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 12265,
+      "chapter": 5,
+      "action": {
+        "type": "enqueue",
+        "definition": "P14",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 12535,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-add",
+        "route": "station",
+        "mode": "normal",
+        "delay": 0
+      }
+    },
+    {
+      "second": 12535,
+      "chapter": 5,
+      "action": {
+        "type": "dispatch",
+        "route": "station",
+        "direction": "outbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 13105,
+      "chapter": 5,
+      "action": {
+        "type": "enqueue",
+        "definition": "P15",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 13415,
+      "chapter": 5,
+      "action": {
+        "type": "story",
+        "node": "L05-3"
+      }
+    },
+    {
+      "second": 13415,
+      "chapter": 5,
+      "action": {
+        "type": "enqueue",
+        "definition": "P16",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 13855,
+      "chapter": 5,
+      "action": {
+        "type": "story",
+        "node": "L05-4"
+      }
+    },
+    {
+      "second": 13855,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-storage-pause"
+      }
+    },
+    {
+      "second": 13855,
+      "chapter": 5,
+      "action": {
+        "type": "calendar-toggle",
+        "enabled": false
+      }
+    },
+    {
+      "second": 13855,
+      "chapter": 6,
+      "action": {
+        "type": "story",
+        "node": "L06-1"
+      }
+    },
+    {
+      "second": 13855,
+      "chapter": 6,
+      "action": {
+        "type": "enqueue",
+        "definition": "P17",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 14125,
+      "chapter": 6,
+      "action": {
+        "type": "story",
+        "node": "L06-2"
+      }
+    },
+    {
+      "second": 14125,
+      "chapter": 6,
+      "action": {
+        "type": "covenant-confirm",
+        "selected": [
+          "preserve"
+        ],
+        "reserve": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 14185,
+      "chapter": 6,
+      "action": {
+        "type": "covenant-confirm",
+        "selected": [
+          "extend"
+        ],
+        "reserve": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 14185,
+      "chapter": 6,
+      "action": {
+        "type": "enqueue",
+        "definition": "P18",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 14465,
+      "chapter": 6,
+      "action": {
+        "type": "story",
+        "node": "L06-3"
+      }
+    },
+    {
+      "second": 14465,
+      "chapter": 6,
+      "action": {
+        "type": "covenant-confirm",
+        "selected": [
+          "coexist"
+        ],
+        "reserve": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 14525,
+      "chapter": 6,
+      "action": {
+        "type": "dispatch",
+        "route": "rain",
+        "direction": "outbound",
+        "loads": 1
+      }
+    },
+    {
+      "second": 14645,
+      "chapter": 6,
+      "action": {
+        "type": "covenant-confirm",
+        "selected": [
+          "extend",
+          "coexist"
+        ],
+        "reserve": {
+          "energy": 0,
+          "parts": 0,
+          "memory": 0,
+          "component": 0,
+          "rainFilm": 0,
+          "railCore": 0
+        }
+      }
+    },
+    {
+      "second": 14705,
+      "chapter": 6,
+      "action": {
+        "type": "enqueue",
+        "definition": "P19",
+        "district": "district-0"
+      }
+    },
+    {
+      "second": 15055,
+      "chapter": 6,
+      "action": {
+        "type": "story",
+        "node": "L06-4"
+      }
+    },
+    {
+      "second": 15055,
+      "chapter": 6,
+      "action": {
+        "type": "covenant-pause"
+      }
+    }
+  ]
+}
